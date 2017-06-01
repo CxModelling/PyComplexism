@@ -190,7 +190,7 @@ class AbsBluePrint(metaclass=ABCMeta):
         """
         if isinstance(sm, SimulationModel):
             self.SimulationCore = sm
-        self.__pc = self.SimulationCore.sample_core()
+        self.ExCore = self.SimulationCore.sample_core()
 
     @abstractmethod
     def generate_model(self, suffix=''):
