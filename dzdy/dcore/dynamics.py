@@ -1,6 +1,5 @@
 from abc import abstractmethod, abstractstaticmethod, ABCMeta
 from pcore import DirectedAcyclicGraph, SimulationModel
-from dzdy import *
 
 
 class Event:
@@ -58,8 +57,8 @@ class Transition:
 
 
 class State:
-    def __init__(self, val, desc, mod):
-        self.Value = val
+    def __init__(self, name, desc, mod):
+        self.Name = name
         self.Description = desc
         self.Model = mod
 
@@ -107,10 +106,10 @@ class State:
         return self.Model.isa(self, sub)
 
     def __repr__(self):
-        return "State({}: {})".format(self.Value, self.Description)
+        return "State({}: {})".format(self.Name, self.Description)
 
     def __str__(self):
-        return str(self.Value)
+        return str(self.Name)
 
 
 class AbsDynamicModel(metaclass=ABCMeta):

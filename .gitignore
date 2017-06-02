@@ -1,6 +1,6 @@
 # Byte-compiled / optimized / DLL files
 __pycache__/
-*.py[cod]
+
 *$py.class
 
 # C extensions
@@ -149,3 +149,8 @@ com_crashlytics_export_strings.xml
 crashlytics.properties
 crashlytics-build.properties
 fabric.properties
+.idea/Kamanian.iml
+.idea/inspectionProfiles/
+.idea/misc.xml
+.idea/modules.xml
+docs/

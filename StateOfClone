@@ -1,0 +1,17 @@
+find simulation core
+create new parameter core
+find difference
+clone dynamic core
+clone agent
+    set name
+    set state
+    set info
+    set trans (diff or not)
+
+clone fill-up
+clone population
+
+
+clone modifiers
+put modifiers in agent
+

@@ -1,7 +1,6 @@
 import json
 from itertools import product
 from collections import OrderedDict
-from .dynamics import *
 from dcore.dynamics import *
 
 __author__ = 'TimeWz667'
@@ -160,20 +159,30 @@ class BluePrintCTBN(AbsBluePrint):
         self.Transitions[tr] = {'To': to, 'Dist': dist}
         return True
 
-
     def link_state_transition(self, st, tr):
         if tr not in self.Transitions:
-            print('Transition does not exist')
-            return
+            raise KeyError('Transition {} does not exist'.format(tr))
+
         self.Targets[st].append(tr)
+        return True
 
     def link_state_transitions(self, st, trs):
-        for tr in trs:
-            self.link_state_transition(st, tr)
+        try:
+            for tr in trs:
+                self.link_state_transition(st, tr)
+        except KeyError as e:
+            raise e
+        else:
+            return True
 
     def link_states_transition(self, sts, tr):
-        for st in sts:
-            self.link_state_transition(st, tr)
+        try:
+            for st in sts:
+                self.link_state_transition(st, tr)
+        except KeyError as e:
+            raise e
+        else:
+            return True
 
     def to_json(self):
         js = dict()
