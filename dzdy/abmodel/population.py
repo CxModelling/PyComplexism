@@ -1,4 +1,4 @@
-from abmodel import Agent, NetworkBA, NetworkSet, FillUpSet
+from dzdy.abmodel import Agent, NetworkBA, NetworkSet, FillUpSet
 import pandas as pd
 from collections import OrderedDict
 

@@ -1,5 +1,5 @@
-from dcore import Event
-from abmodel import ModifierSet
+from dzdy.dcore import Event
+from dzdy.abmodel import ModifierSet
 
 __author__ = 'TimeWz667'
 

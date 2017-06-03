@@ -1,6 +1,6 @@
-from abmodel import RealTimeBehaviour, StateInTrigger, StateTrigger, TimeBe, TimeModBe, DirectModifier
-from mcore import Clock
-from dcore import Event
+from dzdy.abmodel import RealTimeBehaviour, StateInTrigger, StateTrigger, TimeBe, TimeModBe, DirectModifier
+from dzdy.mcore import Clock
+from dzdy.dcore import Event
 import numpy as np
 import pandas as pd
 import numpy.random as rd

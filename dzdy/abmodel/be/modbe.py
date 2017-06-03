@@ -1,6 +1,6 @@
-from abmodel.behaviour import *
-from abmodel.trigger import *
-from abmodel.modifier import *
+from dzdy.abmodel.behaviour import *
+from dzdy.abmodel.trigger import *
+from dzdy.abmodel.modifier import *
 import numpy.random as rd
 
 __author__ = 'TimeWz667'

@@ -1,5 +1,5 @@
 import re
-from dcore import *
+from dzdy.dcore import *
 
 __author__ = 'TimeWz667'
 

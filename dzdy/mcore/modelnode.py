@@ -1,5 +1,5 @@
 from abc import ABCMeta, abstractmethod
-from mcore.request import *
+from dzdy.mcore.request import *
 
 __author__ = 'TimeWz667'
 

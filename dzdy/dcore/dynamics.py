@@ -166,11 +166,8 @@ class AbsDynamicModel(metaclass=ABCMeta):
 
 
 class AbsBluePrint(metaclass=ABCMeta):
-    def __init__(self, name, sm):
+    def __init__(self, name):
         self.__Name = name
-        if isinstance(sm, str):
-            self.SimulationCore = DirectedAcyclicGraph(sm).get_simulation_model()
-        self.ExCore = self.SimulationCore.sample_core()
 
     @property
     def Name(self):
@@ -181,18 +178,14 @@ class AbsBluePrint(metaclass=ABCMeta):
     def from_json(js):
         pass
 
-    def update_model(self, sm=None):
-        """
-        Inject new simulation core (pcore.SimulationModel)
-        :param sm: pcore.SimulationModel, new simulaitonModel
-        :return: none,
-        """
-        if isinstance(sm, SimulationModel):
-            self.SimulationCore = sm
-        self.ExCore = self.SimulationCore.sample_core()
-
     @abstractmethod
-    def generate_model(self, suffix=''):
+    def generate_model(self, pc, name):
+        """
+        use a parameter core to generate a dynamic model
+        :param name: name of dynamic core
+        :param pc: parameter core with all transition pdf
+        :return: a dynamic core
+        """
         pass
 
     @abstractmethod

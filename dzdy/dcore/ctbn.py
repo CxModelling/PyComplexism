@@ -1,7 +1,7 @@
 import json
 from itertools import product
 from collections import OrderedDict
-from dcore.dynamics import *
+from dzdy.dcore.dynamics import *
 
 __author__ = 'TimeWz667'
 
@@ -95,8 +95,8 @@ class BluePrintCTBN(AbsBluePrint):
         bp = BluePrintCTBN(js['ModelName'])
         for ms in js['Order']:
             bp.add_microstate(ms, js['Microstates'][ms])
-        for st, (ms, desc) in js['States'].items():
-            bp.add_state(st, desc, **ms)
+        for st, std in js['States'].items():
+            bp.add_state(st, std['Desc'], **std['Details'])
         for tr, trd in js['Transitions'].items():
             bp.add_transition(tr, trd['To'], trd['Dist'])
         for fr, trs in js['Targets'].items():
@@ -104,12 +104,12 @@ class BluePrintCTBN(AbsBluePrint):
                 bp.link_state_transition(fr, tr)
         return bp
 
-    def __init__(self, name, sm):
-        AbsBluePrint.__init__(self, name, sm)
+    def __init__(self, name):
+        AbsBluePrint.__init__(self, name)
         self.Microstates = OrderedDict()  # Name -> array of states
-        self.States = OrderedDict()  # Nick name -> (conbination of microstates, description)
-        self.Transitions = OrderedDict()  # Name -> (event, distribution)
-        self.Targets = OrderedDict()  # StateName -> TransitionNames
+        self.States = dict()  # Nick name -> (combination of microstates, description)
+        self.Transitions = dict()  # Name -> (event, distribution)
+        self.Targets = dict()  # StateName -> TransitionNames
 
     def add_microstate(self, mst, arr):
         if mst in self.Microstates:
@@ -122,7 +122,7 @@ class BluePrintCTBN(AbsBluePrint):
         desc = desc if desc else state
         if not kwargs:
             return False
-        mss = OrderedDict()
+        mss = dict()
         for k in self.Microstates.keys():
             if k not in kwargs:
                 continue
@@ -139,7 +139,7 @@ class BluePrintCTBN(AbsBluePrint):
                 except KeyError:
                     print('Wrong Index')
                     return False
-        self.States[state] = mss, desc
+        self.States[state] = {'Details': mss, 'Desc': desc}
         self.Targets[state] = list()
         return True
 
@@ -154,15 +154,13 @@ class BluePrintCTBN(AbsBluePrint):
         self.add_state(to)
         if not dist:
             dist = tr
-        if dist not in self.ExCore.Distributions:
-            raise KeyError('Distribution {} does not exist'.format(dist))
         self.Transitions[tr] = {'To': to, 'Dist': dist}
         return True
 
     def link_state_transition(self, st, tr):
+        self.add_state(st)
         if tr not in self.Transitions:
             raise KeyError('Transition {} does not exist'.format(tr))
-
         self.Targets[st].append(tr)
         return True
 
@@ -188,21 +186,24 @@ class BluePrintCTBN(AbsBluePrint):
         js = dict()
         js['ModelType'] = 'CTBN'
         js['ModelName'] = self.Name
-        js['Microstates'] = self.Microstates
-        js['States'] = self.States
-        js['Transitions'] = self.Transitions
-        js['Targets'] = self.Targets
+        js['Microstates'] = dict(self.Microstates)
+        js['States'] = dict(self.States)
+        js['Transitions'] = dict(self.Transitions)
+        js['Targets'] = dict(self.Targets)
         js['Order'] = list(self.Microstates.keys())
-        js = {'dcore': js, 'pcore': self.SimulationCore.DAG.to_json()}
-        return json.dumps(js)
+        return js
 
     def __repr__(self):
         return str(self.to_json())
 
-    def generate_model(self, suffix=''):
-        pc = self.SimulationCore.sample_core()
+    def generate_model(self, pc, mn=None):
         mss = {k: MicroNode(k, v) for k, v in self.Microstates.items()}
-        nat = {str(od): (n, desc) for n, (od, desc) in self.States.items()}
+
+        def align_sts(det):
+            ods = OrderedDict([(ms, det[ms]) for ms in self.Microstates.keys() if ms in det])
+            return str(ods)
+
+        nat = {align_sts(node['Details']): (st, node['Desc']) for st, node in self.States.items()}
         iat = dict()
         for st in product(*[val + [None] for val in self.Microstates.values()]):
             arr = [(k, v) for k, v in zip(self.Microstates.keys(), st) if v]
@@ -229,7 +230,7 @@ class BluePrintCTBN(AbsBluePrint):
                 to, _ = nat[str(to_st)]
                 lif[sts[tr]] = sts[to]
             ls[sts[fr]] = lif
-
+        print(sts)
         trs = dict()
         for name, tr in self.Transitions.items():
             trs[name] = Transition(name, sts[tr['To']], pc.get_distribution(tr['Dist']))
@@ -241,15 +242,9 @@ class BluePrintCTBN(AbsBluePrint):
                 if fr in subs[k]:
                     v += [trs[tr] for tr in ts]
 
-        mn = '{}_{}'.format(self.Name, suffix) if suffix else self.Name
-        js = dict()
-        js['ModelType'] = 'CTBN'
-        js['ModelName'] = mn
-        js['Microstates'] = self.Microstates
-        js['States'] = self.States
-        js['Transitions'] = {name: {'To': tr.State.Value, 'Dist': str(tr.Dist)} for name, tr in trs.items()}
-        js['Targets'] = self.Targets
-        js['Order'] = list(self.Microstates.keys())
+        mn = mn if mn else self.Name
+
+        js = self.to_json()
 
         mod = ModelCTBN(mn, mss, sts, wds, subs, ls, trs, tars, js)
         for val in sts.values():

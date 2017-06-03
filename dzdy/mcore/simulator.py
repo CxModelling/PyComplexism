@@ -1,4 +1,4 @@
-from mcore import *
+from dzdy.mcore import *
 
 __author__ = 'TimeWz667'
 

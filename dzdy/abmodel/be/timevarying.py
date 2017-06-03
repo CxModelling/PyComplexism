@@ -1,4 +1,4 @@
-from abmodel import *
+from dzdy.abmodel import *
 import numpy as np
 from scipy import interpolate
 

@@ -1,5 +1,5 @@
-from mcore import Observer, LeafModel, Request
-from abmodel import Population, ForeignShock
+from dzdy.mcore import Observer, LeafModel, Request
+from dzdy.abmodel import Population, ForeignShock
 from collections import namedtuple, OrderedDict
 
 __author__ = 'TimeWz667'

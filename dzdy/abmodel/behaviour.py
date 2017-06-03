@@ -1,7 +1,7 @@
 from abc import ABCMeta, abstractmethod, abstractstaticmethod
-from abmodel.trigger import *
-from dcore import Event
-from mcore import Clock
+from dzdy.abmodel.trigger import *
+from dzdy.dcore import Event
+from dzdy.mcore import Clock
 
 __author__ = 'TimeWz667'
 

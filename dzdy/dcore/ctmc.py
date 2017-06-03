@@ -1,6 +1,5 @@
 import json
-from collections import OrderedDict
-from dcore.dynamics import *
+from dzdy.dcore.dynamics import *
 
 
 class ModelCTMC(AbsDynamicModel):
@@ -38,7 +37,9 @@ class ModelCTMC(AbsDynamicModel):
 class BluePrintCTMC(AbsBluePrint):
     @staticmethod
     def from_json(js):
-        js = json.loads(js)
+        if isinstance(js, str):
+            js = json.loads(js)
+
         bp = BluePrintCTMC(js['ModelName'])
         for st, desc in js['States'].items():
             bp.add_state(st, desc)
@@ -49,8 +50,8 @@ class BluePrintCTMC(AbsBluePrint):
                 bp.link_state_transition(fr, tr)
         return bp
 
-    def __init__(self, name, sm='{}'):
-        AbsBluePrint.__init__(self, name, sm)
+    def __init__(self, name):
+        AbsBluePrint.__init__(self, name)
         self.States = dict()  # Nick name -> full desc
         self.Transitions = dict()  # Name -> (event, distribution)
         self.Targets = dict()  # StateName -> TransitionNames
@@ -75,8 +76,7 @@ class BluePrintCTMC(AbsBluePrint):
         self.add_state(to)
         if not dist:
             dist = tr
-        if dist not in self.ExCore.Distributions:
-            raise KeyError('Distribution {} does not exist'.format(dist))
+
         self.Transitions[tr] = {'To': to, 'Dist': dist}
         return True
 
@@ -88,24 +88,22 @@ class BluePrintCTMC(AbsBluePrint):
         self.Targets[state].append(tr)
         return True
 
-    def to_json(self, ind=None):
+    def to_json(self):
         js = dict()
         js['ModelType'] = 'CTMC'
         js['ModelName'] = self.Name
         js['States'] = self.States
         js['Transitions'] = self.Transitions
         js['Targets'] = self.Targets
-        js = {'dcore': js, 'pcore': self.SimulationCore.DAG.to_json()}
-        return json.dumps(js, sort_keys=True, indent=ind)
+        return js
 
     def __repr__(self):
         return str(self.to_json())
 
     def __str__(self):
-        return str(self.to_json(4))
+        return str(self.to_json())
 
-    def generate_model(self, suffix=''):
-        pc = self.SimulationCore.sample_core()
+    def generate_model(self, pc, mn=None):
         sts = {k: State(k, desc, None) for k, desc in self.States.items()}
         trs = dict()
         for name, tr in self.Transitions.items():
@@ -113,15 +111,9 @@ class BluePrintCTMC(AbsBluePrint):
 
         tars = {stv: [trs[tar] for tar in self.Targets[stk]] for stk, stv in sts.items()}
 
-        mn = '{}_{}'.format(self.Name, suffix) if suffix else self.Name
+        mn = mn if mn else self.Name
 
-        js = dict()
-        js['ModelType'] = 'CTMC'
-        js['ModelName'] = mn
-        js['States'] = self.States
-        js['Transitions'] = {name: {'To': tr.State.Value, 'Dist': str(tr.Dist)} for name, tr in trs.items()}
-        js['Targets'] = self.Targets
-        js = json.dumps(js, sort_keys=True)
+        js = self.to_json()
 
         mod = ModelCTMC(mn, sts, trs, tars, js)
         for val in sts.values():
