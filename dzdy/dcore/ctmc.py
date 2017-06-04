@@ -41,8 +41,8 @@ class BluePrintCTMC(AbsBluePrint):
             js = json.loads(js)
 
         bp = BluePrintCTMC(js['ModelName'])
-        for st, desc in js['States'].items():
-            bp.add_state(st, desc)
+        for st in js['States']:
+            bp.add_state(st)
         for tr, trd in js['Transitions'].items():
             bp.add_transition(tr, trd['To'], trd['Dist'])
         for fr, trs in js['Targets'].items():
