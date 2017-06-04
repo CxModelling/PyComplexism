@@ -57,9 +57,8 @@ class Transition:
 
 
 class State:
-    def __init__(self, name, desc, mod):
+    def __init__(self, name, mod=None):
         self.Name = name
-        self.Description = desc
         self.Model = mod
 
     def next_transition(self, to):
@@ -106,7 +105,7 @@ class State:
         return self.Model.isa(self, sub)
 
     def __repr__(self):
-        return "State({}: {})".format(self.Name, self.Description)
+        return str(self.Name)
 
     def __str__(self):
         return str(self.Name)

@@ -52,16 +52,15 @@ class BluePrintCTMC(AbsBluePrint):
 
     def __init__(self, name):
         AbsBluePrint.__init__(self, name)
-        self.States = dict()  # Nick name -> full desc
+        self.States = list()
         self.Transitions = dict()  # Name -> (event, distribution)
         self.Targets = dict()  # StateName -> TransitionNames
 
-    def add_state(self, state, desc=None):
+    def add_state(self, state):
         if state in self.States:
             return False
-        desc = desc if desc else state
 
-        self.States[state] = desc
+        self.States.append(state)
         self.Targets[state] = list()
         return True
 
@@ -104,7 +103,7 @@ class BluePrintCTMC(AbsBluePrint):
         return str(self.to_json())
 
     def generate_model(self, pc, mn=None):
-        sts = {k: State(k, desc, None) for k, desc in self.States.items()}
+        sts = {k: State(k) for k in self.States}
         trs = dict()
         for name, tr in self.Transitions.items():
             trs[name] = Transition(name, sts[tr['To']], pc.get_distribution(tr['Dist']))

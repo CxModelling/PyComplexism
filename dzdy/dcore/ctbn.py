@@ -19,6 +19,8 @@ class MicroState:
     def __repr__(self):
         return self.Des
 
+    __str__ = __repr__
+
 MicroState.NullState = MicroState("_")
 
 
@@ -107,7 +109,7 @@ class BluePrintCTBN(AbsBluePrint):
     def __init__(self, name):
         AbsBluePrint.__init__(self, name)
         self.Microstates = OrderedDict()  # Name -> array of states
-        self.States = dict()  # Nick name -> (combination of microstates, description)
+        self.States = dict()  # Nick name -> combination of microstates
         self.Transitions = dict()  # Name -> (event, distribution)
         self.Targets = dict()  # StateName -> TransitionNames
 
@@ -116,10 +118,10 @@ class BluePrintCTBN(AbsBluePrint):
             return False
         self.Microstates[mst] = arr
 
-    def add_state(self, state, desc=None, **kwargs):
+    def add_state(self, state, **kwargs):
         if state in self.States:
             return False
-        desc = desc if desc else state
+
         if not kwargs:
             return False
         mss = dict()
@@ -131,15 +133,14 @@ class BluePrintCTBN(AbsBluePrint):
                 if v in self.Microstates[k]:
                     mss[k] = v
                 else:
-                    print('Microstate does not exist')
-                    return False
+                    raise KeyError('Microstate does not exist')
+
             else:
                 try:
                     mss[k] = self.Microstates[k][v]
                 except KeyError:
-                    print('Wrong Index')
-                    return False
-        self.States[state] = {'Details': mss, 'Desc': desc}
+                    raise IndexError('Wrong Index')
+        self.States[state] = mss
         self.Targets[state] = list()
         return True
 
@@ -203,34 +204,34 @@ class BluePrintCTBN(AbsBluePrint):
             ods = OrderedDict([(ms, det[ms]) for ms in self.Microstates.keys() if ms in det])
             return str(ods)
 
-        nat = {align_sts(node['Details']): (st, node['Desc']) for st, node in self.States.items()}
+        nat = {align_sts(nodes): st for st, nodes in self.States.items()}
         iat = dict()
         for st in product(*[val + [None] for val in self.Microstates.values()]):
             arr = [(k, v) for k, v in zip(self.Microstates.keys(), st) if v]
             od = OrderedDict(arr)
             try:
-                name, desc = nat[str(od)]
+                name = nat[str(od)]
             except KeyError:
-                name = desc = '[{}]'.format(', '.join('{}={}'.format(*v) for v in arr))
-                nat[str(od)] = name, desc
+                name = '[{}]'.format(', '.join('{}={}'.format(*v) for v in arr))
+                nat[str(od)] = name
             ad = [mss[k][v] for k, v in od.items()]
-            iat[name] = desc, ad, od
+            iat[name] = ad, od
 
-        sts = {k: State(k, v[0], None) for k, v in iat.items()}
+        sts = {k: State(k) for k in iat.keys()}
         wds = [k for k, v in iat.items() if len(v[1]) == len(mss)]
-        subs = {sts[k]: [sts[s] for s, sv in iat.items() if set(sv[1]) <= set(iat[k][1])] for k in wds}
+        subs = {sts[k]: [sts[s] for s, sv in iat.items() if set(sv[0]) <= set(iat[k][0])] for k in wds}
 
         ls = dict()
         for fr in wds:
-            fr_st = iat[fr][2]
+            fr_st = iat[fr][1]
             lif = dict()
             for tr, tr_st in iat.items():
                 to_st = fr_st.copy()
-                to_st.update(tr_st[2])
-                to, _ = nat[str(to_st)]
+                to_st.update(tr_st[1])
+                to = nat[str(to_st)]
                 lif[sts[tr]] = sts[to]
             ls[sts[fr]] = lif
-        print(sts)
+
         trs = dict()
         for name, tr in self.Transitions.items():
             trs[name] = Transition(name, sts[tr['To']], pc.get_distribution(tr['Dist']))

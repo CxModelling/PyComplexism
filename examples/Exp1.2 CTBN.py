@@ -1,4 +1,5 @@
 from dzdy.dcore import *
+import pcore
 
 __author__ = 'TimeWz667'
 
@@ -10,7 +11,9 @@ psc = """
     }
     """
 
-bp_test = BluePrintCTBN('SIR', psc)
+pc = pcore.DirectedAcyclicGraph(psc).get_simulation_model().sample_core()
+
+bp_test = BluePrintCTBN('SIR')
 bp_test.add_microstate('sir', ['S', 'I', 'R'])
 bp_test.add_microstate('life', ['Alive', 'Dead'])
 
@@ -26,7 +29,7 @@ bp_test.link_state_transition('Sus', 'Infect')
 bp_test.link_state_transition('Inf', 'Recov')
 bp_test.link_state_transition('Alive', 'Die')
 
-md_test = bp_test.generate_model()
+md_test = bp_test.generate_model(pc)
 print(md_test)
 
 state_test = md_test['Sus']

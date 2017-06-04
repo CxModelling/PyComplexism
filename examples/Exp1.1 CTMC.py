@@ -1,4 +1,5 @@
 from dzdy.dcore import *
+import pcore
 
 __author__ = 'TimeWz667'
 
@@ -10,7 +11,9 @@ psc = """
     }
     """
 
-bp_test = BluePrintCTMC('Test', psc)
+pc = pcore.DirectedAcyclicGraph(psc).get_simulation_model().sample_core()
+
+bp_test = BluePrintCTMC('Test')
 print(bp_test.to_json())
 
 bp_test.add_state('A')
@@ -27,7 +30,7 @@ bp_test.link_state_transition('C', 'TrCA')
 print(bp_test.Targets)
 
 print(bp_test.to_json())
-md_test = bp_test.generate_model()
+md_test = bp_test.generate_model(pc)
 state_test = md_test['A']
 evt_test = state_test.next_event()
 print(repr(state_test))
