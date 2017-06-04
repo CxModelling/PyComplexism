@@ -93,12 +93,16 @@ class ModelCTBN(AbsDynamicModel):
 class BluePrintCTBN(AbsBluePrint):
     @staticmethod
     def from_json(js):
-        js = json.loads(js)
+        if isinstance(js, str):
+            js = json.loads(js)
         bp = BluePrintCTBN(js['ModelName'])
-        for ms in js['Order']:
-            bp.add_microstate(ms, js['Microstates'][ms])
+        if 'Order' in js:
+            for ms in js['Order']:
+                bp.add_microstate(ms, js['Microstates'][ms])
+        for ms, vs in js['Microstates'].items():
+            bp.add_microstate(ms, vs)
         for st, std in js['States'].items():
-            bp.add_state(st, std['Desc'], **std['Details'])
+            bp.add_state(st, **std)
         for tr, trd in js['Transitions'].items():
             bp.add_transition(tr, trd['To'], trd['Dist'])
         for fr, trs in js['Targets'].items():
