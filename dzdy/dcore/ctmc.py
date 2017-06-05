@@ -118,3 +118,6 @@ class BluePrintCTMC(AbsBluePrint):
         for val in sts.values():
             val.Model = mod
         return mod
+
+    def is_compatible(self, pc):
+        return all([tr['Dist'] in pc.Distributions for tr in self.Transitions.values()])
