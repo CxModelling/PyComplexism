@@ -101,6 +101,6 @@ if __name__ == '__main__':
 
     fs_js = fs_test.to_json()
     fs_test = FillUpSet()
-    for js in fs_js:
-        fs_test.append_json(json.dumps(js))
+    for j in fs_js:
+        fs_test.append_json(json.dumps(j))
     print(fs_test)

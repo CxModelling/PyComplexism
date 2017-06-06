@@ -38,7 +38,7 @@ def check_arguments(mod, be_type, kwargs):
 
 def install_behaviour(mod, be_name, be_type, kwargs):
     if check_arguments(mod, be_type, kwargs):
-        BehaviourLibrary[be_type]['Type'].decorate(mod, be_name, **kwargs)
+        BehaviourLibrary[be_type]['Type'].decorate(be_name, mod, **kwargs)
 
 
 register_behaviour('Reincarnation', ['s_birth', 's_death'])

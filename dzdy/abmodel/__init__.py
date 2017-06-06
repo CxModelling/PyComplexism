@@ -8,3 +8,4 @@ from dzdy.abmodel.behaviour import *
 from dzdy.abmodel.summary import *
 from dzdy.abmodel.be import *
 from dzdy.abmodel.abm import *
+from dzdy.abmodel.abmodeller import *

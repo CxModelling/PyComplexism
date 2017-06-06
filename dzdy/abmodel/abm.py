@@ -34,7 +34,7 @@ class ObsABM(Observer):
         self.Last["Time"] = ti
 
         for st in self.ObsSt:
-            self.Last['P.{}'.format(st.Value)] = model.Pop.count(st)
+            self.Last['P.{}'.format(st.Name)] = model.Pop.count(st)
 
         for tr in self.ObsTr:
             self.Last['I.{}'.format(tr.Name)] = sum(rec.Tr == tr for rec in self.Recs)
@@ -184,7 +184,7 @@ class AgentBasedModel(LeafModel):
 
     @property
     def agents(self):
-        return self.Pop.Agents
+        return self.Pop.Agents.values()
 
     def output(self):
         return self.Obs.observation
