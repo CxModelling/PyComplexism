@@ -51,21 +51,19 @@ class ObsABM(Observer):
 
 
 class AgentBasedModel(LeafModel):
-    def __init__(self, name, dc, pc, **kwargs):
+    def __init__(self, name, dc, pc, ag_prefix='Ag'):
         LeafModel.__init__(self, name)
-        self.Obs = ObsABM()
-        self.Pop = Population(dc, **kwargs)
         self.DCore = dc
         self.PCore = pc
+
+        self.Obs = ObsABM()
+        self.Pop = Population(dc, ag_prefix)
         self.Behaviours = OrderedDict()
 
     def __getitem__(self, item):
         return self.Obs.Last[item]
 
-    def set_seed(self, seed=1167):
-        self.DCore.seed = 1167
-
-    def add_obs_state(self, st):
+    def add_obs_st(self, st):
         if st in self.DCore.States:
             self.Obs.add_obs_atr(self.DCore.States[st])
 

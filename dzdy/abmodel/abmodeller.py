@@ -1,5 +1,5 @@
 from dzdy.mcore import AbsDirector
-from dzdy.abmodel import AgentBasedModel, install_behaviour
+from dzdy.abmodel import AgentBasedModel, install_behaviour, install_network
 __author__ = 'TimeWz667'
 
 
@@ -39,10 +39,12 @@ class AgentBasedModelBluePrint:
         mod = AgentBasedModel(name, dc, pc)
         for k, v in self.Behaviours.items():
             install_behaviour(mod, k, v['Type'], v['Args'])
+        for k, v in self.Networks.items():
+            install_network(mod, k, v['Type'], v['Args'])
         sts, trs, bes = self.Obs_s_t_b
         if sts:
             for st in sts:
-                mod.add_obs_state(st)
+                mod.add_obs_st(st)
         if trs:
             for tr in trs:
                 mod.add_obs_tr(tr)

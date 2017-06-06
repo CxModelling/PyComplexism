@@ -118,10 +118,10 @@ class NetworkSet:
     def __getitem__(self, item):
         return self.Nets[item]
 
-    def reform(self, **kwargs):
-        if 'net' in kwargs:
+    def reform(self, net=None):
+        if net:
             try:
-                self.Nets[kwargs['net']].reform()
+                self.Nets[net].reform()
             except KeyError:
                 raise KeyError('Not this net')
         else:
@@ -169,10 +169,30 @@ class NetworkSet:
         return '[{}]'.format('\n'.join(['\t{}: {}'.format(*it) for it in self.Nets.items()]))
 
 
+NetworkLibrary = dict()
+
+
+def register_network(name, args):
+    NetworkLibrary[name] = {'Type': eval('Network{}'.format(name)), 'Args': args}
+
+
+def get_network(net_type, kwargs):
+    return NetworkLibrary[net_type]['Type'](**kwargs)
+
+
+def install_network(mod, net_name, net_type, kwargs):
+    net = get_network(net_type, kwargs)
+    mod.Pop.add_network(net_name, net)
+
+
+register_network('BA', ['m'])
+register_network('GNP', ['p'])
+
+
 if __name__ == '__main__':
     import matplotlib.pyplot as plt
 
-    ns1 = NetworkBA(2)
+    ns1 = get_network('BA', {'m': 2})
     ns2 = NetworkGNP(0.3)
 
     for nod in range(100):

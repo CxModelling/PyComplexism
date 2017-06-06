@@ -9,10 +9,6 @@ class AbsModel(metaclass=ABCMeta):
         self.Name = name
         self.Requests = RequestSet()
 
-    @abstractmethod
-    def set_seed(self, seed=1167):
-        pass
-
     def initialise(self, ti=None, y0=None):
         if y0:
             self.read_y0(y0, ti)
