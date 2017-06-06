@@ -14,7 +14,7 @@ class Breeder:
         try:
             st = self.States[st]
         except KeyError:
-            raise KeyError('It is not a well-defined State')
+            raise KeyError('The state is not well-defined')
         info = info if info else dict()
         start = self.Last + 1
         ags = [Agent('{}{}'.format(self.Prefix, start + i), st) for i in range(n)]
@@ -176,7 +176,7 @@ class MultilayerPopulation(Population):
         try:
             return self.Networks.neighbours_of(ag, net)
         except KeyError:
-            return KeyError('No this net')
+            raise KeyError('No this net')
 
     def add_agent(self, st, n=1, info=None):
         ags = Population.add_agent(self, st, n, info)

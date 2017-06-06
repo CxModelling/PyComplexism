@@ -51,11 +51,12 @@ class ObsABM(Observer):
 
 
 class AgentBasedModel(LeafModel):
-    def __init__(self, name, dcore, **kwargs):
+    def __init__(self, name, dc, pc, **kwargs):
         LeafModel.__init__(self, name)
         self.Obs = ObsABM()
-        self.Pop = Population(dcore, **kwargs)
-        self.DCore = dcore
+        self.Pop = Population(dc, **kwargs)
+        self.DCore = dc
+        self.PCore = pc
         self.Behaviours = OrderedDict()
 
     def __getitem__(self, item):
@@ -183,12 +184,7 @@ class AgentBasedModel(LeafModel):
 
     @property
     def agents(self):
-        for ag in self.Pop.Agents.values():
-            yield ag
-
-    def to_json(self):
-        # todo
-        pass
+        return self.Pop.Agents
 
     def output(self):
         return self.Obs.observation

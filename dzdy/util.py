@@ -14,14 +14,19 @@ class CategoricalRV:
 
         :param xp: a dictionary with keys of category names and values of probabilities.
         """
+        self.xp = xp
         self.cat = [k for k in xp.keys()]
-        self.p = [v for v in xp.values()]
+        self.p = np.array(list(xp.values()))
+        self.p = self.p / self.p.sum()
 
     def __call__(self):
         return self.rvs(1)[0]
 
     def rvs(self, n=1):
-        return choice(self.cat, n, self.p)
+        return choice(self.cat, n, p=self.p)[0]
+
+    def get_xs(self):
+        return self.xp
 
 
 class LeeCarterProcess:

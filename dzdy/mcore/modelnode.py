@@ -54,14 +54,6 @@ class AbsModel(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def to_json(self):
-        pass
-
-    @abstractmethod
-    def __deepcopy__(self):
-        pass
-
-    @abstractmethod
     def do_request(self, req):
         pass
 

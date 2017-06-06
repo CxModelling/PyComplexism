@@ -6,13 +6,13 @@ __author__ = 'TimeWz667'
 
 
 class TimeVaryingInterp(TimeModBe):
-    def __init__(self, name, ts, y, tr, dt):
-        mod = GloRateModifier(name, tr)
+    def __init__(self, name, ts, y, t_tar, dt):
+        mod = GloRateModifier(name, t_tar)
         TimeModBe.__init__(self, name, Clock(by=dt), mod)
         self.Ts = ts
         self.Y = y
         self.Func = interpolate.interp1d(ts, y, bounds_error=False, fill_value=(y[0], y[-1]))
-        self.Transition = tr
+        self.Transition = t_tar
         self.Val = 0
 
     def initialise(self, model, ti):
@@ -40,7 +40,7 @@ class TimeVaryingInterp(TimeModBe):
 
     @staticmethod
     def decorate(name, model, **kwargs):
-        tr = model.DCore.Transitions[kwargs['tr']]
+        tr = model.DCore.Transitions[kwargs['t_tar']]
         y = kwargs['y']
         dt = kwargs['dt'] if 'dt' in kwargs else np.diff(y).min()
         dt = dt if dt > 0 else 1
@@ -51,11 +51,11 @@ class TimeVaryingInterp(TimeModBe):
 
 
 class TimeVarying(TimeModBe):
-    def __init__(self, name, func, tr, dt):
-        mod = GloRateModifier(name, tr)
+    def __init__(self, name, func, t_tar, dt):
+        mod = GloRateModifier(name, t_tar)
         TimeModBe.__init__(self, name, Clock(by=dt), mod)
         self.Func = func
-        self.Transition = tr
+        self.Transition = t_tar
         self.Val = 0
 
     def initialise(self, model, ti):
@@ -79,10 +79,9 @@ class TimeVarying(TimeModBe):
 
     @staticmethod
     def decorate(name, model, **kwargs):
-        tr = model.DCore.Transitions[kwargs['tr']]
+        tr = model.DCore.Transitions[kwargs['t_tar']]
         dt = kwargs['dt'] if 'dt' in kwargs else 1
         model.Behaviours[name] = TimeVarying(name, kwargs['func'], tr, dt)
 
     def fill(self, obs, model, ti):
         obs['B.{}'.format(self.Name)] = self.Val
-
