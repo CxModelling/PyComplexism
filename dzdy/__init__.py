@@ -1,9 +1,9 @@
-from dzdy.util import *
-from dzdy.dcore import *
-from dzdy.mcore import *
-from dzdy.abmodel import *
-from dzdy.ebmodel import *
-from dzdy.multimodel import *
-from dzdy.director import *
+from .util import *
+from .dcore import *
+from .mcore import *
+from .abmodel import *
+from .ebmodel import *
+from .multimodel import *
+from .director import *
 
 __author__ = 'TimeWz667'

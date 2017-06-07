@@ -1,5 +1,5 @@
 import re
-from dzdy.dcore import *
+from dzdy.dcore import BluePrintCTBN, BluePrintCTMC
 
 __author__ = 'TimeWz667'
 
