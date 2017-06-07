@@ -37,7 +37,7 @@ class ComFDShock(ModBe):
             ag.modify(self.Name, ti)
 
     def __repr__(self):
-        opt = self.Name, self.S_src.Value, self.T_tar.Name, self.Val
+        opt = self.Name, self.S_src.Name, self.T_tar.Name, self.Val
         return 'FDShock({}, {} on {}, by={})'.format(*opt)
 
     @staticmethod
@@ -75,7 +75,7 @@ class ComFDShockFast(TimeModBe):
         return Event(self.Name, ti)
 
     def __repr__(self):
-        opt = self.Name, self.S_src.Value, self.T_tar.Name, self.Val
+        opt = self.Name, self.S_src.Name, self.T_tar.Name, self.Val
         return 'FDShock({}, {} on {}, by={})'.format(*opt)
 
     @staticmethod
@@ -120,7 +120,7 @@ class ComDDShock(ModBe):
             ag.modify(self.Name, ti)
 
     def __repr__(self):
-        opt = self.Name, self.S_src.Value, self.T_tar.Name, self.Val
+        opt = self.Name, self.S_src.Name, self.T_tar.Name, self.Val
         return 'DDShock({}, {} on {}, by={})'.format(*opt)
 
     @staticmethod
@@ -158,7 +158,7 @@ class ComDDShockFast(TimeModBe):
         return Event(self.Name, ti)
 
     def __repr__(self):
-        opt = self.Name, self.S_src.Value, self.T_tar.Name, self.Val
+        opt = self.Name, self.S_src.Name, self.T_tar.Name, self.Val
         return 'DDShock({}, {} on {}, by={})'.format(*opt)
 
     @staticmethod
@@ -199,7 +199,7 @@ class ComWeightSumShock(TimeModBe):
         return Event(self.Name, ti)
 
     def __repr__(self):
-        opt = self.Name, self.S_src.Value, self.T_tar.Name, self.Val
+        opt = self.Name, self.S_src.Name, self.T_tar.Name, self.Val
         return 'WeightSumShock({}, {} on {}, by={})'.format(*opt)
 
     @staticmethod
@@ -242,7 +242,7 @@ class ComWeightAvgShock(TimeModBe):
         return Event(self.Name, ti)
 
     def __repr__(self):
-        opt = self.Name, self.S_src.Value, self.T_tar.Name, self.Val
+        opt = self.Name, self.S_src.Name, self.T_tar.Name, self.Val
         return 'WeightAvgShock({}, {} on {}, by={})'.format(*opt)
 
     @staticmethod
@@ -259,17 +259,18 @@ class ComWeightAvgShock(TimeModBe):
 
 
 class NetShock(ModBe):
-    def __init__(self, name, s_src, t_tar):
+    def __init__(self, name, s_src, t_tar, net):
         tri = StateTrigger(s_src)
         mod = LocRateModifier(name, t_tar)
         ModBe.__init__(self, name, mod, tri)
         self.S_src = s_src
         self.T_tar = t_tar
+        self.Net = net
         self.Val = 0
 
     def initialise(self, model, ti):
         for ag in model.agents:
-            val = model.Pop.count_neighbours(ag, self.S_src)
+            val = model.Pop.count_neighbours(ag, self.S_src, net=self.Net)
             ag.shock(self.Name, val, ti)
 
     def impulse_tr(self, model, ag, ti):
@@ -282,39 +283,40 @@ class NetShock(ModBe):
         self.shock(ag, model, ti)
 
     def shock(self, ag, model, ti):
-        val = model.Pop.count_neighbours(ag, self.S_src)
+        val = model.Pop.count_neighbours(ag, self.S_src, net=self.Net)
         ag.shock(self.Name, val, ti)
-        for nei in model.Pop.neighbours(ag):
-            val = model.Pop.count_neighbours(nei, self.S_src)
+        for nei in model.Pop.neighbours(ag, net=self.Net):
+            val = model.Pop.count_neighbours(nei, self.S_src, net=self.Net)
             nei.shock(self.Name, val, ti)
 
     def __repr__(self):
-        opt = self.Name, self.S_src.Value, self.T_tar.Name, self.Val
-        return 'NetShock({}, {} on {}, FOI={})'.format(*opt)
+        opt = self.Name, self.S_src.Name, self.T_tar.Name, self.Net, self.Val
+        return 'NetShock({}, {} on {} of {}, FOI={})'.format(*opt)
 
     @staticmethod
     def decorate(name, model, **kwargs):
         s_src = model.DCore.States[kwargs['s_src']]
         t_tar = model.DCore.Transitions[kwargs['t_tar']]
-        model.Behaviours[name] = NetShock(name, s_src, t_tar)
+        model.Behaviours[name] = NetShock(name, s_src, t_tar, kwargs['net'])
 
     def fill(self, obs, model, ti):
         return obs
 
 
 class NetWeightShock(ModBe):
-    def __init__(self, name, s_src, t_tar, weight):
+    def __init__(self, name, s_src, t_tar, net, weight):
         tri = StateTrigger(s_src)
         mod = LocRateModifier(name, t_tar)
         ModBe.__init__(self, name, mod, tri)
         self.S_src = s_src
         self.T_tar = t_tar
+        self.Net = net
         self.Weight = weight
         self.Val = 0
 
     def initialise(self, model, ti):
         for ag in model.agents:
-            val = sum([model.Pop.count_neighbours(ag, k)*v for k, v in self.Weight.items()])
+            val = sum([model.Pop.count_neighbours(ag, st=k, net=self.Net)*v for k, v in self.Weight.items()])
             ag.shock(self.Name, val, ti)
 
     def impulse_tr(self, model, ag, ti):
@@ -327,15 +329,15 @@ class NetWeightShock(ModBe):
         self.shock(ag, model, ti)
 
     def shock(self, ag, model, ti):
-        val = val = sum([model.Pop.count_neighbours(ag, k)*v for k, v in self.Weight.items()])
+        val = sum([model.Pop.count_neighbours(ag, st=k, net=self.Net)*v for k, v in self.Weight.items()])
         ag.shock(self.Name, val, ti)
-        for nei in model.Pop.neighbours(ag):
-            val = sum([model.Pop.count_neighbours(nei, k) * v for k, v in self.Weight.items()])
+        for nei in model.Pop.neighbours(ag, net=self.Net):
+            val = sum([model.Pop.count_neighbours(nei, st=k, net=self.Net) * v for k, v in self.Weight.items()])
             nei.shock(self.Name, val, ti)
 
     def __repr__(self):
-        opt = self.Name, self.S_src.Value, self.T_tar.Name, self.Val
-        return 'NetShock({}, {} on {}, FOI={})'.format(*opt)
+        opt = self.Name, self.S_src.Name, self.T_tar.Name, self.Net, self.Val
+        return 'NetShock({}, {} on {} of {}, FOI={})'.format(*opt)
 
     @staticmethod
     def decorate(name, model, **kwargs):
@@ -343,7 +345,7 @@ class NetWeightShock(ModBe):
         t_tar = model.DCore.Transitions[kwargs['t_tar']]
         wt = kwargs['weight']
         wt = {model.DCore.States[k]: v for k, v in wt.items()}
-        model.Behaviours[name] = NetWeightShock(name, s_src, t_tar, wt)
+        model.Behaviours[name] = NetWeightShock(name, s_src, t_tar, kwargs['net'], wt)
 
     def fill(self, obs, model, ti):
         return obs
@@ -383,7 +385,7 @@ class NerfDecision(ModBe):
             ag.shock(self.Name, False, ti)
 
     def __repr__(self):
-        opt = self.Name, self.S_src.Value, self.T_tar.Name, self.Nerf/self.Decision
+        opt = self.Name, self.S_src.Name, self.T_tar.Name, self.Nerf/self.Decision
         return 'Nerf({}, {} on {}, Prob={})'.format(*opt)
 
     @staticmethod
@@ -431,7 +433,7 @@ class BuffDecision(ModBe):
             ag.shock(self.Name, False, ti)
 
     def __repr__(self):
-        opt = self.Name, self.S_src.Value, self.T_tar.Name, self.Buff/self.Decision
+        opt = self.Name, self.S_src.Name, self.T_tar.Name, self.Buff/self.Decision
         return 'Buff({}, {} on {}, Prob={})'.format(*opt)
 
     @staticmethod
