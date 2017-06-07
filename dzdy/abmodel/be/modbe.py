@@ -392,10 +392,13 @@ class NerfDecision(ModBe):
     def decorate(name, model, **kwargs):
         s_src = model.DCore.States[kwargs['s_src']]
         t_tar = model.DCore.Transitions[kwargs['t_tar']]
-        model.Behaviours[name] = NerfDecision(name, s_src, t_tar, kwargs['p'])
+        model.Behaviours[name] = NerfDecision(name, s_src, t_tar, kwargs['prob'])
 
     def fill(self, obs, model, ti):
-        obs['B.{}'.format(self.Name)] = self.Nerf/self.Decision
+        try:
+            obs['B.{}'.format(self.Name)] = self.Nerf/self.Decision
+        except ZeroDivisionError:
+            obs['B.{}'.format(self.Name)] = 0
 
 
 class BuffDecision(ModBe):
@@ -440,10 +443,13 @@ class BuffDecision(ModBe):
     def decorate(name, model, **kwargs):
         s_src = model.DCore.States[kwargs['s_src']]
         t_tar = model.DCore.Transitions[kwargs['t_tar']]
-        model.Behaviours[name] = BuffDecision(name, s_src, t_tar, kwargs['p'])
+        model.Behaviours[name] = BuffDecision(name, s_src, t_tar, kwargs['prob'])
 
     def fill(self, obs, model, ti):
-        obs['B.{}'.format(self.Name)] = self.Buff/self.Decision
+        try:
+            obs['B.{}'.format(self.Name)] = self.Buff/self.Decision
+        except ZeroDivisionError:
+            obs['B.{}'.format(self.Name)] = 0
 
 
 class ForeignShock(ModBe):

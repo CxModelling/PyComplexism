@@ -1,0 +1,4 @@
+Onset ~ unif(3, 10)
+Detect ~ exp(0.1)
+Fail ~ k(10)
+Cure ~ exp(0.1)

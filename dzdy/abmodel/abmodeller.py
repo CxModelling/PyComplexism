@@ -23,7 +23,7 @@ class AgentBasedModelBluePrint:
         fu.update(kwargs)
         self.FillUp.append(fu)
 
-    def add_behaviours(self, be_name, be_type, **kwargs):
+    def add_behaviour(self, be_name, be_type, **kwargs):
         if be_name in self.Behaviours:
             return
         self.Behaviours[be_name] = {'Type': be_type, 'Args': dict(kwargs)}
