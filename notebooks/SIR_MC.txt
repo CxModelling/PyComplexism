@@ -1,0 +1,14 @@
+Name = SIR_mc
+Type = CTMC
+
+Inf
+Rec
+Sus
+Dead
+
+Sus -- Infect(beta) -> Inf
+Inf -- Recov(gamma) -> Rec
+Sus -- Die -> Dead
+
+Inf -- Die
+Rec -- Die

@@ -1,0 +1,3 @@
+Die ~ exp(0.02)
+ToM ~ k(3)
+ToO ~ k(3)

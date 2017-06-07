@@ -110,7 +110,7 @@ class Agent:
     def __repr__(self):
         s = 'ID: {}, '.format(self.Name)
         s += ', '.join([str(k) + ': ' + str(v) for k, v in self.Info.items()])
-        s += ', State: ' + str(self.State.Value)
+        s += ', State: ' + str(self.State.Name)
         return s
 
     @property

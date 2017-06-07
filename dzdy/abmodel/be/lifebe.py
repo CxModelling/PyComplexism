@@ -28,7 +28,7 @@ class Reincarnation(RealTimeBehaviour):
         self.N_birth += 1
 
     def __repr__(self):
-        opt = self.Name, self.S_death.Value, self.S_birth, self.N_birth
+        opt = self.Name, self.S_death.Name, self.S_birth, self.N_birth
         return 'Reincarnation({}, Death:{}, Birth:{}, NBir:{})'.format(*opt)
 
     @staticmethod
@@ -57,7 +57,7 @@ class Cohort(RealTimeBehaviour):
         self.N_dead += 1
 
     def __repr__(self):
-        opt = self.Name, self.S_death.Value, self.N_dead
+        opt = self.Name, self.S_death.Name, self.N_dead
         return 'Cohort({}, Death:{}, NDea:{})'.format(*opt)
 
     @staticmethod
@@ -72,7 +72,7 @@ class Cohort(RealTimeBehaviour):
 class LifeRate(TimeBe):
     def __init__(self, name, s_birth, s_death, rate, dt=1):
         TimeBe.__init__(self, name, Clock(dt), StateInTrigger(s_death))
-        self.S_death = s_death.Value
+        self.S_death = s_death.Name
         self.S_birth = s_birth
         self.BirthRate = rate
         self.Dt = dt
@@ -115,7 +115,7 @@ class LifeRate(TimeBe):
 class LifeS(TimeBe):
     def __init__(self, name, s_birth, s_death, cap, rate, dt=1):
         TimeBe.__init__(self, name, Clock(dt), StateInTrigger(s_death))
-        self.S_death = s_death.Value
+        self.S_death = s_death.Name
         self.S_birth = s_birth
         self.Cap = cap
         self.Rate = rate
@@ -162,7 +162,7 @@ class LifeLeeCarter(TimeModBe):
         mod = DirectModifier(name, t_death)
         TimeModBe.__init__(self, name, Clock(by=1), mod, StateTrigger(s_death))
         self.Demography = demo
-        self.S_death = s_death.Value
+        self.S_death = s_death.Name
         self.S_birth = s_birth
         self.T_death = t_death.Name
         self.Pop0 = 0

@@ -1,0 +1,5 @@
+transmission_rate = 1.5
+rec_rate ~ triangle(0.1, 0.2, 0.3)
+beta ~ exp(transmission_rate)
+gamma ~ exp(rec_rate)
+Die ~ exp(0.02)

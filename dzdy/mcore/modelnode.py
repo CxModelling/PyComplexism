@@ -8,6 +8,7 @@ class AbsModel(metaclass=ABCMeta):
     def __init__(self, name):
         self.Name = name
         self.Requests = RequestSet()
+        self.TimeEnd = None
 
     def initialise(self, ti=None, y0=None):
         if y0:

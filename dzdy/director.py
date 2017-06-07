@@ -21,6 +21,10 @@ class DirectorABM:
         pc = pcore.DirectedAcyclicGraph(script).get_simulation_model()
         self.add_pcore(name, pc)
 
+    def load_pcore(self, name, path):
+        with open(path, 'r') as f:
+            self.read_pcore(name, str(f.read()))
+
     def restore_pcore(self, name, js):
         pc = pcore.SimulationModel.build_from_json(js)
         self.add_pcore(name, pc)
@@ -35,6 +39,10 @@ class DirectorABM:
     def read_dcore(self, script):
         bp = build_from_script(script)
         self.add_dcore(bp)
+
+    def load_dcore(self, path):
+        with open(path, 'r') as f:
+            self.read_dcore(f.read())
 
     def restore_dcore(self, js):
         bp = build_from_json(js)
@@ -51,6 +59,9 @@ class DirectorABM:
 
     def list_dcores(self):
         print(list(self.DCores.keys()))
+
+    def list_mcores(self):
+        print(list(self.MCores.keys()))
 
     def generate_pc_dc(self, pc, dc, new_name=None):
         pc = self.PCores[pc].sample_core()

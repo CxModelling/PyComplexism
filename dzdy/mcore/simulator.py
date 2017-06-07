@@ -1,4 +1,5 @@
 from dzdy.mcore import *
+import numpy.random as rd
 
 __author__ = 'TimeWz667'
 
@@ -7,7 +8,7 @@ class Simulator:
     def __init__(self, model, seed=None):
         self.Model = model
         if seed:
-            self.Model.set_seed(seed)
+            rd.seed(seed)
         self.Time = 0
         self.Receptor = RequestSet()
 
@@ -44,6 +45,7 @@ class Simulator:
             self.Receptor.clear()
 
         self.Time = end
+        self.Model.TimeEnd = end
 
 
 def simulate(model, y0, fr, to, dt=1):
@@ -56,6 +58,9 @@ def simulate(model, y0, fr, to, dt=1):
     :param dt: observation interval
     :return: data of simulation
     """
+    if model.TimeEnd:
+        print('Please use update instead of simulation')
+        return model.output()
     sim = Simulator(model)
     sim.simulate(y0, fr, to, dt)
     return model.output()
@@ -63,7 +68,7 @@ def simulate(model, y0, fr, to, dt=1):
 
 def update(model, to, dt=1):
     sim = Simulator(model)
-    sim.Time = model.Obs.Last['Time']
+    sim.Time = model.TimeEnd
     if to > sim.Time:
         sim.update(to, dt)
     return model.output()
