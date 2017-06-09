@@ -109,7 +109,8 @@ class Agent:
 
     def __repr__(self):
         s = 'ID: {}, '.format(self.Name)
-        s += ', '.join([str(k) + ': ' + str(v) for k, v in self.Info.items()])
+        if self.Info:
+            s += ', '.join([str(k) + ': ' + str(v) for k, v in self.Info.items()])
         s += ', State: ' + str(self.State.Name)
         return s
 
@@ -119,3 +120,10 @@ class Agent:
         trs = '\n'.join('\t{}@{}{}'.format(k, v, '*' if k is nxt else '') for k, v in self.Trans.items())
         info = '\n'.join('{}: {}'.format(k, v) for k, v in self.Info.items())
         return 'ID: {}\nState: {}\n{}\n\nTransitions:\n{}'.format(self.Name, self.State, info, trs)
+
+    def to_json(self):
+        js = dict()
+        js['Name'] = self.Name
+        js['Info'] = dict(self.Info)
+        js['State'] = self.State.Name
+        return js
