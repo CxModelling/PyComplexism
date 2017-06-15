@@ -40,6 +40,7 @@ class FillUpSet:
     def __str__(self):
         return str(self.to_json())
 
+
 class FillBinary:
     def __init__(self, name, prob, tf=(1, 0)):
         self.Name = name

@@ -37,6 +37,8 @@ class AgentBasedModelBluePrint:
 
     def generate(self, name, pc, dc):
         mod = AgentBasedModel(name, dc, pc)
+        for fi in self.FillUp:
+            mod.Pop.append_fill_json(fi)
         for k, v in self.Behaviours.items():
             install_behaviour(mod, k, v['Type'], v['Args'])
         for k, v in self.Networks.items():
