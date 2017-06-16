@@ -39,6 +39,9 @@ class Reincarnation(RealTimeBehaviour):
     def fill(self, obs, model, ti):
         obs['B.{}'.format(self.Name)] = self.N_birth
 
+    def match(self, be_src, ags_src, ags_new, ti):
+        self.N_birth = be_src.N_birth
+
 
 class Cohort(RealTimeBehaviour):
     def __init__(self, name, s_death):
@@ -67,6 +70,9 @@ class Cohort(RealTimeBehaviour):
 
     def fill(self, obs, model, ti):
         obs['B.{}'.format(self.Name)] = self.N_dead
+
+    def match(self, be_src, ags_src, ags_new, ti):
+        self.N_dead = be_src.N_dead
 
 
 class LifeRate(TimeBe):
@@ -110,6 +116,9 @@ class LifeRate(TimeBe):
 
     def __repr__(self):
         return 'BDbyRate({}, BirthRate={})'.format(self.Name, self.BirthRate)
+
+    def match(self, be_src, ags_src, ags_new, ti):
+        self.N_birth = be_src.N_birth
 
 
 class LifeS(TimeBe):
@@ -155,6 +164,9 @@ class LifeS(TimeBe):
 
     def __repr__(self):
         return 'S-shape({}, K={}, R={})'.format(self.Name, self.Cap, self.Rate)
+
+    def match(self, be_src, ags_src, ags_new, ti):
+        self.N_birth = be_src.N_birth
 
 
 class LifeLeeCarter(TimeModBe):
@@ -224,3 +236,7 @@ class LifeLeeCarter(TimeModBe):
         for k, v in dat.groupby('Sex').count().iterrows():
             obs['B.{}.DeaNum{}'.format(self.Name, k[0])] = float(v)
         self.Rec_Death.clear()
+
+    def match(self, be_src, ags_src, ags_new, ti):
+        for ag in ags_new.values():
+            self.register(ag, ti)

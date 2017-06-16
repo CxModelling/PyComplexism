@@ -49,6 +49,10 @@ class TimeVaryingInterp(TimeModBe):
     def fill(self, obs, model, ti):
         obs['B.{}'.format(self.Name)] = float(self.Val)
 
+    def match(self, be_src, ags_src, ags_new, ti):
+        self.Val = be_src.Val
+        for ag in ags_new.values():
+            self.register(ag, ti)
 
 class TimeVarying(TimeModBe):
     def __init__(self, name, func, t_tar, dt):
@@ -85,3 +89,7 @@ class TimeVarying(TimeModBe):
 
     def fill(self, obs, model, ti):
         obs['B.{}'.format(self.Name)] = self.Val
+
+    def match(self, be_src, ags_src, ags_new, ti):
+        for ag in ags_new.values():
+            self.register(ag, ti)

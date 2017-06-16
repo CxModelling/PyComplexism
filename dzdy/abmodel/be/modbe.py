@@ -49,6 +49,11 @@ class ComFDShock(ModBe):
     def fill(self, obs, model, ti):
         obs['B.{}'.format(self.Name)] = self.Val
 
+    def match(self, be_src, ags_src, ags_new, ti):
+        self.Val = be_src.Val
+        for ag in ags_new.values():
+            self.register(ag, ti)
+
 
 class ComFDShockFast(TimeModBe):
     def __init__(self, name, s_src, t_tar, dt):
@@ -88,6 +93,10 @@ class ComFDShockFast(TimeModBe):
     def fill(self, obs, model, ti):
         obs['B.{}'.format(self.Name)] = self.Val
 
+    def match(self, be_src, ags_src, ags_new, ti):
+        self.Val = be_src.Val
+        for ag in ags_new.values():
+            self.register(ag, ti)
 
 class ComDDShock(ModBe):
     def __init__(self, name, s_src, t_tar):
@@ -132,6 +141,11 @@ class ComDDShock(ModBe):
     def fill(self, obs, model, ti):
         obs['B.{}'.format(self.Name)] = self.Val
 
+    def match(self, be_src, ags_src, ags_new, ti):
+        self.Val = be_src.Val
+        for ag in ags_new.values():
+            self.register(ag, ti)
+
 
 class ComDDShockFast(TimeModBe):
     def __init__(self, name, s_src, t_tar, dt):
@@ -171,6 +185,10 @@ class ComDDShockFast(TimeModBe):
     def fill(self, obs, model, ti):
         obs['B.{}'.format(self.Name)] = self.Val
 
+    def match(self, be_src, ags_src, ags_new, ti):
+        self.Val = be_src.Val
+        for ag in ags_new.values():
+            self.register(ag, ti)
 
 class ComWeightSumShock(TimeModBe):
     def __init__(self, name, s_src, t_tar, weight, dt):
@@ -214,6 +232,10 @@ class ComWeightSumShock(TimeModBe):
     def fill(self, obs, model, ti):
         obs['B.{}'.format(self.Name)] = self.Val
 
+    def match(self, be_src, ags_src, ags_new, ti):
+        self.Val = be_src.Val
+        for ag in ags_new.values():
+            self.register(ag, ti)
 
 class ComWeightAvgShock(TimeModBe):
     def __init__(self, name, s_src, t_tar, weight, dt):
@@ -257,6 +279,10 @@ class ComWeightAvgShock(TimeModBe):
     def fill(self, obs, model, ti):
         obs['B.{}'.format(self.Name)] = self.Val
 
+    def match(self, be_src, ags_src, ags_new, ti):
+        self.Val = be_src.Val
+        for ag in ags_new.values():
+            self.register(ag, ti)
 
 class NetShock(ModBe):
     def __init__(self, name, s_src, t_tar, net):
@@ -301,6 +327,12 @@ class NetShock(ModBe):
 
     def fill(self, obs, model, ti):
         return obs
+
+    def match(self, be_src, ags_src, ags_new, ti):
+        self.Val = be_src.Val
+        for ag_new, ag_src in zip(ags_new.values(), ags_src.values()):
+            self.register(ag_new, ti)
+            ag_new.Mods[self.Name].Val = ag_src.Mods[self.Name].Val
 
 
 class NetWeightShock(ModBe):
@@ -349,6 +381,13 @@ class NetWeightShock(ModBe):
 
     def fill(self, obs, model, ti):
         return obs
+
+    def match(self, be_src, ags_src, ags_new, ti):
+        self.Val = be_src.Val
+        for ag_new, ag_src in zip(ags_new.values(), ags_src.values()):
+            self.register(ag_new, ti)
+            ag_new.Mods[self.Name].Val = ag_src.Mods[self.Name].Val
+
 
 
 class NerfDecision(ModBe):
@@ -399,6 +438,11 @@ class NerfDecision(ModBe):
             obs['B.{}'.format(self.Name)] = self.Nerf/self.Decision
         except ZeroDivisionError:
             obs['B.{}'.format(self.Name)] = 0
+
+    def match(self, be_src, ags_src, ags_new, ti):
+        for ag_new, ag_src in zip(ags_new.values(), ags_src.values()):
+            self.register(ag_new, ti)
+            ag_new.Mods[self.Name].Val = ag_src.Mods[self.Name].Val
 
 
 class BuffDecision(ModBe):
@@ -451,6 +495,11 @@ class BuffDecision(ModBe):
         except ZeroDivisionError:
             obs['B.{}'.format(self.Name)] = 0
 
+    def match(self, be_src, ags_src, ags_new, ti):
+        for ag_new, ag_src in zip(ags_new.values(), ags_src.values()):
+            self.register(ag_new, ti)
+            ag_new.Mods[self.Name].Val = ag_src.Mods[self.Name].Val
+
 
 class ForeignShock(ModBe):
     def __init__(self, name, src_model, src_value, src_target):
@@ -485,3 +534,9 @@ class ForeignShock(ModBe):
     def fill(self, obs, model, ti):
         obs['B.{}'.format(self.Name)] = self.Val
         return obs
+
+    def match(self, be_src, ags_src, ags_new, ti):
+        self.Val = be_src.Val
+        for ag_new, ag_src in zip(ags_new.values(), ags_src.values()):
+            self.register(ag_new, ti)
+            ag_new.Mods[self.Name].Val = ag_src.Mods[self.Name].Val

@@ -112,27 +112,38 @@ class DirectorABM:
         self.MCores[name] = bp_abm
         return bp_abm
 
-    def copy_abm(self, mod_src, mc, tr_tte=True):
+    def copy_abm(self, mod_src, mc, tr_tte=True, pc_new=None):
         mod_new = self.generate_abm(mc)
         time_copy = mod_src.TimeEnd if mod_src.TimeEnd else 0
-        pc_new = mod_new.PCore
+        mod_new.TimeEnd = mod_src.TimeEnd
+        if pc_new:
+            mod_new.PCore = pc_new
+        else:
+            pc_new = mod_new.PCore
         dc_new = mod_new.DCore
         trs = self.get_dcore(self.MCores[mc].TargetedDCore).Transitions
+        ags_src = mod_src.Pop.Agents
         if tr_tte:
             _, ds = pc_new.difference(mod_src.PCore)
             tr_ch = [k for k, v in trs.items() if v['Dist'] in ds]
-            for k, v in mod_src.Pop.Agents.items():
+            print('Changed transitions: {}'.format(', '.join(tr_ch)))
+            for k, v in ags_src.items():
                 mod_new.Pop.Agents[k] = copy_agent(v, dc_new, tr_ch)
         else:
-            for k, v in mod_src.Pop.Agents.items():
+            for k, v in ags_src.items():
                 mod_new.Pop.Agents[k] = copy_agent(v, dc_new)
 
         mod_new.Pop.Eve.Last = mod_src.Pop.Eve.Last
-        # network
 
-        # mod
+        ags_new = mod_new.Pop.Agents
+        mod_new.Pop.Networks.match(mod_src.Pop.Networks, ags_new)
+
+        for be_src, be_new in zip(mod_src.Behaviours.values(), mod_new.Behaviours.values()):
+            be_new.match(be_src, ags_src, ags_new, time_copy)
 
         for ag in mod_new.agents:
             ag.update(time_copy)
+
+        mod_new.Obs.TimeSeries = mod_src.Obs.TimeSeries.copy()
 
         return mod_new

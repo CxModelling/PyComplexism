@@ -29,6 +29,10 @@ class Network:
     def cluster(self, ag):
         return nx.clustering(self.Graph, ag)
 
+    def match(self, net_src, ags_new):
+        for f, t in net_src.Graph.edges():
+            self.Graph.add_edge(ags_new[f.Name], ags_new[t.Name])
+
 
 class NetworkGNP(Network):
     def __init__(self, p):
@@ -102,6 +106,10 @@ class NetworkBA(Network):
             new.add_edge(idmap[u], idmap[v])
         self.Graph = new
 
+    def match(self, net_src, ags_new):
+        Network.match(self, net_src, ags_new)
+        self.__repeat = [ags_new[a.Name] for a in net_src.__repeat]
+
     def __repr__(self):
         return 'Barabasi_Albert(N={}, M={})'.format(len(self.Graph), self.M)
 
@@ -161,6 +169,10 @@ class NetworkSet:
         else:
             for net in self.Nets.values():
                 net.clear()
+
+    def match(self, nets_src, ags_new):
+        for k, net_src in nets_src.Nets.items():
+            self[k].match(net_src, ags_new)
 
     def __repr__(self):
         return '[{}]'.format(', '.join(['{}: {}'.format(*it) for it in self.Nets.items()]))

@@ -55,6 +55,10 @@ class AbsBehaviour:
     def decorate(name, model, *args, **kwargs):
         pass
 
+    @abstractmethod
+    def match(self, be_src, ags_src, ags_new, ti):
+        pass
+
 
 class TimeDepBe:
     def __init__(self, clock: Clock):
@@ -140,6 +144,9 @@ class TimeBe(TimeDepBe, AbsBehaviour, metaclass=ABCMeta):
     def __init__(self, name, clock: Clock, tri=Trigger.NullTrigger):
         TimeDepBe.__init__(self, clock)
         AbsBehaviour.__init__(self, name, tri)
+
+    def match(self, be_src, ags_src, ags_new, ti):
+        pass
 
 
 class ModBe(TimeIndBe, AbsBehaviour, metaclass=ABCMeta):
