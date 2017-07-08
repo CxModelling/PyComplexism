@@ -4,27 +4,24 @@ from dzdy.dcore import BluePrintCTBN, BluePrintCTMC
 __author__ = 'TimeWz667'
 
 
-def build_from_json(js):
-    if isinstance(js, str):
-        m = re.search(r'\"ModelType\":\s*\"(\S+)\"', js)
-        m = m.group(1)
-    else:
-        m = js['ModelType']
-
-    if m == 'CTBN':
-        return BluePrintCTBN.from_json(js)
-    elif m == 'CTMC':
-        return BluePrintCTMC.from_json(js)
-    raise KeyError('No such model type')
-
-
-def build_from_script(scr):
+def script_to_json(scr):
     dcs = scr.split('\n')
+    while dcs:
+        dc = dcs[0]
+        pars = re.match(r'(?P<Type>CTBN|CTMC)\s+(?P<Name>\w+)\s*\{', dc, re.I)
+        if pars:
+            break
+        else:
+            dcs = dcs[1:]
+
+    try:
+        pars = pars.groupdict()
+    except AttributeError:
+        raise SyntaxError
+
     dcs = [re.sub(r'\s+', '', st) for st in dcs]
     dcs = [re.sub(r'#\w+', '', st) for st in dcs if st is not '']
 
-    pars = [re.match(r'(?P<par>\w+)=(?P<val>\w+)', st) for st in dcs]
-    pars = {par.group('par'): par.group('val') for par in pars if par}
     js = {'ModelName': pars['Name'], 'ModelType': pars['Type']}
 
     if pars['Type'] == 'CTBN':
@@ -60,4 +57,23 @@ def build_from_script(scr):
 
     js['Transitions'] = trs
     js['Targets'] = targets
+    return js
+
+
+def build_from_json(js):
+    if isinstance(js, str):
+        m = re.search(r'\"ModelType\":\s*\"(\S+)\"', js)
+        m = m.group(1)
+    else:
+        m = js['ModelType']
+
+    if m == 'CTBN':
+        return BluePrintCTBN.from_json(js)
+    elif m == 'CTMC':
+        return BluePrintCTMC.from_json(js)
+    raise KeyError('No such model type')
+
+
+def build_from_script(scr):
+    js = script_to_json(scr)
     return build_from_json(js)

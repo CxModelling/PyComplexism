@@ -4,7 +4,8 @@ __author__ = 'TimeWz667'
 
 
 class AgentBasedModelBluePrint:
-    def __init__(self, tar_pc, tar_dc):
+    def __init__(self, name, tar_pc, tar_dc):
+        self.Name = name
         self.TargetedPCore = tar_pc
         self.TargetedDCore = tar_dc
 
@@ -35,8 +36,8 @@ class AgentBasedModelBluePrint:
         b = behaviours if behaviours else b
         self.Obs_s_t_b = s, t, b
 
-    def generate(self, name, pc, dc):
-        mod = AgentBasedModel(name, dc, pc)
+    def generate(self, name, pc, dc, ag_prefix='Ag'):
+        mod = AgentBasedModel(name, dc, pc, self.TargetedPCore, self.Name, ag_prefix=ag_prefix)
         for fi in self.FillUp:
             mod.Pop.append_fill_json(fi)
         for k, v in self.Behaviours.items():

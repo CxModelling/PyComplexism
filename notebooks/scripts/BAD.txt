@@ -1,15 +1,14 @@
-Name = BAD
-Type = CTBN
+CTBN BAD {
+    life[Alive | Dead]
+    age[Y | M | O]
 
-life[Alive | Dead]
-age[Y | M | O]
+    Alive{life:Alive}
+    Dead{life:Dead}
+    Young{life:Alive, age:Y}
+    Middle{life:Alive, age:M}
+    Old{life:Alive, age:O}
 
-Alive{life:Alive}
-Dead{life:Dead}
-Young{life:Alive, age:Y}
-Middle{life:Alive, age:M}
-Old{life:Alive, age:O}
-
-Alive -- Die -> Dead # from transition Die to state Dead by distribution Die
-Young -- ToM -> Middle
-Middle -- ToO -> Old
+    Alive -- Die -> Dead # from transition Die to state Dead by distribution Die
+    Young -- ToM -> Middle
+    Middle -- ToO -> Old
+}

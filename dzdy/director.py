@@ -1,5 +1,5 @@
 from dzdy import *
-import pcore
+from epidag import DirectedAcyclicGraph, SimulationModel
 
 __author__ = 'TimeWz667'
 
@@ -26,24 +26,25 @@ class DirectorABM:
         self.DCores = dict()
         self.MCores = dict()
 
-    def add_pcore(self, name, pc):
-        if isinstance(pc, pcore.SimulationModel):
+    def add_pcore(self, pc):
+        name = pc.Name
+        if isinstance(pc, SimulationModel):
             self.PCores[name] = pc
             print('PCore {} added'.format(name))
         else:
             print('Adding failed')
 
-    def read_pcore(self, name, script):
-        pc = pcore.DirectedAcyclicGraph(script).get_simulation_model()
-        self.add_pcore(name, pc)
+    def read_pcore(self, script):
+        pc = DirectedAcyclicGraph(script).get_simulation_model()
+        self.add_pcore(pc)
 
-    def load_pcore(self, name, path):
+    def load_pcore(self, path):
         with open(path, 'r') as f:
-            self.read_pcore(name, str(f.read()))
+            self.read_pcore(str(f.read()))
 
-    def restore_pcore(self, name, js):
-        pc = pcore.SimulationModel.build_from_json(js)
-        self.add_pcore(name, pc)
+    def restore_pcore(self, js):
+        pc = SimulationModel.build_from_json(js)
+        self.add_pcore(pc)
 
     def add_dcore(self, dc):
         if isinstance(dc, AbsBluePrint):
@@ -84,13 +85,13 @@ class DirectorABM:
         return self.MCores[name]
 
     def list_pcores(self):
-        print(list(self.PCores.keys()))
+        return list(self.PCores.keys())
 
     def list_dcores(self):
-        print(list(self.DCores.keys()))
+        return list(self.DCores.keys())
 
     def list_mcores(self):
-        print(list(self.MCores.keys()))
+        return list(self.MCores.keys())
 
     def generate_pc_dc(self, pc, dc, new_name=None):
         pc = self.PCores[pc].sample_core()
@@ -108,11 +109,13 @@ class DirectorABM:
         return mc.generate(name, pc, dc)
 
     def new_abm(self, name, tar_pcore, tar_dcore):
-        bp_abm = AgentBasedModelBluePrint(tar_pcore, tar_dcore)
+        bp_abm = AgentBasedModelBluePrint(name, tar_pcore, tar_dcore)
         self.MCores[name] = bp_abm
         return bp_abm
 
-    def copy_abm(self, mod_src, mc, tr_tte=True, pc_new=None):
+    def copy_abm(self, mod_src, tr_tte=True, pc_new=None):
+        # copy model structure
+        mc = mod_src.Meta.Prototype
         mod_new = self.generate_abm(mc)
         time_copy = mod_src.TimeEnd if mod_src.TimeEnd else 0
         mod_new.TimeEnd = mod_src.TimeEnd
@@ -123,6 +126,8 @@ class DirectorABM:
         dc_new = mod_new.DCore
         trs = self.get_dcore(self.MCores[mc].TargetedDCore).Transitions
         ags_src = mod_src.Pop.Agents
+
+        # copy agents
         if tr_tte:
             _, ds = pc_new.difference(mod_src.PCore)
             tr_ch = [k for k, v in trs.items() if v['Dist'] in ds]
@@ -133,11 +138,13 @@ class DirectorABM:
             for k, v in ags_src.items():
                 mod_new.Pop.Agents[k] = copy_agent(v, dc_new)
 
+        # rebuild population and networks
         mod_new.Pop.Eve.Last = mod_src.Pop.Eve.Last
 
         ags_new = mod_new.Pop.Agents
         mod_new.Pop.Networks.match(mod_src.Pop.Networks, ags_new)
 
+        # rebuild behaviours and modifiers
         for be_src, be_new in zip(mod_src.Behaviours.values(), mod_new.Behaviours.values()):
             be_new.match(be_src, ags_src, ags_new, time_copy)
 

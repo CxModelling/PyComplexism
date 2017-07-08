@@ -1,5 +1,4 @@
 from abc import abstractmethod, abstractstaticmethod, ABCMeta
-from pcore import DirectedAcyclicGraph, SimulationModel
 
 
 class Event:

@@ -1,17 +1,16 @@
-Name = SIR_bn
-Type = CTBN
+CTBN SIR_BN {
+    life[Alive | Dead]
+    sir[S | I | R]
 
-life[Alive | Dead]
-sir[S | I | R]
+    Alive{life:Alive}
+    Dead{life:Dead}
+    Inf{life:Alive, sir:I}
+    Rec{life:Alive, sir:R}
+    Sus{life:Alive, sir:S}
 
-Alive{life:Alive}
-Dead{life:Dead}
-Inf{life:Alive, sir:I}
-Rec{life:Alive, sir:R}
-Sus{life:Alive, sir:S}
+    Die -> Dead # from transition Die to state Dead by distribution Die
+    Sus -- Infect(beta) -> Inf
+    Inf -- Recov(gamma) -> Rec
 
-Die -> Dead # from transition Die to state Dead by distribution Die
-Sus -- Infect(beta) -> Inf
-Inf -- Recov(gamma) -> Rec
-
-Alive -- Die # from state Alive to transition Die
+    Alive -- Die # from state Alive to transition Die
+}

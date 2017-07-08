@@ -51,8 +51,8 @@ class ObsABM(Observer):
 
 
 class AgentBasedModel(LeafModel):
-    def __init__(self, name, dc, pc, ag_prefix='Ag'):
-        LeafModel.__init__(self, name)
+    def __init__(self, name, dc, pc, pcn, proto, ag_prefix='Ag'):
+        LeafModel.__init__(self, name, pcn, dc.Name, proto)
         self.DCore = dc
         self.PCore = pc
 
