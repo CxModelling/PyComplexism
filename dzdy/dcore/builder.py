@@ -1,5 +1,5 @@
 import re
-from dzdy.dcore import BluePrintCTBN, BluePrintCTMC
+from dzdy.dcore import BlueprintCTBN, BlueprintCTMC
 
 __author__ = 'TimeWz667'
 
@@ -68,9 +68,9 @@ def build_from_json(js):
         m = js['ModelType']
 
     if m == 'CTBN':
-        return BluePrintCTBN.from_json(js)
+        return BlueprintCTBN.from_json(js)
     elif m == 'CTMC':
-        return BluePrintCTMC.from_json(js)
+        return BluprintCTMC.from_json(js)
     raise KeyError('No such model type')
 
 

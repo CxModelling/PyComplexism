@@ -1,16 +1,12 @@
 from abc import ABCMeta, abstractmethod
 from dzdy.mcore.request import *
-from collections import namedtuple
 
 __author__ = 'TimeWz667'
 
 
-Metadata = namedtuple('Metadata', ('PC', 'DC', 'Prototype'))
-
-
 class AbsModel(metaclass=ABCMeta):
-    def __init__(self, name, pc=None, dc=None, prototype=None):
-        self.Meta = Metadata(pc, dc, prototype)
+    def __init__(self, name, meta=None):
+        self.Meta = meta
         self.Name = name
         self.Requests = RequestSet()
         self.TimeEnd = None
@@ -69,8 +65,8 @@ class AbsModel(metaclass=ABCMeta):
 
 
 class LeafModel(AbsModel, metaclass=ABCMeta):
-    def __init__(self, name, pc=None, dc=None, prototype=None):
-        AbsModel.__init__(self, name, pc, dc, prototype)
+    def __init__(self, name, meta=None):
+        AbsModel.__init__(self, name, meta)
 
     def fetch(self, rs):
         self.Requests.clear()
@@ -83,8 +79,8 @@ class LeafModel(AbsModel, metaclass=ABCMeta):
 
 
 class BranchModel(AbsModel, metaclass=ABCMeta):
-    def __init__(self, name, pc=None, dc=None, prototype=None):
-        AbsModel.__init__(self, name, pc, dc, prototype)
+    def __init__(self, name, meta=None):
+        AbsModel.__init__(self, name, meta)
         self.Models = dict()
 
     def fetch(self, res):

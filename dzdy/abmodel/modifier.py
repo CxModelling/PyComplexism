@@ -184,3 +184,6 @@ class ModifierSet:
 
     def __str__(self):
         return ', '.join([v.value for v in self.Mods.values()])
+
+    def to_json(self):
+        return {k: v.value for k, v in self.Mods.items()}

@@ -121,9 +121,30 @@ class Agent:
         info = '\n'.join('{}: {}'.format(k, v) for k, v in self.Info.items())
         return 'ID: {}\nState: {}\n{}\n\nTransitions:\n{}'.format(self.Name, self.State, info, trs)
 
-    def to_json(self):
+    def clone(self, dc_new=None, tr_ch=None):
+        if dc_new:
+            ag_new = Agent(self.Name, dc_new[self.State.Name])
+            if tr_ch:
+                for tr, tte in self.Trans.items():
+                    if tr.Name in tr_ch:
+                        continue
+                    ag_new.Trans[dc_new.Transitions[tr.Name]] = tte
+            else:
+                for tr, tte in self.Trans.items():
+                    ag_new.Trans[dc_new.Transitions[tr.Name]] = tte
+
+        else:
+            ag_new = Agent(self.Name, self.State.Name)
+
+        ag_new.Info.update(self.Info)
+        return ag_new
+
+    def to_json(self, full=False):
         js = dict()
         js['Name'] = self.Name
         js['Info'] = dict(self.Info)
         js['State'] = self.State.Name
+        if full:
+            js['Trans'] = {tr.Name: tte for tr, tte in self.Trans.items()}
+            js['Mods'] = self.Mods.to_json()
         return js

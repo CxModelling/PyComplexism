@@ -163,7 +163,7 @@ class AbsDynamicModel(metaclass=ABCMeta):
         return str(self.to_json())
 
 
-class AbsBluePrint(metaclass=ABCMeta):
+class AbsBlueprint(metaclass=ABCMeta):
     def __init__(self, name):
         self.__Name = name
 

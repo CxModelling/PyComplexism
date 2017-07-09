@@ -31,16 +31,16 @@ class ModelCTMC(AbsDynamicModel):
         return evt.State
 
     def __deepcopy__(self):
-        return BluePrintCTMC.from_json(self.to_json())
+        return BlueprintCTMC.from_json(self.to_json())
 
 
-class BluePrintCTMC(AbsBluePrint):
+class BlueprintCTMC(AbsBlueprint):
     @staticmethod
     def from_json(js):
         if isinstance(js, str):
             js = json.loads(js)
 
-        bp = BluePrintCTMC(js['ModelName'])
+        bp = BlueprintCTMC(js['ModelName'])
         for st in js['States']:
             bp.add_state(st)
         for tr, trd in js['Transitions'].items():
@@ -51,7 +51,7 @@ class BluePrintCTMC(AbsBluePrint):
         return bp
 
     def __init__(self, name):
-        AbsBluePrint.__init__(self, name)
+        AbsBlueprint.__init__(self, name)
         self.States = list()
         self.Transitions = dict()  # Name -> (event, distribution)
         self.Targets = dict()  # StateName -> TransitionNames
