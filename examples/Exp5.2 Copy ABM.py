@@ -35,14 +35,13 @@ da = DirectorABM()
 da.read_pc(par_script)
 da.read_dc(dc_ctbn_script)
 cfd = da.new_abm('ABM_SIR', 'pSIR', 'SIR_BN')
-cfd.add_fill_up('Distribution', Name='BMI', Distribution='norm(23,5)')
+cfd.add_fillup('Distribution', Name='BMI', Distribution='norm(23,5)')
 
 cfd.add_network('IDU', 'BA', m=2)
 cfd.add_behaviour('cycle', be_type='Reincarnation', s_birth='Sus', s_death='Dead')
 cfd.add_behaviour('transmission', be_type='NetShock', s_src='Inf', t_tar='Infect', net='')
 
-cfd.set_observations(states=['Sus', 'Inf', 'Rec'],
-                     behaviours=['transmission'])
+cfd.set_observations(states=['Sus', 'Inf', 'Rec'], behaviours=['transmission'])
 
 
 mod_src = da.generate_abm('ABM_SIR')

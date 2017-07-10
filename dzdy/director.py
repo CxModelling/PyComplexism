@@ -1,4 +1,5 @@
 from dzdy.command import *
+from json import JSONDecodeError
 
 __author__ = 'TimeWz667'
 
@@ -44,14 +45,20 @@ class Director:
 
     def load_pc(self, file, js=True):
         if js:
-            pc = load_pcore(load_json(file))
+            try:
+                pc = load_pcore(load_json(file))
+            except JSONDecodeError:
+                pc = read_pcore(load_txt(file))
         else:
             pc = read_pcore(load_txt(file))
         self.__add_pc(pc)
 
     def load_dc(self, file, js=True):
         if js:
-            dc = load_dcore(load_json(file))
+            try:
+                dc = load_dcore(load_json(file))
+            except JSONDecodeError:
+                dc = read_dcore(load_txt(file))
         else:
             dc = read_dcore(load_txt(file))
         self.__add_dc(dc)
@@ -133,10 +140,10 @@ class Director:
 
     def load(self, file):
         js = load_json(file)
-        self.PCores.update({load_pcore(v) for v in js['PCores']})
-        self.DCores.update({load_dcore(v) for v in js['DCores']})
-        self.MCores.update({load_mcore(v) for v in js['MCores']})
-        self.Layouts.update({load_layout(v) for v in js['Layouts']})
+        self.PCores.update({k: load_pcore(v) for k, v in js['PCores'].items()})
+        self.DCores.update({k: load_dcore(v) for k, v in js['DCores'].items()})
+        self.MCores.update({k: load_mcore(v) for k, v in js['MCores'].items()})
+        self.Layouts.update({k: load_layout(v) for k, v in js['Layouts'].items()})
 
 
 class DirectorABM(Director):
@@ -152,7 +159,7 @@ class DirectorABM(Director):
         mc = self.MCores[mc]
         pc, dc = mc.TargetedPCore, mc.TargetedDCore
         pc, dc = self.generate_pc_dc(pc, dc, name)
-        return generate_abm(mc, pc, dc)
+        return generate_abm(mc, pc, dc, name)
 
     def new_abm(self, name, tar_pcore, tar_dcore):
         bp_abm = new_abm(name, tar_pcore, tar_dcore)

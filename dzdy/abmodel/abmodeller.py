@@ -20,7 +20,7 @@ class BlueprintABM:
             return
         self.Networks[net_name] = {'Type': net_type, 'Args': dict(kwargs)}
 
-    def add_fill_up(self, fu_type, **kwargs):
+    def add_fillup(self, fu_type, **kwargs):
         fu = {'Type': fu_type}
         fu.update(kwargs)
         self.FillUps.append(fu)

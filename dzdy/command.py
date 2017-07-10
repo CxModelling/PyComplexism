@@ -1,7 +1,7 @@
-from epidag import SimulationModel, DirectedAcyclicGraph
+from epidag import DirectedAcyclicGraph
 import json
-import dcore
-from abmodel import BlueprintABM
+from dzdy.dcore import build_from_script, build_from_json, BlueprintCTBN, BlueprintCTMC
+from dzdy.abmodel import BlueprintABM
 
 __author__ = 'TimeWz667'
 
@@ -26,7 +26,7 @@ def read_pcore(script):
 
 
 def load_pcore(js):
-    return SimulationModel.from_json(js)
+    return DirectedAcyclicGraph.from_json(js).get_simulation_model()
 
 
 def save_pcore(pc, path):
@@ -34,11 +34,11 @@ def save_pcore(pc, path):
 
 
 def read_dcore(script):
-    return dcore.build_from_script(script)
+    return build_from_script(script)
 
 
 def load_dcore(js):
-    return dcore.build_from_json(js)
+    return build_from_json(js)
 
 
 def save_dcore(dc, path):
@@ -47,9 +47,9 @@ def save_dcore(dc, path):
 
 def new_dcore(name, dc_type):
     if dc_type == 'CTMC':
-        return dcore.BlueprintCTMC(name)
+        return BlueprintCTMC(name)
     elif dc_type == 'CTBN':
-        return dcore.BlueprintCTBN(name)
+        return BlueprintCTBN(name)
 
 
 def load_mcore(js):
@@ -86,6 +86,22 @@ def save_layout(layout, path):
 def new_layout(name):
     # todo
     pass
+
+
+def add_fillup(bp_mc, fu_type, **kwargs):
+    bp_mc.add_fillup(fu_type, **kwargs)
+
+
+def add_network(bp_mc, net_name, net_type, **kwargs):
+    bp_mc.add_network(net_name, net_type, **kwargs)
+
+
+def add_behaviour(bp_mc, be_name, be_type, **kwargs):
+    bp_mc.add_behaviour(be_name, be_type, **kwargs)
+
+
+def set_observations(bp_mc, states=None, transitions=None, behaviours=None):
+    bp_mc.set_observations(states, transitions, behaviours)
 
 
 def generate_pc_dc(bp_pc, bp_dc, new_name=None):
@@ -130,17 +146,29 @@ def copy_abm(mod_src, mc_bp, pc_bp, dc_bp, tr_tte=True, pc_new=False, interventi
     """
     if pc_new:
         pc_new = pc_bp.sample_core()
-    elif intervention:
-        pc_new = pc_bp.intervention_core(mod_src.PCore, intervention)
     else:
         pc_new = mod_src.PCore.clone()
+
+    if intervention:
+        pc_new = pc_bp.intervention_core(pc_new, intervention)
+
     dc_new = dc_bp.generate_model(pc_new, mod_src.DCore.Name)
     return mc_bp.clone(mod_src, pc_new, dc_new, tr_tte)
 
 
 def generate_ebm_from_function():
+    # todo
     pass
 
 
 def generate_ebm_from_dcore():
+    # todo a blueprint of ebm
     pass
+
+
+
+
+
+
+
+

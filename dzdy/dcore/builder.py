@@ -70,7 +70,7 @@ def build_from_json(js):
     if m == 'CTBN':
         return BlueprintCTBN.from_json(js)
     elif m == 'CTMC':
-        return BluprintCTMC.from_json(js)
+        return BlueprintCTMC.from_json(js)
     raise KeyError('No such model type')
 
 
