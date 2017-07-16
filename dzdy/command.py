@@ -2,6 +2,8 @@ from epidag import DirectedAcyclicGraph
 import json
 from dzdy.dcore import build_from_script, build_from_json, BlueprintCTBN, BlueprintCTMC
 from dzdy.abmodel import BlueprintABM
+from dzdy.multimodel import ModelLayout
+from dzdy.mcore import Simulator
 
 __author__ = 'TimeWz667'
 
@@ -74,7 +76,7 @@ def new_mcore(name, model_type, **kwargs):
 
 
 def load_layout(js):
-    # todo
+
     pass
 
 
@@ -84,23 +86,22 @@ def save_layout(layout, path):
 
 
 def new_layout(name):
-    # todo
-    pass
+    return ModelLayout(name)
 
 
-def add_fillup(bp_mc, fu_type, **kwargs):
+def add_abm_fillup(bp_mc, fu_type, **kwargs):
     bp_mc.add_fillup(fu_type, **kwargs)
 
 
-def add_network(bp_mc, net_name, net_type, **kwargs):
+def add_abm_network(bp_mc, net_name, net_type, **kwargs):
     bp_mc.add_network(net_name, net_type, **kwargs)
 
 
-def add_behaviour(bp_mc, be_name, be_type, **kwargs):
+def add_abm_behaviour(bp_mc, be_name, be_type, **kwargs):
     bp_mc.add_behaviour(be_name, be_type, **kwargs)
 
 
-def set_observations(bp_mc, states=None, transitions=None, behaviours=None):
+def set_abm_observations(bp_mc, states=None, transitions=None, behaviours=None):
     bp_mc.set_observations(states, transitions, behaviours)
 
 
@@ -166,8 +167,37 @@ def generate_ebm_from_dcore():
     pass
 
 
+def simulate(model, y0, fr, to, dt=1):
+    """
+    Simulate a dynamic model with initial values (y0)
+    :param model: dynamic model
+    :param y0: initial value
+    :param fr: initial time point
+    :param to: end time
+    :param dt: observation interval
+    :return: data of simulation
+    """
+    if model.TimeEnd:
+        print('Please use update instead of simulation')
+        return model.output()
+    sim = Simulator(model)
+    sim.simulate(y0, fr, to, dt)
+    return model.output()
 
 
+def update(model, to, dt=1):
+    """
+    Update a dynamic to a certain time point
+    :param model: dynamic model which has been initialised
+    :param to: end time
+    :param dt: observation interval
+    :return: data of simulation
+    """
+    sim = Simulator(model)
+    sim.Time = model.TimeEnd
+    if to > sim.Time:
+        sim.update(to, dt)
+    return model.output()
 
 
 

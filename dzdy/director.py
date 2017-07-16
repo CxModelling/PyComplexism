@@ -21,7 +21,7 @@ class Director:
         self.MCores[mc.Name] = mc
 
     def __add_layout(self, layout):
-        self.DCores[layout.Name] = layout
+        self.Layouts[layout.Name] = layout
 
     def get_pc(self, pc):
         return self.PCores[pc]
@@ -122,6 +122,18 @@ class Director:
             pass
         save_mcore(mc, file)
 
+    save_pcore = save_pc
+    load_pcore = load_pc
+    read_pcore = read_pc
+    list_pcore = list_pc
+    save_dcore = save_dc
+    load_dcore = load_dc
+    read_dcore = read_dc
+    list_dcore = list_dc
+    save_mcore = save_mc
+    load_mcore = load_mc
+    list_mcore = list_mc
+
     def save_layout(self, ly, file):
         try:
             ly = self.get_layout(ly)
@@ -145,13 +157,15 @@ class Director:
         self.MCores.update({k: load_mcore(v) for k, v in js['MCores'].items()})
         self.Layouts.update({k: load_layout(v) for k, v in js['Layouts'].items()})
 
-
-class DirectorABM(Director):
-    def __init__(self):
-        Director.__init__(self)
-
     def generate_pc_dc(self, pc, dc, new_name=None):
         return generate_pc_dc(self.PCores[pc], self.DCores[dc], new_name=new_name)
+
+    def generate_mc(self, mc, name=None):
+        if isinstance(self.MCores[mc], BlueprintABM):
+            return self.generate_abm(mc, name)
+        else:
+            # todo
+            return None
 
     def generate_abm(self, mc, name=None):
         if not name:
@@ -171,3 +185,32 @@ class DirectorABM(Director):
         pc, dc, mc = mod_src.Meta
 
         return copy_abm(mod_src, self.MCores[mc], self.PCores[pc], self.DCores[dc], tr_tte=tr_tte, pc_new=pc_new)
+
+    def generate(self, model):
+        try:
+            lyo = self.Layouts[model]
+            return lyo.generate(self.generate_mc)
+        except KeyError:
+            # todo logging
+            pass
+
+    def simulate(self, model, to, y0=None, fr=0, dt=1):
+        if model in self.Layouts:
+            m, y0 = self.generate(model)
+        elif model in self.MCores and y0:
+            m = self.generate_abm(model)
+        else:
+            # todo logging
+            pass
+        out = simulate(m, y0=y0, fr=fr, to=to, dt=dt)
+        return m, out
+
+    def update(self, model, to, dt=1):
+        out = update(model, to, dt)
+        return model, out
+
+
+class DirectorABM(Director):
+    def __init__(self):
+        Director.__init__(self)
+

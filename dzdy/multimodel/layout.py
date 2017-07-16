@@ -1,5 +1,7 @@
-from collections import namedtuple, OrderedDict
+from collections import namedtuple
 import re
+from .modelset import ModelSet
+
 
 __author__ = 'TimeWz667'
 
@@ -8,23 +10,27 @@ SingleEntry = namedtuple('SingleEntry', ('Name', 'Prototype', 'Y0'))
 MultipleEntry = namedtuple('MultipleEntry', ('Name', 'Prototype', 'Y0', 'Index'))
 
 
-class ModelRelation:
-    def __init__(self, src, tar, parse=True):
-        self.SRC = ModelRelation.parse(src) if parse else src
-        self.TAR = ModelRelation.parse(tar) if parse else tar
+class RelationEntry:
+    def __init__(self, val, parse=True):
+        self.Model, self.Type, self.Parameter = RelationEntry.parse(val) if parse else val
 
     def __repr__(self):
-        return 'Src: {}, Target: {}'.format(self.SRC, self.TAR)
+        return 'Model: {}, Type: {}, Parameter: {}'.format(self.Model, self.Type, self.Parameter)
+
+    def is_single(self):
+        return self.Type == 'Name'
 
     def to_json(self):
         return {
-            'Src': list(self.SRC),
-            'Tar': list(self.TAR)
+            'Model': self.Model,
+            'Type': self.Type,
+            'Parameter': self.Parameter
         }
 
     @staticmethod
     def from_json(js):
-        return ModelRelation(js['Src'], js['Tar'], False)
+        ent = js['Model'], js['Type'], js['Parameter']
+        return RelationEntry(ent, parse=False)
 
     @staticmethod
     def parse(s):
@@ -32,11 +38,11 @@ class ModelRelation:
         if not s.group('par'):
             raise ValueError('Undefined parameter')
         if s.group('y'):
-            return 'Prefix', s.group('y'), s.group('par')
+            return s.group('y'), 'Prefix', s.group('par')
         elif s.group('z'):
-            return 'Proto', s.group('z'), s.group('par')
+            return s.group('z'),'Prototype',  s.group('par')
         elif s.group('x'):
-            return 'Name', s.group('x'), s.group('par')
+            return s.group('x'), 'Name', s.group('par')
         else:
             raise ValueError('Undefined model description')
 
@@ -46,6 +52,7 @@ class ModelLayout:
         self.Name = name
         self.Entries = list()
         self.Relations = list()
+        self.Summary = list()
         self.Children = dict()
 
     def append_child(self, chd):
@@ -73,7 +80,7 @@ class ModelLayout:
 
     def add_relation(self, source, target):
         try:
-            self.Relations.append(ModelRelation(source, target))
+            self.Relations.append({'Source': RelationEntry(source), 'Target': RelationEntry(target)})
         except ValueError as e:
             raise e
 
@@ -94,7 +101,7 @@ class ModelLayout:
 
         return ms
 
-    def find_model_by_proto(self, proto):
+    def find_model_by_prototype(self, proto):
         ms = list()
         for v in self.Entries:
             if v.Prototype == proto:
@@ -107,31 +114,59 @@ class ModelLayout:
 
     def relations(self):
         for rel in self.Relations:
-            src, tar = rel.SRC, rel.TAR
-            sp, tp = None, None
-            if src[0] == 'Name':
-                src, sp = [src[1]], src[2]
-            elif src[0] == 'Prefix':
-                src, sp = self.find_model_by_prefix(src[1]), src[2]
-            elif src[0] == 'Proto':
-                src, sp = self.find_model_by_proto(src[1]), src[2]
+            src, tar = rel['Source'], rel['Target']
+            tp = tar.Parameter
 
-            if tar[0] == 'Name':
-                tar, tp = [tar[1]], tar[2]
-            elif tar[0] == 'Prefix':
-                tar, tp = self.find_model_by_prefix(tar[1]), tar[2]
-            elif tar[0] == 'Proto':
-                tar, tp = self.find_model_by_proto(tar[1]), tar[2]
+            if tar.Type == 'Name':
+                tar = [tar.Model]
+            elif tar.Type == 'Prefix':
+                tar = self.find_model_by_prefix(tar.Model)
+            elif tar.Type == 'Prototype':
+                tar = self.find_model_by_prototype(tar.Model)
 
-            for s in src:
-                for t in tar:
-                    if s != t:
-                        yield s, sp, t, tp
+            yield src, tp, tar
 
     def count_prototype(self):
         proto = [ent.Prototype for ent in self.Entries]
         proto = set(proto)
         return len(proto)
+
+    def generate(self, gen, reduce=False, dt_update=1):
+        # todo
+        if dt_update <=0:
+            return None
+
+        if len(self.Entries) is 1 & isinstance(self.Entries[0], SingleEntry):
+            name, proto, y0 = self.Entries[0]
+            return gen(proto, name), y0
+
+        models = None
+        if reduce:
+            # todo select best structure
+            pass
+        else:
+            models = ModelSet(self.Name, dt_update)
+            y0s = dict()
+
+            for mod in self.models():
+                name, proto, y0 = mod
+                models.append(gen(proto, name))
+                y0s[name] = y0
+
+        for rel in self.Relations:
+            pass
+
+        return models, y0s
+
+    def to_json(self):
+        # todo
+        pass
+
+    @staticmethod
+    def from_json(js):
+        # todo
+        pass
+
 
 if __name__ == '__main__':
     lm1 = ModelLayout('')
