@@ -1,5 +1,8 @@
 from dzdy.command import *
 from json import JSONDecodeError
+import logging
+
+log = logging.getLogger(__name__)
 
 __author__ = 'TimeWz667'
 
@@ -12,6 +15,10 @@ class Director:
         self.Layouts = dict()
 
     def __add_pc(self, pc):
+        if pc in self.PCores:
+            log.info('Override parameter core {}'.format(pc))
+        else:
+            log.info('Added parameter core {}'.format(pc))
         self.PCores[pc.Name] = pc
 
     def __add_dc(self, dc):

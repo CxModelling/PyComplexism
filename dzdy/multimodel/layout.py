@@ -1,50 +1,111 @@
-from collections import namedtuple
 import re
-from .modelset import ModelSet
+from dzdy.multimodel.modelset import ModelSet
 
 
 __author__ = 'TimeWz667'
 
 
-SingleEntry = namedtuple('SingleEntry', ('Name', 'Prototype', 'Y0'))
-MultipleEntry = namedtuple('MultipleEntry', ('Name', 'Prototype', 'Y0', 'Index'))
+class SingleEntry:
+    def __init__(self, name, proto, y0):
+        self.Name = name
+        self.Prototype = proto
+        self.Y0 = y0
+
+    def __repr__(self):
+        return 'Model: {}, Prototype: {}'.format(self.Name, self.Prototype)
+
+    def gen(self):
+        yield self.Name, self.Prototype, self.Y0
+
+    def to_json(self):
+        return {
+            'Name': self.Name,
+            'Prototype': self.Prototype,
+            'Y0': self.Y0
+        }
+
+    @staticmethod
+    def from_json(js):
+        ent = js['Name'], js['Prototype'], js['Y0']
+        return SingleEntry(*ent)
+
+
+class MultipleEntry:
+    def __init__(self, name, proto, y0, index):
+        self.Name = name
+        self.Prototype = proto
+        self.Y0 = y0
+        self.Index = index
+
+    def __repr__(self):
+        return 'Model: {}, Prototype: {}'.format(self.Name, self.Prototype)
+
+    def gen(self):
+        if 'index' in self.Index:
+            index = self.Index['index']
+        elif 'size' in self.Index:
+            if 'fr' in self.Index:
+                index = range(self.Index['fr'], self.Index['size']+self.Index['fr'])
+            else:
+                index = range(self.Index['size'])
+        elif 'fr' in self.Index and 'to' in self.Index:
+            if 'by' in self.Index:
+                index = range(self.Index['fr'], self.Index['to'] + 1, step=self.Index['by'])
+            else:
+                index = range(self.Index['fr'], self.Index['to'] + 1)
+        else:
+            raise IndexError('No matched index pattern')
+
+        for i in index:
+            yield '{}_{}'.format(self.Name, i), self.Prototype, self.Y0
+
+    def to_json(self):
+        return {
+            'Name': self.Name,
+            'Prototype': self.Prototype,
+            'Y0': self.Y0,
+            'Index': self.Index
+        }
+
+    @staticmethod
+    def from_json(js):
+        ent = js['Name'], js['Prototype'], js['Y0'], js['Index']
+        return MultipleEntry(*ent)
 
 
 class RelationEntry:
     def __init__(self, val, parse=True):
-        self.Model, self.Type, self.Parameter = RelationEntry.parse(val) if parse else val
+        self.Selector, self.Type, self.Parameter = RelationEntry.parse(val) if parse else val
 
     def __repr__(self):
-        return 'Model: {}, Type: {}, Parameter: {}'.format(self.Model, self.Type, self.Parameter)
+        return 'Selector: {}, Type: {}, Parameter: {}'.format(self.Selector, self.Type, self.Parameter)
 
     def is_single(self):
-        return self.Type == 'Name'
+        return self.Type == 'Single'
 
     def to_json(self):
         return {
-            'Model': self.Model,
+            'Selector': self.Selector,
             'Type': self.Type,
             'Parameter': self.Parameter
         }
 
     @staticmethod
     def from_json(js):
-        ent = js['Model'], js['Type'], js['Parameter']
+        ent = js['Selector'], js['Type'], js['Parameter']
         return RelationEntry(ent, parse=False)
 
     @staticmethod
-    def parse(s):
-        s = re.search(r'((?P<x>\w+)|(#(?P<y>\w+))|(.(?P<z>\w+))\s*)@(?P<par>\w+)', s)
-        if not s.group('par'):
+    def parse(ori):
+        s = re.match('\A\w+\Z', ori)
+        par = re.search('@(\w+\Z)', 'Abd @P1')
+
+        if not par:
             raise ValueError('Undefined parameter')
-        if s.group('y'):
-            return s.group('y'), 'Prefix', s.group('par')
-        elif s.group('z'):
-            return s.group('z'),'Prototype',  s.group('par')
-        elif s.group('x'):
-            return s.group('x'), 'Name', s.group('par')
+        if s:
+            return ori, 'Single', par.group(1)
         else:
-            raise ValueError('Undefined model description')
+            return ori, 'Multiple', par.group(1)
 
 
 class ModelLayout:
@@ -63,15 +124,13 @@ class ModelLayout:
         if 'index' in kwargs:
             index = kwargs['index']
         elif 'size' in kwargs:
+            index = {'size': kwargs['size']}
             if 'fr' in kwargs:
-                index = range(kwargs['fr'], kwargs['size']+kwargs['fr'])
-            else:
-                index = range(kwargs['size'])
+                index['fr'] = kwargs['fr']
         elif 'fr' in kwargs and 'to' in kwargs:
+            index = {'fr': kwargs['fr'], 'to': kwargs['to']}
             if 'by' in kwargs:
-                index = range(kwargs['fr'], kwargs['to'] + 1, step=kwargs['by'])
-            else:
-                index = range(kwargs['fr'], kwargs['to'] + 1)
+                index['by'] = kwargs['by']
 
         if index:
             self.Entries.append(MultipleEntry(name, proto, y0, index))
@@ -86,45 +145,13 @@ class ModelLayout:
 
     def models(self):
         for v in self.Entries:
-            if isinstance(v, MultipleEntry):
-                for i in v.Index:
-                    yield '{}_{}'.format(v.Name, i), v.Prototype, v.Y0
-            else:
-                yield v
-
-    def find_model_by_prefix(self, prefix):
-        ms = list()
-        for v in self.Entries:
-            if isinstance(v, MultipleEntry) and v.Name == prefix:
-                for i in v.Index:
-                    ms.append('{}_{}'.format(v.Name, i))
-
-        return ms
-
-    def find_model_by_prototype(self, proto):
-        ms = list()
-        for v in self.Entries:
-            if v.Prototype == proto:
-                if isinstance(v, MultipleEntry):
-                    for i in v.Index:
-                        ms.append('{}_{}'.format(v.Name, i))
-                else:
-                    ms.append(v.Name)
-        return ms
+            for m in v.gen():
+                yield m
 
     def relations(self):
         for rel in self.Relations:
             src, tar = rel['Source'], rel['Target']
-            tp = tar.Parameter
-
-            if tar.Type == 'Name':
-                tar = [tar.Model]
-            elif tar.Type == 'Prefix':
-                tar = self.find_model_by_prefix(tar.Model)
-            elif tar.Type == 'Prototype':
-                tar = self.find_model_by_prototype(tar.Model)
-
-            yield src, tp, tar
+            yield src, tar
 
     def count_prototype(self):
         proto = [ent.Prototype for ent in self.Entries]
@@ -132,8 +159,7 @@ class ModelLayout:
         return len(proto)
 
     def generate(self, gen, reduce=False, dt_update=1):
-        # todo
-        if dt_update <=0:
+        if dt_update <= 0:
             return None
 
         if len(self.Entries) is 1 & isinstance(self.Entries[0], SingleEntry):
@@ -159,13 +185,24 @@ class ModelLayout:
         return models, y0s
 
     def to_json(self):
-        # todo
-        pass
+        js = dict()
+        js['Name'] = self.Name
+        js['Entries'] = [ent.to_json() for ent in self.Entries]
+        js['Relations'] = [{'Source': rel['Source'].to_json(), 'Target': rel['Target'].to_json()} for rel in self.Relations]
+        return js
 
     @staticmethod
     def from_json(js):
-        # todo
-        pass
+        lyo = ModelLayout(js['Name'])
+        for ent in js['Entries']:
+            if 'Index' in ent:
+                lyo.add_entry(ent['Name'], ent['Prototype'], ent['Y0'], **ent['Index'])
+            else:
+                lyo.add_entry(ent['Name'], ent['Prototype'], ent['Y0'])
+
+        for rel in js['Relations']:
+            lyo.add_relation(rel['Source']['Selector'], rel['Target']['Selector'])
+        return lyo
 
 
 if __name__ == '__main__':
@@ -186,3 +223,9 @@ if __name__ == '__main__':
         print(r)
 
     print(lm1.count_prototype())
+
+    jsm = lm1.to_json()
+    print(jsm)
+
+    lm2 = ModelLayout.from_json(jsm)
+    print(lm2.to_json())
