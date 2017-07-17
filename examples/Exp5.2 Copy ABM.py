@@ -43,9 +43,7 @@ cfd.add_behaviour('transmission', be_type='NetShock', s_src='Inf', t_tar='Infect
 
 cfd.set_observations(states=['Sus', 'Inf', 'Rec'], behaviours=['transmission'])
 
-
-mod_src = da.generate_abm('ABM_SIR')
-out_src = simulate(mod_src, y0={'Sus': 45, 'Inf': 5}, fr=0, to=10)
+mod_src, out_src = da.simulate('ABM_SIR', y0={'Sus': 45, 'Inf': 5}, fr=0, to=10)
 out_src.plot()
 plt.show()
 
@@ -55,4 +53,3 @@ out_src.plot()
 out_new = update(mod_new, 20)
 out_new.plot()
 plt.show()
-

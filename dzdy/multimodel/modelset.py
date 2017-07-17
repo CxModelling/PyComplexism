@@ -76,7 +76,8 @@ class ModelSet(BranchModel):
             for m in self.Models.values():
                 m.impulse_foreign(self, ti)
 
-    def link(self, src_par, tar_par):
+    def link(self, src, tar):
+
         for m in self.Models.values():
             m.listen(self.Name, src_par, tar_par)
 

@@ -32,7 +32,7 @@ def load_pcore(js):
 
 
 def save_pcore(pc, path):
-    return save_json(pc.to_json(), path)
+    save_json(pc.to_json(), path)
 
 
 def read_dcore(script):
@@ -44,7 +44,7 @@ def load_dcore(js):
 
 
 def save_dcore(dc, path):
-    return save_json(dc.to_json(), path)
+    save_json(dc.to_json(), path)
 
 
 def new_dcore(name, dc_type):
@@ -56,11 +56,11 @@ def new_dcore(name, dc_type):
 
 def load_mcore(js):
     if js['Type'] == 'ABM':
-        return BlueprintABM.build_from_json(js)
+        return BlueprintABM.from_json(js)
 
 
 def save_mcore(dc, path):
-    return save_json(dc.to_json(), path)
+    save_json(dc.to_json(), path)
 
 
 def new_abm(name, tar_pcore, tar_dcore):
@@ -76,13 +76,11 @@ def new_mcore(name, model_type, **kwargs):
 
 
 def load_layout(js):
-
-    pass
+    return ModelLayout.from_json(js)
 
 
 def save_layout(layout, path):
-    # todo
-    pass
+    save_json(layout.to_json(), path)
 
 
 def new_layout(name):
@@ -198,7 +196,3 @@ def update(model, to, dt=1):
     if to > sim.Time:
         sim.update(to, dt)
     return model.output()
-
-
-
-

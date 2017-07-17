@@ -45,6 +45,8 @@ class Summarizer:
         s = pd.DataFrame.from_records(s)
         s = s.fillna(0).sum()
         del s['Time']
+
+
         self.Summary = s
 
     def reform_summary(self):
