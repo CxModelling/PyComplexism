@@ -176,10 +176,10 @@ def copy_abm(mod_src, bp_mc, bp_pc, bp_dc, tr_tte=True, pc_new=False, interventi
         pc_new = mod_src.PCore.clone()
 
     if intervention:
-        pc_new = bp_pc.intervention_core(pc_new, intervention)
+        pc_new = bp_pc.intervene_core(pc_new, intervention)
 
     dc_new = bp_dc.generate_model(pc_new, mod_src.DCore.Name)
-    return bp_mc.clone(mod_src, pc_new, dc_new, tr_tte)
+    return bp_mc.clone(mod_src, pc=pc_new, dc=dc_new, tr_tte=tr_tte)
 
 
 def copy_ebm(mod_src, bp_mc, bp_pc, bp_dc, pc_new=False, intervention=None):
@@ -199,10 +199,10 @@ def copy_ebm(mod_src, bp_mc, bp_pc, bp_dc, pc_new=False, intervention=None):
         pc_new = mod_src.PCore.clone()
 
     if intervention:
-        pc_new = bp_pc.intervention_core(pc_new, intervention)
+        pc_new = bp_pc.intervene_core(pc_new, intervention)
 
     dc_new = bp_dc.generate_model(pc_new, mod_src.DCore.Name)
-    return bp_mc.clone(mod_src, pc_new, dc_new)
+    return bp_mc.clone(mod_src, pc=pc_new, dc=dc_new)
 
 
 def copy_model(mod_src, bp_mc, bp_pc, bp_dc, tr_tte=True, pc_new=False, intervention=None):

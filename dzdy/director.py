@@ -171,14 +171,14 @@ class Director:
 
         return generate_model(mc, pc, dc, name, **kwargs)
 
-    def copy_model(self, mod_src, tr_tte=True, pc_new=None):
+    def copy_model(self, mod_src, tr_tte=True, pc_new=None, intervention=None):
         # copy model structure
         pc, dc, mc = mod_src.Meta
         if pc: pc = self.PCores[pc]
         if dc: dc = self.DCores[dc]
         if mc: mc = self.MCores[mc]
 
-        return copy_model(mod_src, mc, pc, dc, tr_tte=tr_tte, pc_new=pc_new)
+        return copy_model(mod_src, mc, pc, dc, tr_tte=tr_tte, pc_new=pc_new, intervention=intervention)
 
     def generate(self, model, random_effect=False):
         try:
@@ -202,7 +202,7 @@ class Director:
 
     def update(self, model, to, dt=1):
         out = update(model, to, dt)
-        return model, out
+        return out
 
 
 #class DirectorABM(Director):
