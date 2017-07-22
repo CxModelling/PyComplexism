@@ -1,19 +1,26 @@
 from dzdy.abmodel import AgentBasedModel, MetaABM, install_behaviour, install_network
+from dzdy.mcore import AbsBlueprintMCore
 from copy import deepcopy
 
 __author__ = 'TimeWz667'
 
 
-class BlueprintABM:
+class BlueprintABM(AbsBlueprintMCore):
     def __init__(self, name, tar_pc, tar_dc):
         self.Name = name
-        self.TargetedPCore = tar_pc
-        self.TargetedDCore = tar_dc
-
+        self.TargetedCore = tar_pc, tar_dc
         self.Networks = dict()
         self.Behaviours = dict()
         self.FillUps = list()
-        self.Obs_s_t_b = None, None, None
+        self.Obs_s_t_b = list(), list(), list()
+
+    @property
+    def TargetedPCore(self):
+        return self.TargetedCore[0]
+
+    @property
+    def TargetedDCore(self):
+        return self.TargetedCore[1]
 
     def add_network(self, net_name, net_type, **kwargs):
         if net_name in self.Networks:
@@ -37,7 +44,9 @@ class BlueprintABM:
         b = behaviours if behaviours else b
         self.Obs_s_t_b = s, t, b
 
-    def generate(self, name, pc, dc, ag_prefix='Ag'):
+    def generate(self, name, **kwargs):
+        pc, dc = kwargs['pc'], kwargs['dc'],
+        ag_prefix = kwargs['ag_prefix'] if 'ag_prefix' in kwargs else 'Ag'
         meta = MetaABM(self.TargetedPCore, self.TargetedDCore, self.Name)
         mod = AgentBasedModel(name, dc, pc, meta, ag_prefix=ag_prefix)
         for fi in self.FillUps:
@@ -58,12 +67,14 @@ class BlueprintABM:
                 mod.add_obs_be(be)
         return mod
 
-    def clone(self, mod_src, pc=None, dc=None, tr_tte=True):
+    def clone(self, mod_src, **kwargs):
         # copy model structure
-        pc_new = pc if pc else mod_src.PCore
-        dc_new = dc if dc else mod_src.DCore
+        pc_new = kwargs['pc'] if 'pc' in kwargs else mod_src.PCore
+        dc_new = kwargs['dc'] if 'dc' in kwargs else mod_src.DCore
 
-        mod_new = self.generate(mod_src.Name, pc_new, dc_new)
+        tr_tte = kwargs['tr_tte'] if 'tr_tte' in kwargs else True
+
+        mod_new = self.generate(mod_src.Name, pc=pc_new, dc=dc_new)
 
         time_copy = mod_src.TimeEnd if mod_src.TimeEnd else 0
         mod_new.TimeEnd = mod_src.TimeEnd

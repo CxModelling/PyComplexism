@@ -23,56 +23,62 @@ def save_json(js, path):
         json.dump(js, f)
 
 
-def read_pcore(script):
+def read_pc(script):
     return DirectedAcyclicGraph(script).get_simulation_model()
 
 
-def load_pcore(js):
+def load_pc(js):
     return DirectedAcyclicGraph.from_json(js).get_simulation_model()
 
 
-def save_pcore(pc, path):
+def save_pc(pc, path):
     save_json(pc.to_json(), path)
 
 
-def read_dcore(script):
+def read_dc(script):
     return build_from_script(script)
 
 
-def load_dcore(js):
+def load_dc(js):
     return build_from_json(js)
 
 
-def save_dcore(dc, path):
+def save_dc(dc, path):
     save_json(dc.to_json(), path)
 
 
-def new_dcore(name, dc_type):
+def new_dc(name, dc_type):
     if dc_type == 'CTMC':
         return BlueprintCTMC(name)
     elif dc_type == 'CTBN':
         return BlueprintCTBN(name)
 
 
-def load_mcore(js):
+def load_mc(js):
     if js['Type'] == 'ABM':
         return BlueprintABM.from_json(js)
 
 
-def save_mcore(dc, path):
+def save_mc(dc, path):
     save_json(dc.to_json(), path)
 
 
-def new_abm(name, tar_pcore, tar_dcore):
-    bp_abm = BlueprintABM(name, tar_pcore, tar_dcore)
+def new_abm(name, tar_pc, tar_dc):
+    bp_abm = BlueprintABM(name, tar_pc, tar_dc)
     return bp_abm
 
 
-def new_mcore(name, model_type, **kwargs):
+def new_ebm(name, tar_pc, tar_dc):
+    pass
+
+
+def new_mc(name, model_type, **kwargs):
     if model_type == 'ABM':
-        return new_abm(name, kwargs['tar_pcore'], kwargs['tar_dcore'])
+        return new_abm(name, kwargs['tar_pc'], kwargs['tar_dc'])
     elif model_type == 'EBM':
-        pass
+        return new_ebm(name, kwargs['tar_pc'], kwargs['tar_dc'])
+    else:
+        raise ValueError('No this type of model')
 
 
 def load_layout(js):
@@ -103,21 +109,30 @@ def set_abm_observations(bp_mc, states=None, transitions=None, behaviours=None):
     bp_mc.set_observations(states, transitions, behaviours)
 
 
-def generate_pc_dc(bp_pc, bp_dc, new_name=None):
+def generate_pc(bp_pc):
     """
-    generate a pair of parameter core and dynamic core
-    :param bp_pc: blueprint of targeted parameter core
+    generate a parameter core
+    :param bp_pc: parameter core
+    :param new_name: nickname for new dynamic core
+    :return: parameter core
+    """
+    return bp_pc.sample_core()
+
+
+def generate_dc(bp_dc, pc, new_name=None):
+    """
+    generate a dynamic core
+    :param pc: parameter core
     :param bp_dc: blueprint of targeted dynamic core
     :param new_name: nickname for new dynamic core
-    :return: tuple, parameter core and dynamic core
+    :return: dynamic core
     """
-    pc = bp_pc.sample_core()
     if not bp_dc.is_compatible(pc):
         raise ValueError('Not compatible pcore')
-    return pc, bp_dc.generate_model(pc, new_name)
+    return bp_dc.generate_model(pc, new_name)
 
 
-def generate_abm(bp_mc, pc, dc, name=None):
+def generate_abm(bp_mc, pc=None, dc=None, name=None, **kwargs):
     """
     generate an agent-based model
     :param bp_mc: blueprint of ABM
@@ -128,41 +143,83 @@ def generate_abm(bp_mc, pc, dc, name=None):
     """
     if not name:
         name = bp_mc.Name
-    return bp_mc.generate(name, pc, dc)
+    return bp_mc.generate(name, pc=pc, dc=dc, **kwargs)
 
 
-def copy_abm(mod_src, mc_bp, pc_bp, dc_bp, tr_tte=True, pc_new=False, intervention=None):
+def generate_ebm(bp_mc, pc=None, dc=None, name=None, **kwargs):
+    # todo
+    pass
+
+
+def generate_model(bp_mc, pc, dc, name=None, **kwargs):
+    if isinstance(bp_mc, BlueprintABM):
+        return generate_abm(bp_mc, pc, dc, name, **kwargs)
+    else:
+        return generate_ebm(bp_mc, pc, dc, name, **kwargs)
+
+
+def copy_abm(mod_src, bp_mc, bp_pc, bp_dc, tr_tte=True, pc_new=False, intervention=None):
     """
     copy an agent-based model
     :param mod_src: model to be replicated
-    :param mc_bp: blueprint of source model
-    :param pc_bp: blueprint of targeted parameter core
-    :param dc_bp: blueprint of targeted dynamic model
+    :param bp_mc: blueprint of source model
+    :param bp_pc: blueprint of targeted parameter core
+    :param bp_dc: blueprint of targeted dynamic model
     :param tr_tte: True if tte values need to be copy
     :param pc_new: True if new parameter core required
     :param intervention: dictionary for variables to be intervened
     :return: a copied ABM
     """
     if pc_new:
-        pc_new = pc_bp.sample_core()
+        pc_new = bp_pc.sample_core()
     else:
         pc_new = mod_src.PCore.clone()
 
     if intervention:
-        pc_new = pc_bp.intervention_core(pc_new, intervention)
+        pc_new = bp_pc.intervention_core(pc_new, intervention)
 
-    dc_new = dc_bp.generate_model(pc_new, mod_src.DCore.Name)
-    return mc_bp.clone(mod_src, pc_new, dc_new, tr_tte)
-
-
-def generate_ebm_from_function():
-    # todo
-    pass
+    dc_new = bp_dc.generate_model(pc_new, mod_src.DCore.Name)
+    return bp_mc.clone(mod_src, pc_new, dc_new, tr_tte)
 
 
-def generate_ebm_from_dcore():
-    # todo a blueprint of ebm
-    pass
+def copy_ebm(mod_src, bp_mc, bp_pc, bp_dc, pc_new=False, intervention=None):
+    """
+    copy an equation-based model
+    :param mod_src: model to be replicated
+    :param bp_mc: blueprint of source model
+    :param bp_pc: blueprint of targeted parameter core
+    :param bp_dc: blueprint of targeted dynamic model
+    :param pc_new: True if new parameter core required
+    :param intervention: dictionary for variables to be intervened
+    :return: a copied ABM
+    """
+    if pc_new:
+        pc_new = bp_pc.sample_core()
+    else:
+        pc_new = mod_src.PCore.clone()
+
+    if intervention:
+        pc_new = bp_pc.intervention_core(pc_new, intervention)
+
+    dc_new = bp_dc.generate_model(pc_new, mod_src.DCore.Name)
+    return bp_mc.clone(mod_src, pc_new, dc_new)
+
+
+def copy_model(mod_src, bp_mc, bp_pc, bp_dc, tr_tte=True, pc_new=False, intervention=None):
+    """
+    copy a simulation model
+    :param mod_src: model to be replicated
+    :param bp_mc: blueprint of source model
+    :param bp_pc: blueprint of targeted parameter core
+    :param bp_dc: blueprint of targeted dynamic model
+    :param pc_new: True if new parameter core required
+    :param intervention: dictionary for variables to be intervened
+    :return: a copied ABM
+    """
+    if isinstance(bp_mc, BlueprintABM):
+        return copy_abm(mod_src, bp_mc, bp_pc, bp_dc, tr_tte, pc_new, intervention)
+    else:
+        return copy_ebm(mod_src, bp_mc, bp_pc, bp_dc, pc_new, intervention)
 
 
 def simulate(model, y0, fr, to, dt=1):

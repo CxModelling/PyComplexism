@@ -43,35 +43,31 @@ class Director:
         return self.Layouts[layout]
 
     def read_pc(self, script):
-        pc = read_pcore(script)
+        pc = read_pc(script)
         self.__add_pc(pc)
 
     def read_dc(self, script):
-        dc = read_dcore(script)
+        dc = read_dc(script)
         self.__add_dc(dc)
 
-    def load_pc(self, file, js=True):
-        if js:
-            try:
-                pc = load_pcore(load_json(file))
-            except JSONDecodeError:
-                pc = read_pcore(load_txt(file))
-        else:
-            pc = read_pcore(load_txt(file))
+    def load_pc(self, file,):
+        try:
+            pc = load_pc(load_json(file))
+        except JSONDecodeError:
+            pc = read_pc(load_txt(file))
+
         self.__add_pc(pc)
 
-    def load_dc(self, file, js=True):
-        if js:
-            try:
-                dc = load_dcore(load_json(file))
-            except JSONDecodeError:
-                dc = read_dcore(load_txt(file))
-        else:
-            dc = read_dcore(load_txt(file))
+    def load_dc(self, file):
+        try:
+            dc = load_dc(load_json(file))
+        except JSONDecodeError:
+            dc = read_dc(load_txt(file))
+
         self.__add_dc(dc)
 
     def load_mc(self, file):
-        mc = load_mcore(load_json(file))
+        mc = load_mc(load_json(file))
         self.__add_mc(mc)
 
     def load_layout(self, file):
@@ -79,12 +75,12 @@ class Director:
         self.__add_layout(lo)
 
     def new_dc(self, name, dc_type='CTBN'):
-        dc = new_dcore(name, dc_type)
+        dc = new_dc(name, dc_type)
         self.__add_dc(dc)
         return dc
 
     def new_mc(self, name, mc_type='ABM', **kwargs):
-        mc = new_mcore(name, mc_type, **kwargs)
+        mc = new_mc(name, mc_type, **kwargs)
         self.__add_mc(mc)
         return mc
 
@@ -111,7 +107,7 @@ class Director:
         except KeyError:
             # todo logging
             pass
-        save_pcore(pc, file)
+        save_pc(pc, file)
 
     def save_dc(self, dc, file):
         try:
@@ -119,7 +115,7 @@ class Director:
         except KeyError:
             # todo logging
             pass
-        save_dcore(dc, file)
+        save_dc(dc, file)
 
     def save_mc(self, mc, file):
         try:
@@ -127,7 +123,7 @@ class Director:
         except KeyError:
             # todo logging
             pass
-        save_mcore(mc, file)
+        save_mc(mc, file)
 
     save_pcore = save_pc
     load_pcore = load_pc
@@ -159,44 +155,35 @@ class Director:
 
     def load(self, file):
         js = load_json(file)
-        self.PCores.update({k: load_pcore(v) for k, v in js['PCores'].items()})
-        self.DCores.update({k: load_dcore(v) for k, v in js['DCores'].items()})
-        self.MCores.update({k: load_mcore(v) for k, v in js['MCores'].items()})
+        self.PCores.update({k: load_pc(v) for k, v in js['PCores'].items()})
+        self.DCores.update({k: load_dc(v) for k, v in js['DCores'].items()})
+        self.MCores.update({k: load_mc(v) for k, v in js['MCores'].items()})
         self.Layouts.update({k: load_layout(v) for k, v in js['Layouts'].items()})
 
-    def generate_pc_dc(self, pc, dc, new_name=None):
-        return generate_pc_dc(self.PCores[pc], self.DCores[dc], new_name=new_name)
-
-    def generate_mc(self, mc, name=None):
-        if isinstance(self.MCores[mc], BlueprintABM):
-            return self.generate_abm(mc, name)
-        else:
-            # todo
-            return None
-
-    def generate_abm(self, mc, name=None):
+    def generate_model(self, mc, name=None, pc=None, dc=None, **kwargs):
         if not name:
             name = mc
         mc = self.MCores[mc]
-        pc, dc = mc.TargetedPCore, mc.TargetedDCore
-        pc, dc = self.generate_pc_dc(pc, dc, name)
-        return generate_abm(mc, pc, dc, name)
+        if mc.require_pc:
+            pc = pc if pc else generate_pc(self.PCores[mc.TargetedPCore])
+            if mc.require_dc:
+                dc = dc if dc else generate_dc(self.DCores[mc.TargetedDCore], pc)
 
-    def new_abm(self, name, tar_pcore, tar_dcore):
-        bp_abm = new_abm(name, tar_pcore, tar_dcore)
-        self.MCores[name] = bp_abm
-        return bp_abm
+        return generate_model(mc, pc, dc, name, **kwargs)
 
-    def copy_abm(self, mod_src, tr_tte=True, pc_new=None):
+    def copy_model(self, mod_src, tr_tte=True, pc_new=None):
         # copy model structure
         pc, dc, mc = mod_src.Meta
+        if pc: pc = self.PCores[pc]
+        if dc: dc = self.DCores[dc]
+        if mc: mc = self.MCores[mc]
 
-        return copy_abm(mod_src, self.MCores[mc], self.PCores[pc], self.DCores[dc], tr_tte=tr_tte, pc_new=pc_new)
+        return copy_model(mod_src, mc, pc, dc, tr_tte=tr_tte, pc_new=pc_new)
 
-    def generate(self, model):
+    def generate(self, model, random_effect=False):
         try:
             lyo = self.Layouts[model]
-            return lyo.generate(self.generate_mc)
+            return lyo.generate(self.generate_model)
         except KeyError:
             # todo logging
             pass
@@ -205,10 +192,11 @@ class Director:
         if model in self.Layouts:
             m, y0 = self.generate(model)
         elif model in self.MCores and y0:
-            m = self.generate_abm(model)
+            m = self.generate_model(model)
         else:
             # todo logging
-            pass
+            raise ValueError('No match model')
+
         out = simulate(m, y0=y0, fr=fr, to=to, dt=dt)
         return m, out
 
@@ -217,7 +205,7 @@ class Director:
         return model, out
 
 
-class DirectorABM(Director):
-    def __init__(self):
-        Director.__init__(self)
+#class DirectorABM(Director):
+#    def __init__(self):
+#        Director.__init__(self)
 
