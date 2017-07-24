@@ -113,7 +113,6 @@ def generate_pc(bp_pc):
     """
     generate a parameter core
     :param bp_pc: parameter core
-    :param new_name: nickname for new dynamic core
     :return: parameter core
     """
     return bp_pc.sample_core()
@@ -213,6 +212,7 @@ def copy_model(mod_src, bp_mc, bp_pc, bp_dc, tr_tte=True, pc_new=False, interven
     :param bp_pc: blueprint of targeted parameter core
     :param bp_dc: blueprint of targeted dynamic model
     :param pc_new: True if new parameter core required
+    :param tr_tte: keep not intervened time to event or not
     :param intervention: dictionary for variables to be intervened
     :return: a copied ABM
     """
