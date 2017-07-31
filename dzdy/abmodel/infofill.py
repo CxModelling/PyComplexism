@@ -1,5 +1,5 @@
 import numpy.random as rd
-from pcore import parse_distribution
+from epidag import parse_distribution
 import json
 from dzdy.util import CategoricalRV
 

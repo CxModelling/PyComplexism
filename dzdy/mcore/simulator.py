@@ -46,29 +46,3 @@ class Simulator:
 
         self.Time = end
         self.Model.TimeEnd = end
-
-
-def simulate(model, y0, fr, to, dt=1):
-    """
-    Simulate a dynamic model with initial values (y0)
-    :param model: dynamic model
-    :param y0: initial value
-    :param fr: initial time point
-    :param to: end time
-    :param dt: observation interval
-    :return: data of simulation
-    """
-    if model.TimeEnd:
-        print('Please use update instead of simulation')
-        return model.output()
-    sim = Simulator(model)
-    sim.simulate(y0, fr, to, dt)
-    return model.output()
-
-
-def update(model, to, dt=1):
-    sim = Simulator(model)
-    sim.Time = model.TimeEnd
-    if to > sim.Time:
-        sim.update(to, dt)
-    return model.output()

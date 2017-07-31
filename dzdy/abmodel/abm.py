@@ -5,7 +5,8 @@ from collections import namedtuple, OrderedDict
 __author__ = 'TimeWz667'
 
 
-RecordABM = namedtuple("RecordABM", ("Ag", "Tr", "Time"))
+RecordABM = namedtuple('RecordABM', ('Ag', 'Tr', 'Time'))
+MetaABM = namedtuple('MetaABM', ('PC', 'DC', 'Prototype'))
 
 
 class ObsABM(Observer):
@@ -51,11 +52,10 @@ class ObsABM(Observer):
 
 
 class AgentBasedModel(LeafModel):
-    def __init__(self, name, dc, pc, ag_prefix='Ag'):
-        LeafModel.__init__(self, name)
+    def __init__(self, name, dc, pc, meta, ag_prefix='Ag'):
+        LeafModel.__init__(self, name, meta)
         self.DCore = dc
         self.PCore = pc
-
         self.Obs = ObsABM()
         self.Pop = Population(dc, ag_prefix)
         self.Behaviours = OrderedDict()
@@ -186,3 +186,6 @@ class AgentBasedModel(LeafModel):
 
     def output(self):
         return self.Obs.observation
+
+    def clone(self):
+        pass

@@ -1,27 +1,36 @@
-from dzdy.mcore import AbsDirector
-from dzdy.abmodel import AgentBasedModel, install_behaviour, install_network
+from dzdy.abmodel import AgentBasedModel, MetaABM, install_behaviour, install_network
+from dzdy.mcore import AbsBlueprintMCore
+from copy import deepcopy
+
 __author__ = 'TimeWz667'
 
 
-class AgentBasedModelBluePrint:
-    def __init__(self, tar_pc, tar_dc):
-        self.TargetedPCore = tar_pc
-        self.TargetedDCore = tar_dc
-
+class BlueprintABM(AbsBlueprintMCore):
+    def __init__(self, name, tar_pc, tar_dc):
+        self.Name = name
+        self.TargetedCore = tar_pc, tar_dc
         self.Networks = dict()
         self.Behaviours = dict()
-        self.FillUp = list()
-        self.Obs_s_t_b = None, None, None
+        self.FillUps = list()
+        self.Obs_s_t_b = list(), list(), list()
+
+    @property
+    def TargetedPCore(self):
+        return self.TargetedCore[0]
+
+    @property
+    def TargetedDCore(self):
+        return self.TargetedCore[1]
 
     def add_network(self, net_name, net_type, **kwargs):
         if net_name in self.Networks:
             return
         self.Networks[net_name] = {'Type': net_type, 'Args': dict(kwargs)}
 
-    def add_fill_up(self, fu_type, **kwargs):
+    def add_fillup(self, fu_type, **kwargs):
         fu = {'Type': fu_type}
         fu.update(kwargs)
-        self.FillUp.append(fu)
+        self.FillUps.append(fu)
 
     def add_behaviour(self, be_name, be_type, **kwargs):
         if be_name in self.Behaviours:
@@ -35,9 +44,12 @@ class AgentBasedModelBluePrint:
         b = behaviours if behaviours else b
         self.Obs_s_t_b = s, t, b
 
-    def generate(self, name, pc, dc):
-        mod = AgentBasedModel(name, dc, pc)
-        for fi in self.FillUp:
+    def generate(self, name, **kwargs):
+        pc, dc = kwargs['pc'], kwargs['dc'],
+        ag_prefix = kwargs['ag_prefix'] if 'ag_prefix' in kwargs else 'Ag'
+        meta = MetaABM(self.TargetedPCore, self.TargetedDCore, self.Name)
+        mod = AgentBasedModel(name, dc, pc, meta, ag_prefix=ag_prefix)
+        for fi in self.FillUps:
             mod.Pop.append_fill_json(fi)
         for k, v in self.Behaviours.items():
             install_behaviour(mod, k, v['Type'], v['Args'])
@@ -55,14 +67,67 @@ class AgentBasedModelBluePrint:
                 mod.add_obs_be(be)
         return mod
 
+    def clone(self, mod_src, **kwargs):
+        # copy model structure
+        pc_new = kwargs['pc'] if 'pc' in kwargs else mod_src.PCore
+        dc_new = kwargs['dc'] if 'dc' in kwargs else mod_src.DCore
 
-class AgentBasedModeller(AbsDirector):
+        tr_tte = kwargs['tr_tte'] if 'tr_tte' in kwargs else True
 
-    def freeze(self, mod):
-        pass
+        mod_new = self.generate(mod_src.Name, pc=pc_new, dc=dc_new)
 
-    def defrost(self, js):
-        pass
+        time_copy = mod_src.TimeEnd if mod_src.TimeEnd else 0
+        mod_new.TimeEnd = mod_src.TimeEnd
 
-    def clone(self, mod, pc):
-        pass
+        trs = dc_new.Transitions
+        ags_src = mod_src.Pop.Agents
+
+        # copy agents
+        if tr_tte:
+            trs_src = mod_src.DCore.Transitions
+            tr_ch = [k for k, v in trs.items() if str(trs_src[k]) != str(v)]
+            for k, v in ags_src.items():
+                mod_new.Pop.Agents[k] = v.clone(dc_new, tr_ch)
+        else:
+            for k, v in ags_src.items():
+                mod_new.Pop.Agents[k] = v.clone(dc_new)
+
+        # rebuild population and networks
+        mod_new.Pop.Eve.Last = mod_src.Pop.Eve.Last
+
+        ags_new = mod_new.Pop.Agents
+        mod_new.Pop.Networks.match(mod_src.Pop.Networks, ags_new)
+
+        # rebuild behaviours and modifiers
+        for be_src, be_new in zip(mod_src.Behaviours.values(), mod_new.Behaviours.values()):
+            be_new.match(be_src, ags_src, ags_new, time_copy)
+
+        for ag in mod_new.agents:
+            ag.update(time_copy)
+
+        mod_new.Obs.TimeSeries = mod_src.Obs.TimeSeries.copy()
+
+        return mod_new
+
+    def to_json(self):
+        js = dict()
+        js['Name'] = self.Name
+        js['Type'] = 'ABN'
+        js['TargetedPCore'] = self.TargetedPCore
+        js['TargetedDCore'] = self.TargetedDCore
+        js['Networks'] = self.Networks
+        js['Behaviours'] = self.Behaviours
+        js['FillUps'] = self.FillUps
+        js['Observation'] = {k: v for k, v in zip(['State', 'Transition', 'Behaviour'],self.Obs_s_t_b)}
+
+        return js
+
+    @staticmethod
+    def from_json(js):
+        bp = BlueprintABM(js['Name'], js['TargetedPCore'], js['TargetedDCore'])
+        bp.Networks = deepcopy(js['Networks'])
+        bp.Behaviours = deepcopy(js['Behaviours'])
+        bp.FillUps = deepcopy(js['FillUps'])
+        obs = js['Observation']
+        bp.set_observations(obs['State'], obs['Transition'], obs['Behaviour'])
+        return bp

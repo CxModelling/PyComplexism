@@ -90,12 +90,12 @@ class ModelCTBN(AbsDynamicModel):
         return BluePrintCTBN.from_json(self.to_json())
 
 
-class BluePrintCTBN(AbsBluePrint):
+class BlueprintCTBN(AbsBlueprint):
     @staticmethod
     def from_json(js):
         if isinstance(js, str):
             js = json.loads(js)
-        bp = BluePrintCTBN(js['ModelName'])
+        bp = BlueprintCTBN(js['ModelName'])
         if 'Order' in js:
             for ms in js['Order']:
                 bp.add_microstate(ms, js['Microstates'][ms])
@@ -111,7 +111,7 @@ class BluePrintCTBN(AbsBluePrint):
         return bp
 
     def __init__(self, name):
-        AbsBluePrint.__init__(self, name)
+        AbsBlueprint.__init__(self, name)
         self.Microstates = OrderedDict()  # Name -> array of states
         self.States = dict()  # Nick name -> combination of microstates
         self.Transitions = dict()  # Name -> (event, distribution)

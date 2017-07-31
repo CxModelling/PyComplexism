@@ -1,149 +1,211 @@
-from dzdy import *
-import pcore
+from dzdy.command import *
+from json import JSONDecodeError
+import logging
+
+log = logging.getLogger(__name__)
 
 __author__ = 'TimeWz667'
 
 
-def copy_agent(ag_src, dc_new, tr_ch=None):
-    if not tr_ch:
-        tr_ch = dc_new.Transitions
-    ag_new = Agent(ag_src.Name, dc_new[ag_src.State.Name])
-
-    if not tr_ch:
-        return ag_new
-
-    for tr, tte in ag_src.Trans.items():
-        if tr.Name in tr_ch:
-            continue
-        ag_new.Trans[dc_new.Transitions[tr.Name]] = tte
-    ag_new.Info.update(ag_src.Info)
-    return ag_new
-
-
-class DirectorABM:
+class Director:
     def __init__(self):
         self.PCores = dict()
         self.DCores = dict()
         self.MCores = dict()
+        self.Layouts = dict()
 
-    def add_pcore(self, name, pc):
-        if isinstance(pc, pcore.SimulationModel):
-            self.PCores[name] = pc
-            print('PCore {} added'.format(name))
+    def __add_pc(self, pc):
+        if pc in self.PCores:
+            log.info('Override parameter core {}'.format(pc))
         else:
-            print('Adding failed')
+            log.info('Added parameter core {}'.format(pc))
+        self.PCores[pc.Name] = pc
 
-    def read_pcore(self, name, script):
-        pc = pcore.DirectedAcyclicGraph(script).get_simulation_model()
-        self.add_pcore(name, pc)
+    def __add_dc(self, dc):
+        self.DCores[dc.Name] = dc
 
-    def load_pcore(self, name, path):
-        with open(path, 'r') as f:
-            self.read_pcore(name, str(f.read()))
+    def __add_mc(self, mc):
+        self.MCores[mc.Name] = mc
 
-    def restore_pcore(self, name, js):
-        pc = pcore.SimulationModel.build_from_json(js)
-        self.add_pcore(name, pc)
+    def __add_layout(self, layout):
+        self.Layouts[layout.Name] = layout
 
-    def add_dcore(self, dc):
-        if isinstance(dc, AbsBluePrint):
-            self.DCores[dc.Name] = dc
-            print('Dcore {} added'.format(dc.Name))
-        else:
-            print('Adding failed')
+    def get_pc(self, pc):
+        return self.PCores[pc]
 
-    def read_dcore(self, script):
-        bp = build_from_script(script)
-        self.add_dcore(bp)
+    def get_dc(self, dc):
+        return self.DCores[dc]
 
-    def load_dcore(self, path):
-        with open(path, 'r') as f:
-            self.read_dcore(f.read())
+    def get_mc(self, mc):
+        return self.MCores[mc]
 
-    def restore_dcore(self, js):
-        bp = build_from_json(js)
-        self.add_dcore(bp)
+    def get_layout(self, layout):
+        return self.Layouts[layout]
 
-    def read_mcore(self, script):
-        pass
+    def read_pc(self, script):
+        pc = read_pc(script)
+        self.__add_pc(pc)
 
-    def load_mcore(self, path):
-        with open(path, 'r') as f:
-            self.read_mcore(f.read())
+    def read_dc(self, script):
+        dc = read_dc(script)
+        self.__add_dc(dc)
 
-    def restore_mcore(self, js):
-        pass
+    def load_pc(self, file,):
+        try:
+            pc = load_pc(load_json(file))
+        except JSONDecodeError:
+            pc = read_pc(load_txt(file))
 
-    def get_pcore(self, name):
-        return self.PCores[name]
+        self.__add_pc(pc)
 
-    def get_dcore(self, name):
-        return self.DCores[name]
+    def load_dc(self, file):
+        try:
+            dc = load_dc(load_json(file))
+        except JSONDecodeError:
+            dc = read_dc(load_txt(file))
 
-    def get_mcore(self, name):
-        return self.MCores[name]
+        self.__add_dc(dc)
 
-    def list_pcores(self):
-        print(list(self.PCores.keys()))
+    def load_mc(self, file):
+        mc = load_mc(load_json(file))
+        self.__add_mc(mc)
 
-    def list_dcores(self):
-        print(list(self.DCores.keys()))
+    def load_layout(self, file):
+        lo = load_layout(load_json(file))
+        self.__add_layout(lo)
 
-    def list_mcores(self):
-        print(list(self.MCores.keys()))
+    def new_dc(self, name, dc_type='CTBN'):
+        dc = new_dc(name, dc_type)
+        self.__add_dc(dc)
+        return dc
 
-    def generate_pc_dc(self, pc, dc, new_name=None):
-        pc = self.PCores[pc].sample_core()
-        dc = self.DCores[dc]
-        if not dc.is_compatible(pc):
-            raise ValueError('Not compatible pcore')
-        return pc, dc.generate_model(pc, new_name)
+    def new_mc(self, name, mc_type='ABM', **kwargs):
+        mc = new_mc(name, mc_type, **kwargs)
+        self.__add_mc(mc)
+        return mc
 
-    def generate_abm(self, mc, name=None):
+    def new_layout(self, name):
+        lo = new_layout(name)
+        self.__add_layout(lo)
+        return lo
+
+    def list_pc(self):
+        return list(self.PCores.keys())
+
+    def list_dc(self):
+        return list(self.DCores.keys())
+
+    def list_mc(self):
+        return list(self.MCores.keys())
+
+    def list_layout(self):
+        return list(self.Layouts.keys())
+
+    def save_pc(self, pc, file):
+        try:
+            pc = self.get_pc(pc)
+        except KeyError:
+            # todo logging
+            pass
+        save_pc(pc, file)
+
+    def save_dc(self, dc, file):
+        try:
+            dc = self.get_dc(dc)
+        except KeyError:
+            # todo logging
+            pass
+        save_dc(dc, file)
+
+    def save_mc(self, mc, file):
+        try:
+            mc = self.get_mc(mc)
+        except KeyError:
+            # todo logging
+            pass
+        save_mc(mc, file)
+
+    save_pcore = save_pc
+    load_pcore = load_pc
+    read_pcore = read_pc
+    list_pcore = list_pc
+    save_dcore = save_dc
+    load_dcore = load_dc
+    read_dcore = read_dc
+    list_dcore = list_dc
+    save_mcore = save_mc
+    load_mcore = load_mc
+    list_mcore = list_mc
+
+    def save_layout(self, ly, file):
+        try:
+            ly = self.get_layout(ly)
+        except KeyError:
+            # todo logging
+            pass
+        save_layout(ly, file)
+
+    def save(self, file):
+        js = dict()
+        js['PCores'] = {k: v.to_json() for k, v in self.PCores.items()}
+        js['DCores'] = {k: v.to_json() for k, v in self.DCores.items()}
+        js['MCores'] = {k: v.to_json() for k, v in self.MCores.items()}
+        js['Layouts'] = {k: v.to_json() for k, v in self.Layouts.items()}
+        save_json(js, file)
+
+    def load(self, file):
+        js = load_json(file)
+        self.PCores.update({k: load_pc(v) for k, v in js['PCores'].items()})
+        self.DCores.update({k: load_dc(v) for k, v in js['DCores'].items()})
+        self.MCores.update({k: load_mc(v) for k, v in js['MCores'].items()})
+        self.Layouts.update({k: load_layout(v) for k, v in js['Layouts'].items()})
+
+    def generate_model(self, mc, name=None, pc=None, dc=None, **kwargs):
         if not name:
             name = mc
         mc = self.MCores[mc]
-        pc, dc = mc.TargetedPCore, mc.TargetedDCore
-        pc, dc = self.generate_pc_dc(pc, dc, name)
-        return mc.generate(name, pc, dc)
+        if mc.require_pc:
+            pc = pc if pc else generate_pc(self.PCores[mc.TargetedPCore])
+            if mc.require_dc:
+                dc = dc if dc else generate_dc(self.DCores[mc.TargetedDCore], pc)
 
-    def new_abm(self, name, tar_pcore, tar_dcore):
-        bp_abm = AgentBasedModelBluePrint(tar_pcore, tar_dcore)
-        self.MCores[name] = bp_abm
-        return bp_abm
+        return generate_model(mc, pc, dc, name, **kwargs)
 
-    def copy_abm(self, mod_src, mc, tr_tte=True, pc_new=None):
-        mod_new = self.generate_abm(mc)
-        time_copy = mod_src.TimeEnd if mod_src.TimeEnd else 0
-        mod_new.TimeEnd = mod_src.TimeEnd
-        if pc_new:
-            mod_new.PCore = pc_new
+    def copy_model(self, mod_src, tr_tte=True, pc_new=None, intervention=None):
+        # copy model structure
+        pc, dc, mc = mod_src.Meta
+        if pc: pc = self.PCores[pc]
+        if dc: dc = self.DCores[dc]
+        if mc: mc = self.MCores[mc]
+
+        return copy_model(mod_src, mc, pc, dc, tr_tte=tr_tte, pc_new=pc_new, intervention=intervention)
+
+    def generate(self, model, random_effect=False):
+        try:
+            lyo = self.Layouts[model]
+            return lyo.generate(self.generate_model)
+        except KeyError:
+            # todo logging
+            pass
+
+    def simulate(self, model, to, y0=None, fr=0, dt=1):
+        if model in self.Layouts:
+            m, y0 = self.generate(model)
+        elif model in self.MCores and y0:
+            m = self.generate_model(model)
         else:
-            pc_new = mod_new.PCore
-        dc_new = mod_new.DCore
-        trs = self.get_dcore(self.MCores[mc].TargetedDCore).Transitions
-        ags_src = mod_src.Pop.Agents
-        if tr_tte:
-            _, ds = pc_new.difference(mod_src.PCore)
-            tr_ch = [k for k, v in trs.items() if v['Dist'] in ds]
-            print('Changed transitions: {}'.format(', '.join(tr_ch)))
-            for k, v in ags_src.items():
-                mod_new.Pop.Agents[k] = copy_agent(v, dc_new, tr_ch)
-        else:
-            for k, v in ags_src.items():
-                mod_new.Pop.Agents[k] = copy_agent(v, dc_new)
+            # todo logging
+            raise ValueError('No match model')
 
-        mod_new.Pop.Eve.Last = mod_src.Pop.Eve.Last
+        out = simulate(m, y0=y0, fr=fr, to=to, dt=dt)
+        return m, out
 
-        ags_new = mod_new.Pop.Agents
-        mod_new.Pop.Networks.match(mod_src.Pop.Networks, ags_new)
+    def update(self, model, to, dt=1):
+        out = update(model, to, dt)
+        return out
 
-        for be_src, be_new in zip(mod_src.Behaviours.values(), mod_new.Behaviours.values()):
-            be_new.match(be_src, ags_src, ags_new, time_copy)
 
-        for ag in mod_new.agents:
-            ag.update(time_copy)
+#class DirectorABM(Director):
+#    def __init__(self):
+#        Director.__init__(self)
 
-        mod_new.Obs.TimeSeries = mod_src.Obs.TimeSeries.copy()
-
-        return mod_new

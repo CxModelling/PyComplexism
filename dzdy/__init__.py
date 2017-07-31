@@ -4,6 +4,7 @@ from .mcore import *
 from .abmodel import *
 from .ebmodel import *
 from .multimodel import *
+from .command import *
 from .director import *
 
 __author__ = 'TimeWz667'

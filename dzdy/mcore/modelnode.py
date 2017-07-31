@@ -5,7 +5,8 @@ __author__ = 'TimeWz667'
 
 
 class AbsModel(metaclass=ABCMeta):
-    def __init__(self, name):
+    def __init__(self, name, meta=None):
+        self.Meta = meta
         self.Name = name
         self.Requests = RequestSet()
         self.TimeEnd = None
@@ -64,8 +65,8 @@ class AbsModel(metaclass=ABCMeta):
 
 
 class LeafModel(AbsModel, metaclass=ABCMeta):
-    def __init__(self, name):
-        AbsModel.__init__(self, name)
+    def __init__(self, name, meta=None):
+        AbsModel.__init__(self, name, meta)
 
     def fetch(self, rs):
         self.Requests.clear()
@@ -78,8 +79,8 @@ class LeafModel(AbsModel, metaclass=ABCMeta):
 
 
 class BranchModel(AbsModel, metaclass=ABCMeta):
-    def __init__(self, name):
-        AbsModel.__init__(self, name)
+    def __init__(self, name, meta=None):
+        AbsModel.__init__(self, name, meta)
         self.Models = dict()
 
     def fetch(self, res):
