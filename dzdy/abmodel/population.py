@@ -1,4 +1,4 @@
-from dzdy.abmodel import Agent, NetworkSet, FillUpSet, get_network
+from dzdy.abmodel import Agent, NetworkSet, TraitSet, get_network
 import pandas as pd
 from collections import OrderedDict
 
@@ -8,7 +8,7 @@ class Breeder:
         self.Last = 0
         self.Prefix = prefix
         self.States = sts
-        self.Fill = FillUpSet()
+        self.Fill = TraitSet()
 
     def breed(self, st, n=1, info=None):
         try:

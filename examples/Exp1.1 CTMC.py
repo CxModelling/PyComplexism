@@ -1,19 +1,19 @@
 from dzdy.dcore import *
-import pcore
+import epidag
 
 __author__ = 'TimeWz667'
 
 psc = """
-    {
+    Pcore pABC {
         TrAB ~ k(4)
         TrBC ~ gamma(0.01, 100)
         TrCA ~ k(100)
     }
     """
 
-pc = pcore.DirectedAcyclicGraph(psc).get_simulation_model().sample_core()
+pc = epidag.DirectedAcyclicGraph(psc).get_simulation_model().sample_core()
 
-bp_test = BluePrintCTMC('Test')
+bp_test = BlueprintCTMC('Test')
 print(bp_test.to_json())
 
 bp_test.add_state('A')

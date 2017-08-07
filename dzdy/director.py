@@ -7,40 +7,30 @@ log = logging.getLogger(__name__)
 __author__ = 'TimeWz667'
 
 
-class Director:
+class DirectorDCPC:
     def __init__(self):
         self.PCores = dict()
         self.DCores = dict()
-        self.MCores = dict()
-        self.Layouts = dict()
 
     def __add_pc(self, pc):
         if pc in self.PCores:
-            log.info('Override parameter core {}'.format(pc))
+            log.info('Parameter core {} overrided'.format(pc))
         else:
-            log.info('Added parameter core {}'.format(pc))
+            log.info('Parameter core {} added'.format(pc))
         self.PCores[pc.Name] = pc
 
     def __add_dc(self, dc):
+        if dc in self.DCores:
+            log.info('Dynamic core {} overrided'.format(dc))
+        else:
+            log.info('Dynamic core {} added'.format(dc))
         self.DCores[dc.Name] = dc
-
-    def __add_mc(self, mc):
-        self.MCores[mc.Name] = mc
-
-    def __add_layout(self, layout):
-        self.Layouts[layout.Name] = layout
 
     def get_pc(self, pc):
         return self.PCores[pc]
 
     def get_dc(self, dc):
         return self.DCores[dc]
-
-    def get_mc(self, mc):
-        return self.MCores[mc]
-
-    def get_layout(self, layout):
-        return self.Layouts[layout]
 
     def read_pc(self, script):
         pc = read_pc(script)
@@ -50,7 +40,7 @@ class Director:
         dc = read_dc(script)
         self.__add_dc(dc)
 
-    def load_pc(self, file,):
+    def load_pc(self, file, ):
         try:
             pc = load_pc(load_json(file))
         except JSONDecodeError:
@@ -66,40 +56,16 @@ class Director:
 
         self.__add_dc(dc)
 
-    def load_mc(self, file):
-        mc = load_mc(load_json(file))
-        self.__add_mc(mc)
-
-    def load_layout(self, file):
-        lo = load_layout(load_json(file))
-        self.__add_layout(lo)
-
     def new_dc(self, name, dc_type='CTBN'):
         dc = new_dc(name, dc_type)
         self.__add_dc(dc)
         return dc
-
-    def new_mc(self, name, mc_type='ABM', **kwargs):
-        mc = new_mc(name, mc_type, **kwargs)
-        self.__add_mc(mc)
-        return mc
-
-    def new_layout(self, name):
-        lo = new_layout(name)
-        self.__add_layout(lo)
-        return lo
 
     def list_pc(self):
         return list(self.PCores.keys())
 
     def list_dc(self):
         return list(self.DCores.keys())
-
-    def list_mc(self):
-        return list(self.MCores.keys())
-
-    def list_layout(self):
-        return list(self.Layouts.keys())
 
     def save_pc(self, pc, file):
         try:
@@ -117,14 +83,18 @@ class Director:
             pass
         save_dc(dc, file)
 
-    def save_mc(self, mc, file):
-        try:
-            mc = self.get_mc(mc)
-        except KeyError:
-            # todo logging
-            pass
-        save_mc(mc, file)
+    def save(self, file):
+        js = dict()
+        js['PCores'] = {k: v.to_json() for k, v in self.PCores.items()}
+        js['DCores'] = {k: v.to_json() for k, v in self.DCores.items()}
+        save_json(js, file)
 
+    def load(self, file):
+        js = load_json(file)
+        self.PCores.update({k: load_pc(v) for k, v in js['PCores'].items()})
+        self.DCores.update({k: load_dc(v) for k, v in js['DCores'].items()})
+
+    # functions in old version
     save_pcore = save_pc
     load_pcore = load_pc
     read_pcore = read_pc
@@ -133,6 +103,58 @@ class Director:
     load_dcore = load_dc
     read_dcore = read_dc
     list_dcore = list_dc
+
+
+class Director(DirectorDCPC):
+    def __init__(self):
+        DirectorDCPC.__init__(self)
+        self.MCores = dict()
+        self.Layouts = dict()
+
+    def __add_mc(self, mc):
+        self.MCores[mc.Name] = mc
+
+    def __add_layout(self, layout):
+        self.Layouts[layout.Name] = layout
+
+    def get_mc(self, mc):
+        return self.MCores[mc]
+
+    def get_layout(self, layout):
+        return self.Layouts[layout]
+
+    def load_mc(self, file):
+        mc = load_mc(load_json(file))
+        self.__add_mc(mc)
+
+    def load_layout(self, file):
+        lo = load_layout(load_json(file))
+        self.__add_layout(lo)
+
+    def new_mc(self, name, mc_type='ABM', **kwargs):
+        mc = new_mc(name, mc_type, **kwargs)
+        self.__add_mc(mc)
+        return mc
+
+    def new_layout(self, name):
+        lo = new_layout(name)
+        self.__add_layout(lo)
+        return lo
+
+    def list_mc(self):
+        return list(self.MCores.keys())
+
+    def list_layout(self):
+        return list(self.Layouts.keys())
+
+    def save_mc(self, mc, file):
+        try:
+            mc = self.get_mc(mc)
+        except KeyError:
+            # todo logging
+            pass
+        save_mc(mc, file)
+
     save_mcore = save_mc
     load_mcore = load_mc
     list_mcore = list_mc
@@ -141,8 +163,7 @@ class Director:
         try:
             ly = self.get_layout(ly)
         except KeyError:
-            # todo logging
-            pass
+            log.info('Layout {} saved'.format(ly))
         save_layout(ly, file)
 
     def save(self, file):

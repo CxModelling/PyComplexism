@@ -1,6 +1,6 @@
 from dzdy.abmodel.modifier import *
 from dzdy.abmodel.agent import *
-from dzdy.abmodel.infofill import *
+from dzdy.abmodel.traits import *
 from dzdy.abmodel.network import *
 from dzdy.abmodel.population import *
 from dzdy.abmodel.trigger import *

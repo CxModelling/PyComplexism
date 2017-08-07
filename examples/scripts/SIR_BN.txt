@@ -1,10 +1,4 @@
-from dzdy.dcore import *
-
-__author__ = 'TimeWz667'
-
-dc_script = '''
-CTBN SIR_scr{
-
+CTBN SIR_BN {
     life[Alive | Dead]
     sir[S | I | R]
 
@@ -15,18 +9,8 @@ CTBN SIR_scr{
     Sus{life:Alive, sir:S}
 
     Die -> Dead # from transition Die to state Dead by distribution Die
-    Infect(beta) -> Inf
-    Recov(gamma) -> Rec
+    Sus -- Infect(beta) -> Inf
+    Inf -- Recov(gamma) -> Rec
 
     Alive -- Die # from state Alive to transition Die
-    Sus -- Infect
-    Inf -- Recov
 }
-'''
-
-# build cd from script
-dc = build_from_script(dc_script)
-print(dc)
-
-
-

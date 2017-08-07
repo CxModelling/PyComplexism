@@ -1,0 +1,16 @@
+CTBN CareSeeking {
+    dz[Lat|Yes|No]
+    treat [No| Yes | Fail]
+
+    Latent{dz:Lat, treat:No}
+    Sick{dz:Yes}
+    PreTreat{dz:Yes, treat:No}
+    Treating{dz:Yes, treat:Yes}
+    Failure{dz:Yes, treat:Fail}
+    Recovered{dz:No}
+
+    Latent -- Onset -> Sick
+    PreTreat -- Detect -> Treating
+    Treating -- Fail -> Failure
+    Treating -- Cure -> Recovered
+}
