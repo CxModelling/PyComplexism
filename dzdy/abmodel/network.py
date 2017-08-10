@@ -69,10 +69,14 @@ class NetworkBA(Network):
 
     def add_agent(self, ag):
         """
-        # adopted from barabasi_albert_graph in Networkx package
+        Add an agent into this network; adopted from barabasi_albert_graph in Networkx package
+
+        Args:
+            ag (Agent): an agent
+
+        Returns:
 
         """
-
         self.Graph.add_node(ag)
         num = len(self.Graph)
         if num < self.M:
@@ -99,9 +103,9 @@ class NetworkBA(Network):
         new = nx.Graph()
         new.add_nodes_from(self.Graph.node)
         g = nx.barabasi_albert_graph(len(self.Graph), self.M)
-        idlist = list(new.node.keys())
-        shuffle(idlist)
-        idmap = {i: ag for i, ag in enumerate(idlist)}
+        ids = list(new.node.keys())
+        shuffle(ids)
+        idmap = {i: ag for i, ag in enumerate(ids)}
         for u, v in g.edges():
             new.add_edge(idmap[u], idmap[v])
         self.Graph = new
@@ -131,7 +135,7 @@ class NetworkSet:
             try:
                 self.Nets[net].reform()
             except KeyError:
-                raise KeyError('Not this net')
+                raise KeyError('No this net')
         else:
             for net in self.Nets.values():
                 net.reform()
@@ -144,11 +148,13 @@ class NetworkSet:
         for net in self.Nets.values():
             net.remove_agent(ag)
 
-    def neighbours_of(self, ag, net=None):
-        if net and net in self.Nets:
-            return self.Nets[net][ag]
+    def neighbours_of(self, ag, net='|'):
+        if net == '|':
+            return {k: list(v[ag]) for k, v in self.Nets.items()}
+        elif net in self.Nets:
+            return list(self.Nets[net][ag])
         else:
-            return {name: list(net[ag]) for name, net in self.Nets.items()}
+            return None
 
     def neighbour_set_of(self, ag):
         ns = set()
@@ -156,19 +162,21 @@ class NetworkSet:
             ns.update(net[ag])
         return ns
 
-    def count_for(self, ag, net=None):
-        if net and net in self.Nets:
+    def count_for(self, ag, net='|'):
+        if net == '|':
+            return {k: (v.Weight, list(v[ag])) for k, v in self.Nets.items()}
+        elif net in self.Nets:
             net = self.Nets[net]
-            return net.Weight, net[ag]
+            return net.Weight, list(net[ag])
         else:
-            return {name: (net.Weight, net[ag]) for name, net in self.Nets.items()}
+            return None
 
-    def clear(self, net=None):
-        if net and net in self.Nets:
-            self.Nets[net].clear()
-        else:
+    def clear(self, net='|'):
+        if net == '|':
             for net in self.Nets.values():
                 net.clear()
+        elif net in self.Nets:
+            self.Nets[net].clear()
 
     def match(self, nets_src, ags_new):
         for k, net_src in nets_src.Nets.items():
@@ -208,8 +216,8 @@ if __name__ == '__main__':
     ns2 = NetworkGNP(0.3)
 
     for nod in range(100):
-        ns1.add_agent(nod)
-        ns2.add_agent(nod)
+        ns1.add_agent('Ag{}'.format(nod))
+        ns2.add_agent('Ag{}'.format(nod))
 
     ns1.reform()
     plt.figure(1)
@@ -226,3 +234,14 @@ if __name__ == '__main__':
     plt.hist(list(ns2.Graph.degree().values()))
 
     plt.show()
+
+    ag1 = ns1['Ag1']
+    nsc = NetworkSet()
+    nsc['N1'] = get_network('BA', {'m': 2})
+    nsc['N2'] = get_network('GNP', {'p': 0.2})
+
+    for nod in range(100):
+        nsc.add_agent('Ag{}'.format(nod))
+
+    print(nsc.neighbours_of('Ag1'))
+    print(nsc.neighbours_of('Ag2', 'N1'))

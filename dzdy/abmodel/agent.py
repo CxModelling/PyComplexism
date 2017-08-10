@@ -111,7 +111,8 @@ class Agent:
         s = 'ID: {}, '.format(self.Name)
         if self.Info:
             s += ', '.join([str(k) + ': ' + str(v) for k, v in self.Info.items()])
-        s += ', State: ' + str(self.State.Name)
+            s += ', '
+        s += 'State: ' + str(self.State.Name)
         return s
 
     @property

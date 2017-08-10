@@ -5,6 +5,8 @@ import dzdy.validators as vld
 from abc import ABCMeta, abstractmethod, abstractstaticmethod
 
 __author__ = 'TimeWz667'
+__all__ = ['TraitSet', 'TraitBinary', 'TraitDistribution', 'TraitCategory',
+           'register_trait', 'install_trait', 'AbsTrait']
 
 
 class TraitSet:
@@ -156,8 +158,15 @@ def get_trait(js):
 
 
 def install_trait(mod, js):
-    # todo
+    """
+
+    Args:
+        mod (AgentBasedModel):
+        js (dict): json of trait definition
+
+    """
     trait = get_trait(js)
+    mod.Pop.add_trait(trait)
 
 
 register_trait('Binary', TraitBinary)

@@ -1,4 +1,4 @@
-from dzdy.abmodel import Agent, NetworkSet, TraitSet, get_network
+from dzdy.abmodel import Agent, NetworkSet, TraitSet
 import pandas as pd
 from collections import OrderedDict
 
@@ -8,7 +8,7 @@ class Breeder:
         self.Last = 0
         self.Prefix = prefix
         self.States = sts
-        self.Fill = TraitSet()
+        self.Traits = TraitSet()
 
     def breed(self, st, n=1, info=None):
         try:
@@ -19,16 +19,14 @@ class Breeder:
         start = self.Last + 1
         ags = [Agent('{}{}'.format(self.Prefix, start + i), st) for i in range(n)]
         for ag in ags:
-            ag.update_info(self.Fill(info.copy()))
+            ag.update_info(info)
+            self.Traits(ag.Info)
+
         self.Last += n
         return ags
 
-    def breed_multi(self, di):
-        for d in di:
-            if 'info' not in d:
-                d['info'] = dict()
-            for ag in self.breed(d['st'], d['n'], d['info']):
-                yield ag
+    def append_trait(self, trait):
+        self.Traits.append(trait)
 
 
 class Population:
@@ -43,35 +41,24 @@ class Population:
         except KeyError:
             raise KeyError('No this agent')
 
-    def append_fill(self, fi):
-        self.Eve.Fill.append(fi)
-
-    def append_fill_json(self, js_fi):
-        self.Eve.Fill.append_json(js_fi)
+    def append_trait(self, fi):
+        self.Eve.Traits.append(fi)
 
     def add_network(self, name, net):
         self.Networks[name] = net
 
-    def add_network_json(self, name, js_net):
-        net = get_network(js_net['Type'], js_net['Args'])
-        self.add_network(name, net)
-
     def count(self, st=None):
         if st:
+            if isinstance(st, str):
+                st = self.Eve.States[st]
             return sum(st in ag for ag in self.Agents.values())
         else:
             return len(self.Agents)
 
-    def neighbours(self, ag, net=None):
-        if isinstance(ag, str):
-            ag = self.Agents[ag]
-
-        if not net:
-            return (nei for nei in self.Agents.values() if nei is not ag)
-
-        elif net == '*':
+    def neighbours(self, ag, net='|'):
+        if net == '|':
             return self.Networks.neighbours_of(ag)
-        elif net == '|':
+        elif net == '*':
             return self.Networks.neighbour_set_of(ag)
         else:
             try:
