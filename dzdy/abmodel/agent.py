@@ -22,6 +22,9 @@ class Agent:
             else:
                 raise KeyError('No this attribute')
 
+    def __setitem__(self, key, value):
+        self.Info[key] = value
+
     def update_info(self, info, force=False):
         for k, v in info.items():
             if k not in self.Info or force:

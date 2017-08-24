@@ -148,13 +148,14 @@ class NetworkSet:
         for net in self.Nets.values():
             net.remove_agent(ag)
 
-    def neighbours_of(self, ag, net='|'):
-        if net == '|':
-            return {k: list(v[ag]) for k, v in self.Nets.items()}
-        elif net in self.Nets:
-            return list(self.Nets[net][ag])
+    def neighbours_of(self, ag, net=None):
+        if net:
+            try:
+                return list(self.Nets[net][ag])
+            except KeyError:
+                return None
         else:
-            return None
+            return {k: list(v[ag]) for k, v in self.Nets.items()}
 
     def neighbour_set_of(self, ag):
         ns = set()
@@ -162,21 +163,15 @@ class NetworkSet:
             ns.update(net[ag])
         return ns
 
-    def count_for(self, ag, net='|'):
-        if net == '|':
-            return {k: (v.Weight, list(v[ag])) for k, v in self.Nets.items()}
-        elif net in self.Nets:
-            net = self.Nets[net]
-            return net.Weight, list(net[ag])
+    def clear(self, net=None):
+        if net:
+            try:
+                self.Nets[net].clear()
+            except KeyError:
+                pass
         else:
-            return None
-
-    def clear(self, net='|'):
-        if net == '|':
             for net in self.Nets.values():
                 net.clear()
-        elif net in self.Nets:
-            self.Nets[net].clear()
 
     def match(self, nets_src, ags_new):
         for k, net_src in nets_src.Nets.items():
@@ -189,56 +184,39 @@ class NetworkSet:
         return '[{}]'.format('\n'.join(['\t{}: {}'.format(*it) for it in self.Nets.items()]))
 
 
-NetworkLibrary = dict()
 
-
-def register_network(name, args):
-    NetworkLibrary[name] = {'Type': eval('Network{}'.format(name)), 'Args': args}
-
-
-def get_network(net_type, kwargs):
-    return NetworkLibrary[net_type]['Type'](**kwargs)
-
-
-def install_network(mod, net_name, net_type, kwargs):
-    net = get_network(net_type, kwargs)
-    mod.Pop.add_network(net_name, net)
-
-
-register_network('BA', ['m'])
-register_network('GNP', ['p'])
 
 
 if __name__ == '__main__':
-    import matplotlib.pyplot as plt
+    # import matplotlib.pyplot as plt
 
-    ns1 = get_network('BA', {'m': 2})
+    ns1 = NetworkBA(m=2)
     ns2 = NetworkGNP(0.3)
 
     for nod in range(100):
         ns1.add_agent('Ag{}'.format(nod))
         ns2.add_agent('Ag{}'.format(nod))
 
-    ns1.reform()
-    plt.figure(1)
-    plt.subplot(2, 2, 1)
-    nx.draw_circular(ns1.Graph)
-
-    plt.subplot(2, 2, 2)
-    nx.draw_circular(ns2.Graph)
-
-    plt.subplot(2, 2, 3)
-    plt.hist(list(ns1.Graph.degree().values()))
-
-    plt.subplot(2, 2, 4)
-    plt.hist(list(ns2.Graph.degree().values()))
-
-    plt.show()
+    # ns1.reform()
+    # plt.figure(1)
+    # plt.subplot(2, 2, 1)
+    # nx.draw_circular(ns1.Graph)
+    #
+    # plt.subplot(2, 2, 2)
+    # nx.draw_circular(ns2.Graph)
+    #
+    # plt.subplot(2, 2, 3)
+    # plt.hist(list(ns1.Graph.degree().values()))
+    #
+    # plt.subplot(2, 2, 4)
+    # plt.hist(list(ns2.Graph.degree().values()))
+    #
+    # plt.show()
 
     ag1 = ns1['Ag1']
     nsc = NetworkSet()
-    nsc['N1'] = get_network('BA', {'m': 2})
-    nsc['N2'] = get_network('GNP', {'p': 0.2})
+    nsc['N1'] = NetworkBA(m=2)
+    nsc['N2'] = NetworkGNP(p=0.3)
 
     for nod in range(100):
         nsc.add_agent('Ag{}'.format(nod))
