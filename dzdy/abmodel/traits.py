@@ -6,7 +6,7 @@ from abc import ABCMeta, abstractmethod, abstractstaticmethod
 
 __author__ = 'TimeWz667'
 __all__ = ['TraitSet', 'TraitBinary', 'TraitDistribution', 'TraitCategory',
-           'register_trait', 'install_trait', 'AbsTrait']
+           'AbsTrait']
 
 
 class TraitSet:
@@ -44,14 +44,6 @@ class AbsTrait(metaclass=ABCMeta):
 
     @abstractstaticmethod
     def from_json(js):
-        pass
-
-    @abstractstaticmethod
-    def get_validators(**kwargs):
-        pass
-
-    @abstractstaticmethod
-    def get_template(i=0):
         pass
 
     def __repr__(self):
@@ -145,33 +137,6 @@ class TraitCategory(AbsTrait):
         return {'Name': 'Is_{}'.format(i), 'Type': 'Category', 'KV': {'A': 0.5, 'B': 0.5}}
 
 
-TraitsLibrary = dict()
-
-
-def register_trait(trait_type, obj):
-    if issubclass(obj, AbsTrait):
-        TraitsLibrary[trait_type] = obj
-
-
-def get_trait(js):
-    return TraitsLibrary[js['Type']].from_json(js)
-
-
-def install_trait(mod, js):
-    """
-
-    Args:
-        mod (AgentBasedModel):
-        js (dict): json of trait definition
-
-    """
-    trait = get_trait(js)
-    mod.Pop.add_trait(trait)
-
-
-register_trait('Binary', TraitBinary)
-register_trait('Distribution', TraitDistribution)
-register_trait('Category', TraitCategory)
 
 
 if __name__ == '__main__':

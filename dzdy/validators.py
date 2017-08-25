@@ -9,6 +9,8 @@ Validation for values.
 Partially adapted from validators.py in WTForms
 """
 
+__all__ = ['Number', 'InSet', 'RegExp', 'ListSize', 'Options']
+
 
 class ValidationError(ValueError):
     def __init__(self, message='', *args, **kwargs):
@@ -39,9 +41,9 @@ class Validator(metaclass=ABCMeta):
 
 
 class Number(Validator):
-    def __init__(self, lower=None, upper=None, is_float=True, default=None):
-        self.Lower = lower if lower else -float('inf')
-        self.Upper = upper if upper else float('inf')
+    def __init__(self, lower=-float('inf'), upper=float('inf'), is_float=True, default=None):
+        self.Lower = lower
+        self.Upper = upper
         self.Float = is_float
         self.__default = default if default else min(max(0, self.Lower), self.Upper)
 
@@ -64,13 +66,10 @@ class Number(Validator):
         return data
 
     def to_form(self):
-        js = {'Type': 'float' if self.Float else 'int'}
-        if self.Lower:
-            js['Lower'] = self.Lower
-        if self.Upper:
-            js['Upper'] = self.Upper
-        js['Default'] = self.Default
-        return js
+        return {'Type': 'float' if self.Float else 'int',
+                'Lower': self.Lower,
+                'Upper': self.Upper,
+                'Default': self.Default}
 
     @property
     def Default(self):
@@ -210,6 +209,9 @@ class Options:
         for k, v in self.Validators.items():
             fo[k] = v.to_form()
         return fo
+
+    def get_defaults(self):
+        return {k: v.Default for k, v in self.Validators.items()}
 
     def modify(self, values, log=None):
         for k, v in self.Validators.items():

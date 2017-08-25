@@ -150,7 +150,8 @@ crashlytics.properties
 crashlytics-build.properties
 fabric.properties
 .idea/Kamanian.iml
-.idea/inspectionProfiles/
-.idea/misc.xml
-.idea/modules.xml
+
 docs/
+.idea/
+
+.idea/Kam.iml
