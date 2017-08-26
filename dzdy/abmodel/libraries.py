@@ -35,6 +35,8 @@ def get_network(net_type, kwargs):
     return NetworkLibrary[net_type].Class(**kwargs)
 
 
+
+
 def get_network_template(net_type):
     return NetworkLibrary[net_type].Options.get_form()
 
@@ -70,6 +72,9 @@ def validate_trait(trait_type, kwargs):
 def get_trait(trait_type, kwargs):
     return TraitsLibrary[trait_type].Class(**kwargs)
 
+def get_trait_js(js):
+    return TraitsLibrary[js['Type']].from_json(js)
+
 
 def get_trait_template(trait_type):
     return TraitsLibrary[trait_type].Options.get_form()
@@ -79,9 +84,6 @@ def get_trait_defaults(trait_type):
     return NetworkLibrary[trait_type].Options.get_defaults()
 
 
-
-def get_trait(js):
-    return TraitsLibrary[js['Type']].from_json(js)
 
 
 def install_trait(mod, js):
