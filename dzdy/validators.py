@@ -102,7 +102,7 @@ class InSet(Validator):
 
 
 class RegExp(Validator):
-    def __init__(self, reg, flags=None, default=''):
+    def __init__(self, reg, flags=re.I, default=''):
         self.Reg = re.compile(reg, flags)
         self.__Default = default
 
@@ -131,7 +131,7 @@ class ListSize(Validator):
         self.Size = size
 
     def to_form(self):
-        pass
+        return {'Type': 'list'}
 
     def validate(self, value):
         try:
@@ -152,9 +152,13 @@ class ListSize(Validator):
             return None
 
 
-class ProbTab:
-    def __init__(self):
-        pass
+class ProbTab(Validator):
+    def __init__(self, default=None):
+        try:
+            self.validate(default)
+            self.__Default = default
+        except ValidationError:
+            self.__Default = {'A': 0.5, 'B': 0.5}
 
     def __call__(self, data):
         try:
@@ -163,6 +167,28 @@ class ProbTab:
                     raise ValidationError('Table contains negative probability')
         except AttributeError:
             raise ValidationError('Value is not an probability table')
+
+    def to_form(self):
+        return {'Type': 'table', 'Default': self.Default}
+
+    def validate(self, value):
+        try:
+            for v in value.values():
+                if v < 0:
+                    raise ValidationError('Table contains negative probability')
+        except AttributeError:
+            raise ValidationError('Value is not an probability table')
+
+    @property
+    def Default(self):
+        return self.__Default
+
+    def filter(self, value):
+        try:
+            self.validate(value)
+            return value
+        except ValidationError:
+            return self.Default
 
 
 class Options:
@@ -229,6 +255,17 @@ class Options:
                 return False
         return True
 
+    def extract(self, values, log=None):
+        ex = dict()
+        for k in self.Validators.keys():
+            try:
+                ex[k] = values[k]
+            except KeyError:
+                if log:
+                    log.debug('Lost variable: {}'.format(k))
+                return None
+        return ex
+
 
 if __name__ == '__main__':
     opts0 = Options()
@@ -259,3 +296,13 @@ if __name__ == '__main__':
     }
     print(opts0.modify(test2))
     print(test2)
+
+    test3 = {
+        'N1': 1,
+        'N2': 1,
+        'N3': 1,
+        'N4': 0,
+        'S1': 'A',
+        'R1': 'A@B'
+    }
+    print(opts0.extract(test3))

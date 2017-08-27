@@ -1,11 +1,13 @@
 import networkx as nx
 from numpy.random import random, choice, shuffle
+from abc import ABCMeta, abstractmethod
 
 __author__ = 'TimeWizard'
 
 
-class Network:
-    def __init__(self):
+class Network(metaclass=ABCMeta):
+    def __init__(self, name):
+        self.Name = name
         self.Graph = nx.Graph()
 
     def __getitem__(self, ag):
@@ -20,6 +22,7 @@ class Network:
     def remove_agent(self, ag):
         self.Graph.remove_node(ag)
 
+    @abstractmethod
     def reform(self):
         pass
 
@@ -33,10 +36,19 @@ class Network:
         for f, t in net_src.Graph.edges():
             self.Graph.add_edge(ags_new[f.Name], ags_new[t.Name])
 
+    @staticmethod
+    @abstractmethod
+    def from_json(js):
+        pass
+
+    @abstractmethod
+    def to_json(self):
+        pass
+
 
 class NetworkGNP(Network):
-    def __init__(self, p):
-        Network.__init__(self)
+    def __init__(self, name, p):
+        Network.__init__(self, name)
         self.P = p
 
     def add_agent(self, ag):
@@ -60,10 +72,17 @@ class NetworkGNP(Network):
 
     __str__ = __repr__
 
+    @staticmethod
+    def from_json(js):
+        return NetworkGNP(js['Name'], js['p'])
+
+    def to_json(self):
+        return {'Name': self.Name, 'Type': 'GNP', 'p': self.P}
+
 
 class NetworkBA(Network):
-    def __init__(self, m):
-        Network.__init__(self)
+    def __init__(self, name, m):
+        Network.__init__(self, name)
         self.M = m
         self.__repeat = list()
 
@@ -118,6 +137,13 @@ class NetworkBA(Network):
         return 'Barabasi_Albert(N={}, M={})'.format(len(self.Graph), self.M)
 
     __str__ = __repr__
+
+    @staticmethod
+    def from_json(js):
+        return NetworkBA(js['Name'], js['m'])
+
+    def to_json(self):
+        return {'Name': self.Name, 'Type': 'BA', 'm': self.M}
 
 
 class NetworkSet:
@@ -184,14 +210,9 @@ class NetworkSet:
         return '[{}]'.format('\n'.join(['\t{}: {}'.format(*it) for it in self.Nets.items()]))
 
 
-
-
-
 if __name__ == '__main__':
-    # import matplotlib.pyplot as plt
-
-    ns1 = NetworkBA(m=2)
-    ns2 = NetworkGNP(0.3)
+    ns1 = NetworkBA('ns1', m=2)
+    ns2 = NetworkGNP('ns2', p=0.3)
 
     for nod in range(100):
         ns1.add_agent('Ag{}'.format(nod))
@@ -215,8 +236,8 @@ if __name__ == '__main__':
 
     ag1 = ns1['Ag1']
     nsc = NetworkSet()
-    nsc['N1'] = NetworkBA(m=2)
-    nsc['N2'] = NetworkGNP(p=0.3)
+    nsc['N1'] = NetworkBA('ns1', m=2)
+    nsc['N2'] = NetworkGNP('ns2', p=0.3)
 
     for nod in range(100):
         nsc.add_agent('Ag{}'.format(nod))

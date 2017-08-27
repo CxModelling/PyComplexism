@@ -44,8 +44,8 @@ class Population:
     def append_trait(self, fi):
         self.Eve.Traits.append(fi)
 
-    def add_network(self, name, net):
-        self.Networks[name] = net
+    def add_network(self, net):
+        self.Networks[net.Name] = net
 
     def count(self, st=None):
         if st:

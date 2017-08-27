@@ -1,8 +1,7 @@
 import numpy.random as rd
 from epidag import parse_distribution
 from dzdy.util import CategoricalRV
-import dzdy.validators as vld
-from abc import ABCMeta, abstractmethod, abstractstaticmethod
+from abc import ABCMeta, abstractmethod
 
 __author__ = 'TimeWz667'
 __all__ = ['TraitSet', 'TraitBinary', 'TraitDistribution', 'TraitCategory',
@@ -29,20 +28,14 @@ class TraitSet:
     def __str__(self):
         return str(self.to_json())
 
-    @staticmethod
-    def from_json(js):
-        ts = TraitSet()
-        for fn in js:
-            ts.append(get_trait(fn))
-        return ts
-
 
 class AbsTrait(metaclass=ABCMeta):
     @abstractmethod
     def to_json(self):
         pass
 
-    @abstractstaticmethod
+    @staticmethod
+    @abstractmethod
     def from_json(js):
         pass
 
@@ -65,19 +58,11 @@ class TraitBinary(AbsTrait):
 
     def to_json(self):
         return {'Name': self.Name, 'Type': 'Binary',
-                'Prob': self.Prob, 'TF': [self.TrueFalse[0], self.TrueFalse[1]]}
+                'prob': self.Prob, 'tf': [self.TrueFalse[0], self.TrueFalse[1]]}
 
     @staticmethod
     def from_json(js):
-        return TraitBinary(js['Name'], js['Prob'], js['TF'])
-
-    @staticmethod
-    def get_validators(**kwargs):
-        return {'Prob': vld.Number(lower=0, upper=1), 'TF': vld.ListSize(2)}
-
-    @staticmethod
-    def get_template(i=0):
-        return {'Name': 'Is_{}'.format(i), 'Type': 'Binary', 'Prob': 0.5, 'TF': [1, 0]}
+        return TraitBinary(js['Name'], js['prob'], js['tf'])
 
 
 class TraitDistribution(AbsTrait):
@@ -93,26 +78,17 @@ class TraitDistribution(AbsTrait):
 
     def to_json(self):
         return {'Name': self.Name, 'Type': 'Distribution',
-                'Distribution': self.Dist.Name}
+                'dist': self.Dist.Name}
 
     @staticmethod
     def from_json(js):
         return TraitDistribution(js['Name'], js['Distribution'])
 
-    @staticmethod
-    def get_validators(**kwargs):
-        # todo validator for distributions
-        return {}
-
-    @staticmethod
-    def get_template(i=0):
-        return {'Name': 'Is_{}'.format(i), 'Type': 'Distribution', 'Distribution': 'exp(1.0)'}
-
 
 class TraitCategory(AbsTrait):
-    def __init__(self, name, xs):
+    def __init__(self, name, kv):
         self.Name = name
-        self.Cat = CategoricalRV(xs)
+        self.Cat = CategoricalRV(kv)
 
     def __call__(self, info):
         if self.Name in info:
@@ -122,21 +98,11 @@ class TraitCategory(AbsTrait):
 
     def to_json(self):
         return {'Name': self.Name, 'Type': 'Category',
-                'KV': self.Cat.get_xs()}
+                'kv': self.Cat.get_xs()}
 
     @staticmethod
     def from_json(js):
-        return TraitCategory(js['Name'], js['KV'])
-
-    @staticmethod
-    def get_validators(**kwargs):
-        return {'KV': vld.ProbTab()}
-
-    @staticmethod
-    def get_template(i=0):
-        return {'Name': 'Is_{}'.format(i), 'Type': 'Category', 'KV': {'A': 0.5, 'B': 0.5}}
-
-
+        return TraitCategory(js['Name'], js['kv'])
 
 
 if __name__ == '__main__':
@@ -149,7 +115,5 @@ if __name__ == '__main__':
     print(fs_test({}))
 
     fs_js = fs_test.to_json()
-    for j in fs_js:
-        print(get_trait(j))
-    fs_test = TraitSet.from_json(fs_js)
+
     print(fs_test)
