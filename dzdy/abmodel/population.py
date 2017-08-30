@@ -48,6 +48,14 @@ class Population:
         self.Networks[net.Name] = net
 
     def count(self, st=None):
+        """
+        count agents with a certain state
+        Args:
+            st: target state or name of state
+
+        Returns: number
+
+        """
         if st:
             if isinstance(st, str):
                 st = self.Eve.States[st]
@@ -76,17 +84,21 @@ class Population:
     def get_info_table(self):
         """
         get a pd.DataFrame table of the information of agents
-        :return: pd.DataFrame table
+        Returns: pd.DataFrame table
+
         """
         return pd.DataFrame.from_records([ag.Info for ag in self.Agents.values()])
 
     def add_agent(self, atr, n=1, info=None):
         """
+        Add agents
+        Args:
+            atr: either the name of the attribute or entity of the attribute
+            n: the number of agents need to be generate
+            info: a dict of info. eg. {'Sex': 'F', 'Age': 26}
 
-        :param atr: either the name of the attribute or entity of the attribute
-        :param n: the number of agents need to be generate
-        :param info: a dict of info. eg. {'Sex': 'F', 'Age': 26 }
-        :return: a list of generated agents
+        Returns: a list of generated agents
+
         """
         ags = self.Eve.breed(atr, n, info)
         ags = list(ags)
@@ -97,9 +109,12 @@ class Population:
 
     def remove_agent(self, i):
         """
-        remove agent from population, disconnecting all social links around it
-        :param i: string, name of agent
-        :return: deleted agent
+        Remove agent from population, disconnecting all social links around it
+        Args:
+            i: string, name of agent
+
+        Returns: the deleted agent
+
         """
         try:
             ag = self[i]
