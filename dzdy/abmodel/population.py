@@ -34,6 +34,7 @@ class Population:
         self.Eve = Breeder(core.get_state_space(), prefix)
         self.Agents = OrderedDict()
         self.Networks = NetworkSet()
+        self.States = core.States
 
     def __getitem__(self, item):
         try:
@@ -58,12 +59,18 @@ class Population:
         """
         if st:
             if isinstance(st, str):
-                st = self.Eve.States[st]
+                st = self.States[st]
             return sum(st in ag for ag in self.Agents.values())
         else:
             return len(self.Agents)
 
     def neighbours(self, ag, net='|'):
+        if not isinstance(ag, Agent):
+            try:
+                ag = self.Agents[ag]
+            except KeyError:
+                raise KeyError('No this agent')
+
         if net == '|':
             return self.Networks.neighbours_of(ag)
         elif net == '*':
@@ -77,11 +84,13 @@ class Population:
     def count_neighbours(self, ag, st=None, net=None):
         nes = self.neighbours(ag, net=net)
         if st:
+            if isinstance(st, str):
+                st = self.Eve.States[st]
             return sum(st in nei for nei in nes)
         else:
             return len(list(nes))
 
-    def get_info_table(self):
+    def trait_table(self):
         """
         get a pd.DataFrame table of the information of agents
         Returns: pd.DataFrame table

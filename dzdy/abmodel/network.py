@@ -11,7 +11,7 @@ class Network(metaclass=ABCMeta):
         self.Graph = nx.Graph()
 
     def __getitem__(self, ag):
-        return self.Graph[ag].keys()
+        return list(self.Graph[ag].keys())
 
     def initialise(self):
         self.Graph = nx.Graph()
@@ -156,6 +156,13 @@ class NetworkSet:
     def __getitem__(self, item):
         return self.Nets[item]
 
+    def __contains__(self, item):
+        return item in self.Nets
+
+    def append(self, net):
+        if isinstance(net, Network):
+            self.Nets[net.Name] = net
+
     def reform(self, net=None):
         if net:
             try:
@@ -179,14 +186,17 @@ class NetworkSet:
             try:
                 return list(self.Nets[net][ag])
             except KeyError:
-                return None
+                return list()
         else:
             return {k: list(v[ag]) for k, v in self.Nets.items()}
 
     def neighbour_set_of(self, ag):
         ns = set()
         for net in self.Nets.values():
-            ns.update(net[ag])
+            try:
+                ns.update(net[ag])
+            except KeyError:
+                pass
         return ns
 
     def clear(self, net=None):
