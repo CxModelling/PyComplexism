@@ -54,6 +54,7 @@ class TimeVaryingInterp(TimeModBe):
         for ag in ags_new.values():
             self.register(ag, ti)
 
+
 class TimeVarying(TimeModBe):
     def __init__(self, name, func, t_tar, dt):
         mod = GloRateModifier(name, t_tar)

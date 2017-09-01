@@ -59,7 +59,7 @@ register_behaviour('NetWeightShock', ['s_src', 't_tar', 'net', 'weight'])
 register_behaviour('NerfDecision', ['s_src', 't_tar', 'prob'])
 register_behaviour('BuffDecision', ['s_src', 't_tar', 'prob'])
 
-register_behaviour('TimeVaryingInterp', ['t_tar', 'y', 'dt'])
+register_behaviour('TimeVaryingInterp', ['t_tar', 'ts', 'y', 'dt'])
 register_behaviour('TimeVarying', ['t_tar', 'func', 'dt'])
 
 # effect with table
