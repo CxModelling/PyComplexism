@@ -1,6 +1,7 @@
-from dzdy.abmodel import AgentBasedModel, MetaABM, install_behaviour, install_network
+from dzdy.abmodel import AgentBasedModel, MetaABM, install_behaviour, install_network, install_trait
 from dzdy.mcore import AbsBlueprintMCore
 from copy import deepcopy
+from collections import OrderedDict
 
 __author__ = 'TimeWz667'
 
@@ -10,8 +11,8 @@ class BlueprintABM(AbsBlueprintMCore):
         self.Name = name
         self.TargetedCore = tar_pc, tar_dc
         self.Networks = dict()
-        self.Behaviours = dict()
-        self.FillUps = list()
+        self.Behaviours = OrderedDict()
+        self.Traits = dict()
         self.Obs_s_t_b = list(), list(), list()
 
     @property
@@ -27,10 +28,8 @@ class BlueprintABM(AbsBlueprintMCore):
             return
         self.Networks[net_name] = {'Type': net_type, 'Args': dict(kwargs)}
 
-    def add_fillup(self, fu_type, **kwargs):
-        fu = {'Type': fu_type}
-        fu.update(kwargs)
-        self.FillUps.append(fu)
+    def add_trait(self, trt_name, trt_type, **kwargs):
+        self.Traits[trt_name] = {'Type': trt_type, 'Args': dict(kwargs)}
 
     def add_behaviour(self, be_name, be_type, **kwargs):
         if be_name in self.Behaviours:
@@ -49,8 +48,8 @@ class BlueprintABM(AbsBlueprintMCore):
         ag_prefix = kwargs['ag_prefix'] if 'ag_prefix' in kwargs else 'Ag'
         meta = MetaABM(self.TargetedPCore, self.TargetedDCore, self.Name)
         mod = AgentBasedModel(name, dc, pc, meta, ag_prefix=ag_prefix)
-        for fi in self.FillUps:
-            mod.Pop.append_fill_json(fi)
+        for k, v in self.Traits.items():
+            install_trait(mod, k, v['Type'], v['Args'])
         for k, v in self.Behaviours.items():
             install_behaviour(mod, k, v['Type'], v['Args'])
         for k, v in self.Networks.items():
@@ -117,7 +116,8 @@ class BlueprintABM(AbsBlueprintMCore):
         js['TargetedDCore'] = self.TargetedDCore
         js['Networks'] = self.Networks
         js['Behaviours'] = self.Behaviours
-        js['FillUps'] = self.FillUps
+        js['BehaviourOrder'] = list(self.Behaviours.keys())
+        js['Traits'] = self.Traits
         js['Observation'] = {k: v for k, v in zip(['State', 'Transition', 'Behaviour'],self.Obs_s_t_b)}
 
         return js
@@ -126,8 +126,11 @@ class BlueprintABM(AbsBlueprintMCore):
     def from_json(js):
         bp = BlueprintABM(js['Name'], js['TargetedPCore'], js['TargetedDCore'])
         bp.Networks = deepcopy(js['Networks'])
-        bp.Behaviours = deepcopy(js['Behaviours'])
-        bp.FillUps = deepcopy(js['FillUps'])
+        bes = deepcopy(js['Behaviours'])
+        beo = js['BehaviourOrder']
+        for k in beo:
+            bp.Behaviours[k] = bes[k]
+        bp.Traits = deepcopy(js['Traits'])
         obs = js['Observation']
         bp.set_observations(obs['State'], obs['Transition'], obs['Behaviour'])
         return bp

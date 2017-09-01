@@ -98,6 +98,7 @@ class ComFDShockFast(TimeModBe):
         for ag in ags_new.values():
             self.register(ag, ti)
 
+
 class ComDDShock(ModBe):
     def __init__(self, name, s_src, t_tar):
         tri = StateTrigger(s_src)
@@ -190,6 +191,7 @@ class ComDDShockFast(TimeModBe):
         for ag in ags_new.values():
             self.register(ag, ti)
 
+
 class ComWeightSumShock(TimeModBe):
     def __init__(self, name, s_src, t_tar, weight, dt):
         mod = GloRateModifier(name, t_tar)
@@ -237,6 +239,7 @@ class ComWeightSumShock(TimeModBe):
         for ag in ags_new.values():
             self.register(ag, ti)
 
+
 class ComWeightAvgShock(TimeModBe):
     def __init__(self, name, s_src, t_tar, weight, dt):
         mod = GloRateModifier(name, t_tar)
@@ -283,6 +286,7 @@ class ComWeightAvgShock(TimeModBe):
         self.Val = be_src.Val
         for ag in ags_new.values():
             self.register(ag, ti)
+
 
 class NetShock(ModBe):
     def __init__(self, name, s_src, t_tar, net):
@@ -387,7 +391,6 @@ class NetWeightShock(ModBe):
         for ag_new, ag_src in zip(ags_new.values(), ags_src.values()):
             self.register(ag_new, ti)
             ag_new.Mods[self.Name].Val = ag_src.Mods[self.Name].Val
-
 
 
 class NerfDecision(ModBe):
