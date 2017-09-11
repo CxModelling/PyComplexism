@@ -73,34 +73,37 @@ class MultipleEntry:
 
 class RelationEntry:
     def __init__(self, val, parse=True):
-        self.Selector, self.Type, self.Parameter = RelationEntry.parse(val) if parse else val
+        self.Selector, self.Single, self.Parameter = RelationEntry.parse(val) if parse else val
 
     def __repr__(self):
-        return 'Selector: {}, Type: {}, Parameter: {}'.format(self.Selector, self.Type, self.Parameter)
+        return 'Selector: {}, Type: {}, Parameter: {}'.format(self.Selector, self.type(), self.Parameter)
 
     def is_single(self):
-        return self.Type == 'Single'
+        return self.Single
+
+    def type(self):
+        return 'Single' if self.Single else 'Multiple'
 
     def to_json(self):
         return {
             'Selector': self.Selector,
-            'Type': self.Type,
+            'Type': self.type(),
             'Parameter': self.Parameter
         }
 
     @staticmethod
     def from_json(js):
-        ent = js['Selector'], js['Type'], js['Parameter']
+        ent = js['Selector'], js['Type'] is 'Single', js['Parameter']
         return RelationEntry(ent, parse=False)
 
     @staticmethod
     def parse(ori):
-        s = re.match('\A\w+\Z', ori)
-        par = re.search('@(\w+\Z)', 'Abd @P1')
-
-        if not par:
-            raise ValueError('Undefined parameter')
-        if s:
-            return ori, 'Single', par.group(1)
-        else:
-            return ori, 'Multiple', par.group(1)
+        s = re.sub(r'\s+', '', ori)
+        try:
+            sel, par = s.split('@')
+            if re.match('\A\w+\Z', sel):
+                return sel, 'Single', par
+            else:
+                return sel, 'Multiple', par
+        except ValueError:
+            raise SyntaxError('Ill-defined selector')

@@ -2,8 +2,7 @@ __author__ = 'TimeWz667'
 
 
 __all__ = ['Trigger', 'TransitionTrigger', 'StateTrigger', 'StateInTrigger',
-           'StateOutTrigger', 'ForeignTrigger', 'ForeignSetTrigger',
-           'NullTrigger']
+           'StateOutTrigger', 'ForeignTrigger', 'ForeignSetTrigger']
 
 
 class Trigger:

@@ -505,12 +505,12 @@ class BuffDecision(ModBe):
 
 
 class ForeignShock(ModBe):
-    def __init__(self, name, src_model, src_value, src_target):
-        tri = ForeignTrigger(src_model, src_value)
-        mod = GloRateModifier(name, src_target)
+    def __init__(self, name, mod_src, par_src, t_tar):
+        tri = ForeignTrigger(mod_src, par_src)
+        mod = GloRateModifier(name, t_tar)
         ModBe.__init__(self, name, mod, tri)
-        self.Source = src_model, src_value
-        self.Target = src_target.Name
+        self.Source = mod_src, par_src
+        self.Target = t_tar.Name
         self.Val = 0
 
     def initialise(self, model, ti):
@@ -531,8 +531,8 @@ class ForeignShock(ModBe):
 
     @staticmethod
     def decorate(name, model, **kwargs):
-        target = model.DCore.Transitions[kwargs['src_target']]
-        model.Behaviours[name] = ForeignShock(name, kwargs['src_model'], kwargs['src_value'], target)
+        target = model.DCore.Transitions[kwargs['t_tar']]
+        model.Behaviours[name] = ForeignShock(name, kwargs['mod_src'], kwargs['par_src'], target)
 
     def fill(self, obs, model, ti):
         obs['B.{}'.format(self.Name)] = self.Val
@@ -556,6 +556,12 @@ class ForeignAddShock(ModBe):
         self.Sum = 0
 
     def append_foreign(self, mod):
+        """
+
+        Args:
+            mod: name of foreign model
+
+        """
         self.Trigger.append(mod)
         self.Values[mod] = 0
 
@@ -578,7 +584,9 @@ class ForeignAddShock(ModBe):
     @staticmethod
     def decorate(name, model, **kwargs):
         target = model.DCore.Transitions[kwargs['src_target']]
-        model.Behaviours[name] = ForeignShock(name, kwargs['src_model'], kwargs['src_value'], target)
+        m = ForeignAddShock(name, kwargs['src_value'], target)
+        model.Behaviours[name] = m
+        return m
 
     def fill(self, obs, model, ti):
         obs['B.{}'.format(self.Name)] = self.Sum

@@ -1,8 +1,9 @@
 from dzdy.mcore import Observer, LeafModel, Request
-from dzdy.abmodel import Population, ForeignShock
+from dzdy.abmodel import Population, ForeignShock, ForeignAddShock
 from collections import namedtuple, OrderedDict
 
 __author__ = 'TimeWz667'
+__all__ = ['MetaABM', 'ObsABM', 'AgentBasedModel']
 
 
 RecordABM = namedtuple('RecordABM', ('Ag', 'Tr', 'Time'))
@@ -18,13 +19,13 @@ class ObsABM(Observer):
         self.Recs = list()
         self.Sums = list()
 
-    def add_obs_atr(self, st):
+    def add_obs_state(self, st):
         self.ObsSt.append(st)
 
-    def add_obs_tr(self, tr):
+    def add_obs_transition(self, tr):
         self.ObsTr.append(tr)
 
-    def add_obs_func(self, func):
+    def add_obs_function(self, func):
         self.Sums.append(func)
 
     def add_obs_behaviour(self, beh):
@@ -32,7 +33,7 @@ class ObsABM(Observer):
 
     def single_observe(self, model, ti):
         self.Last = OrderedDict()
-        self.Last["Time"] = ti
+        self.Last['Time'] = ti
 
         for st in self.ObsSt:
             self.Last['P.{}'.format(st.Name)] = model.Pop.count(st)
@@ -63,23 +64,29 @@ class AgentBasedModel(LeafModel):
     def __getitem__(self, item):
         return self.Obs.Last[item]
 
-    def add_obs_st(self, st):
+    def add_obs_state(self, st):
         if st in self.DCore.States:
-            self.Obs.add_obs_atr(self.DCore.States[st])
+            self.Obs.add_obs_state(self.DCore.States[st])
 
-    def add_obs_tr(self, tr):
+    def add_obs_transition(self, tr):
         if tr in self.DCore.Transitions:
-            self.Obs.add_obs_tr(self.DCore.Transitions[tr])
+            self.Obs.add_obs_transition(self.DCore.Transitions[tr])
 
-    def add_obs_fun(self, fun):
-        self.Obs.add_obs_func(fun)
+    def add_obs_function(self, fun):
+        self.Obs.add_obs_function(fun)
 
-    def add_obs_be(self, be):
+    def add_obs_behaviour(self, be):
         if be in self.Behaviours:
             self.Obs.add_obs_behaviour(be)
 
-    def listen(self, src_model, src_value, src_target):
-        ForeignShock.decorate(src_value, self, src_value=src_value, src_model=src_model, src_target=src_target)
+    def listen(self, mod_src, par_src, t_tar):
+        ForeignShock.decorate('{}->{}'.format(par_src, t_tar), self, par_src=par_src, mod_src=mod_src, t_tar=t_tar)
+
+    def listen_multi(self, mod_src_all, par_src, t_tar):
+        name = '{}->{}'.format(par_src, t_tar)
+        m = ForeignAddShock.decorate(name, self, par_src=par_src, t_tar=t_tar)
+        for mod in mod_src_all:
+            m.append_foreign(mod)
 
     def read_y0(self, y0, ti):
         if y0:

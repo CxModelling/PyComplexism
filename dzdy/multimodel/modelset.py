@@ -58,9 +58,6 @@ class ModelSet(BranchModel):
 
         self.Obs.observe(self, ti)
 
-    def __deepcopy__(self):
-        pass
-
     def find_next(self):
         for k, model in self.Models.items():
             self.Requests.add([evt.up(k) for evt in model.next])
@@ -77,9 +74,15 @@ class ModelSet(BranchModel):
                 m.impulse_foreign(self, ti)
 
     def link(self, src, tar):
+        if src.is_single():
+            for m in self.select_all(tar.Selector):
+                m.listen(src.Selector, src.Parameter, tar.Parameter)
 
-        for m in self.Models.values():
-            m.listen(self.Name, src_par, tar_par)
+        else:
+            ss = self.select_all(src.Selector)
+            ss = [sr.Name for sr in ss]
+            for m in self.select_all(tar.Selector):
+                m.listen_multi(ss, src.Parameter, tar.Parameter)
 
     def output(self):
         return self.Obs.observation

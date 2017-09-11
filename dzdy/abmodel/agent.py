@@ -25,7 +25,7 @@ class Agent:
     def __setitem__(self, key, value):
         self.Info[key] = value
 
-    def update_info(self, info, force=False):
+    def update_info(self, info, force=True):
         for k, v in info.items():
             if k not in self.Info or force:
                 self.Info[k] = v
@@ -55,16 +55,33 @@ class Agent:
     def initialise(self, ti):
         self.Trans.clear()
         self.update(ti)
-        self.drop_next()
 
     def assign(self, evt):
+        """
+        Assign an event which is ready to be executed
+        Args:
+            evt: event
+
+        """
         self.Next = evt
 
     def exec(self, evt):
+        """
+        Execute an event directly
+        Args:
+            evt: event
+
+        """
         if evt is not Event.NullEvent:
             self.State = self.State.exec(evt.Transition)
 
     def update(self, ti):
+        """
+        Update time to event of all transitions. Ingnore the transitions which does exist in the previous state
+        Args:
+            ti: time
+
+        """
         new_trs = self.State.next_transitions()
         ad = list(set(new_trs) - set(self.Trans.keys()))
         self.Trans = {k: v for k, v in self.Trans.items() if k in new_trs}
@@ -76,16 +93,26 @@ class Agent:
         self.drop_next()
 
     def shock(self, m: str, val: float, ti: float):
+        """
+        Make a impulse on a modifier
+        Args:
+            m: target modifier
+            val: new value
+            ti: time
+
+        """
         mod = self.Mods[m]
-        if mod.update(val) and mod.target in self.Trans:
-            tr = mod.target
-            tte = tr.rand()
-            for mo in self.Mods.on(tr):
-                tte = mo.modify(tte)
-            self.Trans[tr] = tte + ti
-            self.drop_next()
+        if mod.update(val):
+            self.modify(m, ti)
 
     def modify(self, m, ti):
+        """
+        Re-modify a transition via modifier m
+        Args:
+            m: target modifier
+            ti: time
+
+        """
         mod = self.Mods[m]
         if mod.target in self.Trans:
             tr = mod.target

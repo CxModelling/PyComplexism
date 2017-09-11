@@ -57,13 +57,13 @@ class BlueprintABM(AbsBlueprintMCore):
         sts, trs, bes = self.Obs_s_t_b
         if sts:
             for st in sts:
-                mod.add_obs_st(st)
+                mod.add_obs_state(st)
         if trs:
             for tr in trs:
-                mod.add_obs_tr(tr)
+                mod.add_obs_transition(tr)
         if bes:
             for be in bes:
-                mod.add_obs_be(be)
+                mod.add_obs_behaviour(be)
         return mod
 
     def clone(self, mod_src, **kwargs):

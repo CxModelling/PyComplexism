@@ -33,9 +33,14 @@ class ModelLayout:
         else:
             self.Entries.append(SingleEntry(name, proto, y0))
 
-    def add_relation(self, source, target):
+    def add_relation(self, source, target, js=False):
         try:
-            self.Relations.append({'Source': RelationEntry(source), 'Target': RelationEntry(target)})
+            if js:
+                self.Relations.append({'Source': RelationEntry.from_json(source),
+                                       'Target': RelationEntry.from_json(target)})
+            else:
+                self.Relations.append({'Source': RelationEntry(source),
+                                       'Target': RelationEntry(target)})
         except ValueError as e:
             raise e
 
@@ -99,7 +104,7 @@ class ModelLayout:
                 lyo.add_entry(ent['Name'], ent['Prototype'], ent['Y0'])
 
         for rel in js['Relations']:
-            lyo.add_relation(rel['Source']['Selector'], rel['Target']['Selector'])
+            lyo.add_relation(rel['Source'], rel['Target'], js=True)
         return lyo
 
 

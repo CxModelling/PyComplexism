@@ -29,7 +29,7 @@ class ABMSet(BranchModel):
     def append(self, model):
         self.Models[model.Name] = model
 
-    def add_obs_state(self, st):
+    def add_obs_st(self, st):
         for m in self.Models.values():
             m.add_obs_state(st)
 
