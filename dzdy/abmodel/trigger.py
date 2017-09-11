@@ -1,6 +1,11 @@
 __author__ = 'TimeWz667'
 
 
+__all__ = ['Trigger', 'TransitionTrigger', 'StateTrigger', 'StateInTrigger',
+           'StateOutTrigger', 'ForeignTrigger', 'ForeignSetTrigger',
+           'NullTrigger']
+
+
 class Trigger:
     NullTrigger = None
 
@@ -70,3 +75,15 @@ class ForeignTrigger(Trigger):
 
     def check_foreign(self, model):
         return self.Model is model.Name
+
+
+class ForeignSetTrigger(Trigger):
+    def __init__(self, nod):
+        self.Models = list()
+        self.Node = nod
+
+    def append(self, mod):
+        self.Models.append(mod)
+
+    def check_foreign(self, model):
+        return model.Name in self.Models

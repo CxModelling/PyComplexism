@@ -19,7 +19,7 @@ class AbsModifier(metaclass=ABCMeta):
         return self.__Target
 
     @abstractmethod
-    def modify(self, tte, ti=0):
+    def modify(self, tte):
         pass
 
     @abstractmethod
@@ -44,7 +44,7 @@ class DirectModifier(AbsModifier):
     def value(self):
         return self.Val
 
-    def modify(self, tte, ti=0):
+    def modify(self, tte):
         if self.Val <= 0:
             return float('inf')
 
@@ -71,7 +71,7 @@ class LocRateModifier(AbsModifier):
     def value(self):
         return self.Val
 
-    def modify(self, tte, ti=0):
+    def modify(self, tte):
         if self.Val <= 0:
             return float('inf')
 
@@ -97,7 +97,7 @@ class GloRateModifier(AbsModifier):
     def value(self):
         return self.Val
 
-    def modify(self, tte, ti=0):
+    def modify(self, tte):
         if self.Val <= 0:
             return float('inf')
 
@@ -123,7 +123,7 @@ class NerfModifier(AbsModifier):
     def value(self):
         return self.Val
 
-    def modify(self, tte, ti=0):
+    def modify(self, tte):
         if self.Val:
             return float('inf')
         else:
@@ -149,7 +149,7 @@ class BuffModifier(AbsModifier):
     def value(self):
         return self.Val
 
-    def modify(self, tte, ti=0):
+    def modify(self, tte):
         if self.Val:
             return 0
         else:

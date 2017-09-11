@@ -71,7 +71,7 @@ class Agent:
         for tr in ad:
             tte = tr.rand()
             for mo in self.Mods.on(tr):
-                tte = mo.modify(tte, ti)
+                tte = mo.modify(tte)
             self.Trans[tr] = tte + ti
         self.drop_next()
 
@@ -81,7 +81,7 @@ class Agent:
             tr = mod.target
             tte = tr.rand()
             for mo in self.Mods.on(tr):
-                tte = mo.modify(tte, ti)
+                tte = mo.modify(tte)
             self.Trans[tr] = tte + ti
             self.drop_next()
 
@@ -91,7 +91,7 @@ class Agent:
             tr = mod.target
             tte = tr.rand()
             for mo in self.Mods.on(tr):
-                tte = mo.modify(tte, ti)
+                tte = mo.modify(tte)
             self.Trans[tr] = tte + ti
             self.drop_next()
 

@@ -65,6 +65,15 @@ class Population:
             return len(self.Agents)
 
     def neighbours(self, ag, net='|'):
+        """
+
+        Args:
+            ag:
+            net: name of network; '|' for all networks in dict; '*' for neighbours in all networks
+
+        Returns:
+
+        """
         if not isinstance(ag, Agent):
             try:
                 ag = self.Agents[ag]
@@ -134,6 +143,12 @@ class Population:
         return ag
 
     def reform(self, net=None):
+        """
+        Reform network
+        Args:
+            net: name of network; blink for all networks
+
+        """
         self.Networks.reform(net)
 
     def first(self, n=5):

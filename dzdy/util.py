@@ -102,11 +102,44 @@ class Demography:
         bir_yr = np.floor(ti) - age
         sex = info['Sex']
         try:
-            func = self.Used['{}{}'.format(sex, bir_yr)]
+            fn = self.Used['{}{}'.format(sex, bir_yr)]
         except KeyError:
-            func = self.LeeCarter.get_func_time_to_death(sex, bir_yr)
+            fn = self.LeeCarter.get_func_time_to_death(sex, bir_yr)
             self.Used['{}{}'.format(sex, bir_yr)] = func
-        return func(age, n)
+        return fn(age, n)
+
+
+class LinearCombination:
+    def __init__(self, intercept=0, default=0, ):
+        self.Coefficients = dict()
+        self.TransFunc = None
+        self.Intercept = intercept
+        self.Default = default
+
+    def __setitem__(self, cov, coe):
+        self.Coefficients[cov] = coe
+
+    def append(self, cov, coe=1):
+        self.Coefficients[cov] = coe
+
+    def update(self, cos):
+        self.Coefficients.update(cos)
+
+    def calculate(self, values):
+        y = sum([coe*(values[cov] if cov in values else self.Default)
+                 for cov, coe in self.Coefficients.items()])
+        y += self.Intercept
+        try:
+            return self.TransFunc(y)
+        except TypeError:
+            return y
+
+    def __repr__(self):
+        fn = ['{}{}{}'.format('+' if v >= 0 else '', v, k) for k, v in self.Coefficients.items()]
+        fn.append('{}{}'.format('+' if self.Intercept >= 0 else '', self.Intercept))
+        fn = ' '.join(fn)
+
+        return fn
 
 
 if __name__ == '__main__':

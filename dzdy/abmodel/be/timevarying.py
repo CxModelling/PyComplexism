@@ -1,8 +1,10 @@
-from dzdy.abmodel import *
+from dzdy.abmodel import TimeModBe, GloRateModifier, Clock, Event
 import numpy as np
 from scipy import interpolate
 
 __author__ = 'TimeWz667'
+
+__all__ = ['TimeVarying', 'TimeVaryingInterp']
 
 
 class TimeVaryingInterp(TimeModBe):

@@ -517,7 +517,7 @@ class ForeignShock(ModBe):
         self.shock(model, ti)
 
     def impulse_foreign(self, model, fore, ti):
-        self.Val = fore[self.Source[1]]/100
+        self.Val = fore[self.Source[1]]
         self.shock(model, ti)
 
     def shock(self, model, ti):
@@ -540,6 +540,53 @@ class ForeignShock(ModBe):
 
     def match(self, be_src, ags_src, ags_new, ti):
         self.Val = be_src.Val
+        for ag_new, ag_src in zip(ags_new.values(), ags_src.values()):
+            self.register(ag_new, ti)
+            ag_new.Mods[self.Name].Val = ag_src.Mods[self.Name].Val
+
+
+class ForeignAddShock(ModBe):
+    def __init__(self, name, src_value, src_target):
+        tri = ForeignSetTrigger(src_value)
+        mod = GloRateModifier(name, src_target)
+        ModBe.__init__(self, name, mod, tri)
+        self.Source = src_value
+        self.Target = src_target.Name
+        self.Values = dict()
+        self.Sum = 0
+
+    def append_foreign(self, mod):
+        self.Trigger.append(mod)
+        self.Values[mod] = 0
+
+    def initialise(self, model, ti):
+        self.shock(model, ti)
+
+    def impulse_foreign(self, model, fore, ti):
+        self.Values[fore.Name] = fore[self.Source]
+        self.shock(model, ti)
+
+    def shock(self, model, ti):
+        self.ModPrototype.Val = self.Sum =  sum(self.Values.values())
+        for ag in model.agents:
+            ag.modify(self.Name, ti)
+
+    def __repr__(self):
+        opt = self.Name, '{}:{}'.format(*self.Source), self.Target, self.Sum
+        return 'Foreign({}, {} on {}, Value={})'.format(*opt)
+
+    @staticmethod
+    def decorate(name, model, **kwargs):
+        target = model.DCore.Transitions[kwargs['src_target']]
+        model.Behaviours[name] = ForeignShock(name, kwargs['src_model'], kwargs['src_value'], target)
+
+    def fill(self, obs, model, ti):
+        obs['B.{}'.format(self.Name)] = self.Sum
+        return obs
+
+    def match(self, be_src, ags_src, ags_new, ti):
+        self.Sum = be_src.Sum
+        self.Values.update(be_src.Values)
         for ag_new, ag_src in zip(ags_new.values(), ags_src.values()):
             self.register(ag_new, ti)
             ag_new.Mods[self.Name].Val = ag_src.Mods[self.Name].Val
