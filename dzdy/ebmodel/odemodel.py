@@ -70,9 +70,6 @@ class ODEModel(LeafModel):
     def to_json(self):
         pass
 
-    def set_seed(self, seed=1167):
-        return
-
     def go_to(self, ti):
         f, t = self.TimeLast, ti
         self.TimeLast = ti

@@ -56,7 +56,7 @@ den.append(da.generate_model('Human'))
 den.append(da.generate_model('Mos'))
 den.link(RelationEntry('Mos@P_Inf'), RelationEntry('Human@Infect'))
 
-simulate(den, y0={'Human':{'Sus': 100}, 'Mos':{'Sus': 20, 'Inf': 20}} ,fr=0, to=10)
+simulate(den, y0={'Human':{'Sus': 100}, 'Mos':{'Sus': 20, 'Inf': 10}} ,fr=0, to=10)
 den.Obs.print()
 
 
