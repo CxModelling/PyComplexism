@@ -42,7 +42,7 @@ class Population:
         except KeyError:
             raise KeyError('No this agent')
 
-    def append_trait(self, fi):
+    def add_trait(self, fi):
         self.Eve.Traits.append(fi)
 
     def add_network(self, net):
@@ -95,7 +95,7 @@ class Population:
         if st:
             if isinstance(st, str):
                 st = self.Eve.States[st]
-            return sum(st in nei for nei in nes)
+            return sum([st in nei for nei in nes])
         else:
             return len(list(nes))
 

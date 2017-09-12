@@ -73,7 +73,7 @@ class ForeignTrigger(Trigger):
         self.Node = nod
 
     def check_foreign(self, model):
-        return self.Model is model.Name
+        return self.Model == model.Name
 
 
 class ForeignSetTrigger(Trigger):

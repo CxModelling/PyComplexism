@@ -36,10 +36,10 @@ class ObsABM(Observer):
         self.Last['Time'] = ti
 
         for st in self.ObsSt:
-            self.Last['P.{}'.format(st.Name)] = model.Pop.count(st)
+            self.Last['P_{}'.format(st.Name)] = model.Pop.count(st)
 
         for tr in self.ObsTr:
-            self.Last['I.{}'.format(tr.Name)] = sum(rec.Tr == tr for rec in self.Recs)
+            self.Last['I_{}'.format(tr.Name)] = sum(rec.Tr == tr for rec in self.Recs)
 
         for be in self.Bes:
             model.Behaviours[be].fill(self.Last, model, ti)

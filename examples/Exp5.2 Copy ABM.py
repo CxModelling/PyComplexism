@@ -31,11 +31,11 @@ CTBN SIR_BN{
 }
 """
 
-da = DirectorABM()
+da = Director()
 da.read_pc(par_script)
 da.read_dc(dc_ctbn_script)
-cfd = da.new_abm('ABM_SIR', 'pSIR', 'SIR_BN')
-cfd.add_fillup('Distribution', Name='BMI', Distribution='norm(23,5)')
+cfd = da.new_mc('ABM_SIR', 'ABM', tar_pc='pSIR', tar_dc='SIR_BN')
+cfd.add_trait(trt_type='Distribution', trt_name='BMI', Distribution='norm(23,5)')
 
 cfd.add_network('IDU', 'BA', m=2)
 cfd.add_behaviour('cycle', be_type='Reincarnation', s_birth='Sus', s_death='Dead')

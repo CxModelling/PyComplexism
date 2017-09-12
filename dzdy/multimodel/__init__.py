@@ -2,6 +2,7 @@ from .selector import *
 from .abmset import *
 from .lightset import *
 from .modelset import *
+from .dualmodel import *
 from .summarizer import *
 from .layout import *
 

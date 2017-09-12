@@ -83,6 +83,10 @@ class BranchModel(AbsModel, metaclass=ABCMeta):
         AbsModel.__init__(self, name, meta)
         self.Models = dict()
 
+    @abstractmethod
+    def select(self, mod):
+        pass
+
     def fetch(self, res):
         self.Requests.clear()
         self.Requests.add(res)
@@ -99,7 +103,7 @@ class BranchModel(AbsModel, metaclass=ABCMeta):
                 nest[m] = [req]
 
         for k, v in nest.items():
-            self.Models[k].fetch(v)
+            self.select(k).fetch(v)
 
     def exec(self):
         for req in self.Requests:
