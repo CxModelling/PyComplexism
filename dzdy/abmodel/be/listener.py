@@ -5,18 +5,22 @@ __author__ = 'TimeWz667'
 
 class ForeignShock(ModBe):
     def __init__(self, name, mod_src, par_src, t_tar):
-        tri = ForeignTrigger(mod_src, par_src)
+        tri = ForeignTrigger(mod_src)
         mod = GloRateModifier(name, t_tar)
         ModBe.__init__(self, name, mod, tri)
-        self.Source = mod_src, par_src
+        self.RefMod, self.RefPar = mod_src, par_src
         self.Target = t_tar.Name
         self.Val = 0
+
+    def set_source(self, mod_src, par_src, par_tar=None):
+        self.RefMod, self.RefPar = mod_src, par_src
+        self.Trigger.append(mod_src)
 
     def initialise(self, model, ti):
         self.shock(model, ti)
 
     def impulse_foreign(self, model, fore, ti):
-        self.Val = fore[self.Source[1]]
+        self.Val = fore[self.RefPar]
         self.shock(model, ti)
 
     def shock(self, model, ti):
@@ -25,13 +29,15 @@ class ForeignShock(ModBe):
             ag.modify(self.Name, ti)
 
     def __repr__(self):
-        opt = self.Name, '{}:{}'.format(*self.Source), self.Target, self.Val
+        opt = self.Name, '{}@{}'.format(self.RefMod, self.RefPar), self.Target, self.Val
         return 'Foreign({}, {} on {}, Value={})'.format(*opt)
 
     @staticmethod
     def decorate(name, model, **kwargs):
         target = model.DCore.Transitions[kwargs['t_tar']]
-        model.Behaviours[name] = ForeignShock(name, kwargs['mod_src'], kwargs['par_src'], target)
+        mod_src = kwargs['mod_src'] if 'mod_src' in kwargs else None
+        par_src = kwargs['par_src'] if 'par_src' in kwargs else None
+        model.Behaviours[name] = ForeignShock(name, mod_src, par_src, target)
 
     def fill(self, obs, model, ti):
         obs['B.{}'.format(self.Name)] = self.Val
@@ -45,30 +51,25 @@ class ForeignShock(ModBe):
 
 
 class ForeignAddShock(ModBe):
-    def __init__(self, name, src_value, src_target):
-        tri = ForeignSetTrigger(src_value)
-        mod = GloRateModifier(name, src_target)
+    def __init__(self, name, t_tar):
+        tri = ForeignSetTrigger()
+        mod = GloRateModifier(name, t_tar)
         ModBe.__init__(self, name, mod, tri)
-        self.Source = src_value
-        self.Target = src_target.Name
+        self.Ref = dict()
+        self.Target = t_tar.Name
         self.Values = dict()
         self.Sum = 0
 
-    def append_foreign(self, mod):
-        """
-
-        Args:
-            mod: name of foreign model
-
-        """
-        self.Trigger.append(mod)
-        self.Values[mod] = 0
+    def set_source(self, mod_src, par_src, par_tar=None):
+        self.Ref[mod_src] = par_src
+        self.Values[mod_src] = 0
+        self.Trigger.append(mod_src)
 
     def initialise(self, model, ti):
         self.shock(model, ti)
 
     def impulse_foreign(self, model, fore, ti):
-        self.Values[fore.Name] = fore[self.Source]
+        self.Values[fore.Name] = fore[self.Ref[fore.Name]]
         self.shock(model, ti)
 
     def shock(self, model, ti):
@@ -77,13 +78,13 @@ class ForeignAddShock(ModBe):
             ag.modify(self.Name, ti)
 
     def __repr__(self):
-        opt = self.Name, '{}:{}'.format(*self.Source), self.Target, self.Sum
-        return 'Foreign({}, {} on {}, Value={})'.format(*opt)
+        opt = self.Name, self.Target, self.Sum
+        return 'ForeignSet({} on {}, Value={})'.format(*opt)
 
     @staticmethod
     def decorate(name, model, **kwargs):
-        target = model.DCore.Transitions[kwargs['src_target']]
-        m = ForeignAddShock(name, kwargs['src_value'], target)
+        target = model.DCore.Transitions[kwargs['t_tar']]
+        m = ForeignAddShock(name, target)
         model.Behaviours[name] = m
         return m
 
@@ -103,7 +104,7 @@ class BirthListener(RealTimeBehaviour):
     def __init__(self, name, s_birth):
         RealTimeBehaviour.__init__(self, name, ForeignTrigger())
         self.S_birth = s_birth
-        self.N_dead = 0
+        self.N_birth = 0
 
     def initialise(self, model, ti):
         pass
@@ -112,20 +113,20 @@ class BirthListener(RealTimeBehaviour):
         pass
 
     def impulse_tr(self, model, ag, ti):
-        model.kill(ag.Name, ti)
-        self.N_dead += 1
+        model.birth(self.S_birth, ti)
+        self.N_birth += 1
 
     def __repr__(self):
-        opt = self.Name, self.S_death.Name, self.N_dead
-        return 'Cohort({}, Death:{}, NDea:{})'.format(*opt)
+        opt = self.Name, self.S_birth.Name, self.N_birth
+        return 'Cohort({}, Birth:{}, NBir:{})'.format(*opt)
 
     @staticmethod
     def decorate(name, model, **kwargs):
         s_death = model.DCore.States[kwargs['s_death']]
-        model.Behaviours[name] = Cohort(name, s_death)
+        model.Behaviours[name] = BirthListener(name, s_death)
 
     def fill(self, obs, model, ti):
-        obs['B.{}'.format(self.Name)] = self.N_dead
+        obs['B.{}'.format(self.Name)] = self.N_birth
 
     def match(self, be_src, ags_src, ags_new, ti):
-        self.N_dead = be_src.N_dead
+        self.N_birth = be_src.N_birth

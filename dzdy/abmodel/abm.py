@@ -79,14 +79,25 @@ class AgentBasedModel(LeafModel):
         if be in self.Behaviours:
             self.Obs.add_obs_behaviour(be)
 
-    def listen(self, mod_src, par_src, t_tar):
-        ForeignShock.decorate('{}->{}'.format(par_src, t_tar), self, par_src=par_src, mod_src=mod_src, t_tar=t_tar)
+    def listen(self, mod_src, par_src, tar, par_tar=None):
+        try:
+            be = self.Behaviours[tar]
+            be.set_source(mod_src, par_src, par_tar)
+        except KeyError:
+            ForeignShock.decorate('{}->{}'.format(par_src, tar), self,
+                                  par_src=par_src, mod_src=mod_src, t_tar=tar)
 
-    def listen_multi(self, mod_src_all, par_src, t_tar):
-        name = '{}->{}'.format(par_src, t_tar)
-        m = ForeignAddShock.decorate(name, self, par_src=par_src, t_tar=t_tar)
-        for mod in mod_src_all:
-            m.append_foreign(mod)
+    def listen_multi(self, mod_src_all, par_src, tar, par_tar=None):
+        try:
+            be = self.Behaviours[tar]
+            for mod in mod_src_all:
+                be.set_source(mod, par_src, par_tar)
+        except KeyError:
+
+            name = '{}->{}'.format(par_src, tar)
+            m = ForeignAddShock.decorate(name, self, t_tar=tar)
+            for mod in mod_src_all:
+                m.set_source(mod, par_src, par_tar)
 
     def read_y0(self, y0, ti):
         if y0:

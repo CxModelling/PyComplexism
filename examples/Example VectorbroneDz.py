@@ -33,8 +33,9 @@ dc_m = """
 CTMC SIS_M{
     Sus
     Inf
+    Rec
     Sus -- Infect(beta) -> Inf
-    Inf -- Recov(gamma) -> Sus
+    Inf -- Recov(gamma) -> Rec
 }
 """
 
@@ -45,18 +46,20 @@ da.read_dc(dc_h)
 da.read_dc(dc_m)
 
 hu = da.new_mc('Human', 'ABM', tar_pc='pH', tar_dc='SIR_H')
-hu.set_observations(states=['Sus', 'Inf'])
+hu.add_behaviour('FOI', 'ForeignShock', t_tar='Infect')
+hu.set_observations(states=['Sus', 'Inf'], behaviours=['FOI'])
 
 mo = da.new_mc('Mos', 'ABM', tar_pc='pM', tar_dc='SIS_M')
 mo.add_behaviour('M2M', 'ComFDShock', s_src='Inf', t_tar='Infect')
-mo.set_observations(states=['Sus', 'Inf'], transitions=['Infect'])
+mo.set_observations(states=['Sus', 'Inf'], behaviours=['M2M'])
 
-den = DualModel('Den')
+den = DualModel('Den', odt=0.05)
 den.append(da.generate_model('Human'))
 den.append(da.generate_model('Mos'))
-den.link(RelationEntry('Mos@P_Inf'), RelationEntry('Human@Infect'))
 
-simulate(den, y0={'Human':{'Sus': 100}, 'Mos':{'Sus': 20, 'Inf': 10}} ,fr=0, to=10)
+den.link(RelationEntry('Mos@P_Inf'), RelationEntry('Human@FOI'))
+
+simulate(den, y0={'Human':{'Sus': 100}, 'Mos':{'Sus': 15, 'Inf': 5}}, fr=0, to=10)
 den.Obs.print()
 
 

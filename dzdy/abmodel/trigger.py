@@ -68,20 +68,29 @@ class StateInTrigger(Trigger):
 
 
 class ForeignTrigger(Trigger):
-    def __init__(self, model, nod):
+    def __init__(self, model=None):
         self.Model = model
-        self.Node = nod
+
+    def append(self, model):
+        self.Model = model
 
     def check_foreign(self, model):
         return self.Model == model.Name
 
 
 class ForeignSetTrigger(Trigger):
-    def __init__(self, nod):
+    def __init__(self, ms=None):
         self.Models = list()
-        self.Node = nod
+        if ms:
+            try:
+                for m in ms:
+                    self.Models.append(m)
+            except AttributeError:
+                pass
 
     def append(self, mod):
+        if mod in self.Models:
+            return
         self.Models.append(mod)
 
     def check_foreign(self, model):

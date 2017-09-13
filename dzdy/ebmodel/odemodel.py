@@ -82,13 +82,13 @@ class ODEModel(LeafModel):
         if req.Time > self.TimeLast:
             self.go_to(req.Time)
 
-    def listen(self, src_model, src_value, src_target):
+    def listen(self, mod_src, par_src, t_tar):
         try:
-            if src_target in self.DCore:
-                self.ForeignLock[src_model].append((src_value, src_target))
+            if t_tar in self.DCore:
+                self.ForeignLock[mod_src].append((par_src, t_tar))
         except KeyError:
-            if src_target in self.DCore:
-                self.ForeignLock[src_model] = [(src_value, src_target)]
+            if t_tar in self.DCore:
+                self.ForeignLock[mod_src] = [(par_src, t_tar)]
 
     def impulse_foreign(self, fore, ti):
         try:

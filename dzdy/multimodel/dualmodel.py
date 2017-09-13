@@ -62,7 +62,6 @@ class DualModel(BranchModel):
     def observe(self, ti):
         for m in self.Models.values():
             m.observe(ti)
-        self.ObsDT.update(ti)
         self.Obs.observe(self, ti)
 
     def find_next(self):
@@ -73,15 +72,19 @@ class DualModel(BranchModel):
         self.Requests.append_src('Summary', su, su.Time)
 
     def do_request(self, req):
-        if req.Node is 'Summary':
+        if req.Node == 'Summary':
             ti = req.Time
             self.ObsDT.update(ti)
             for m in self.Models.values():
                 m.observe(ti)
-
             self.Obs.single_observe(self, ti)
+
             self.Models[self.NameA].impulse_foreign(self.Models[self.NameZ], ti)
             self.Models[self.NameZ].impulse_foreign(self.Models[self.NameA], ti)
+
+            for m in self.Models.values():
+                m.observe(ti)
+            self.Obs.single_observe(self, ti)
 
     def link(self, src, tar):
         if src.is_single():
