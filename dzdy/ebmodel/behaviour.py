@@ -1,4 +1,4 @@
-from abc import ABCMeta, abstractmethod
+from abc import ABCMeta, abstractmethod, abstractstaticmethod
 __author__ = 'TimeWz667'
 
 
@@ -11,18 +11,26 @@ class Behaviour(metaclass=ABCMeta):
     def initialise(self, model, core, ti):
         pass
 
-    def modify(self, rate, core, ys, t):
+    def modify(self, rate, core, ys, ti):
         return rate
 
-    def modify_in(self, ins, core, t):
+    def modify_in(self, ins, core, ti):
         return ins
 
-    def modify_out(self, outs, core, t):
+    def modify_out(self, outs, core, ti):
         return outs
 
     @abstractmethod
     def fill(self, obs, model, ti):
-        pass # obs['B.{}'.format(self.Name)] = self.Value
+        pass  # obs['B.{}'.format(self.Name)] = self.Value
+
+    @abstractmethod
+    def to_json(self):
+        pass
+
+    @abstractstaticmethod
+    def from_json(self, js):
+        pass
 
 
 class Multiplier(Behaviour):
@@ -36,11 +44,22 @@ class Multiplier(Behaviour):
     def __repr__(self):
         return 'Multiplier({} on {} by {})'.format(self.Name, self.Target, self.Value)
 
-    def modify(self, rate, core, ys, t):
+    def modify(self, rate, core, ys, ti):
         return rate * self.Value
 
     def fill(self, obs, model, ti):
         pass
+
+    def to_json(self):
+        return {'Name': self.Name,
+                'Type': 'Multiplier',
+                't_tar': self.Target,
+                'Value': self.Value}
+
+    def from_json(self, js):
+        be = Multiplier(js['Name'], js['t_tar'])
+        be.Value = js['Value']
+        return be
 
 
 class InfectionFD(Behaviour):
@@ -58,14 +77,26 @@ class InfectionFD(Behaviour):
         s = core.count_st_ys(self.Src, ys)
         self.Value = s / n
 
-    def modify(self, rate, core, ys, t):
+    def modify(self, rate, core, ys, ti):
         n = sum(ys)
         s = core.count_st_ys(self.Src, ys)
         self.Value = s/n
         return rate * self.Value
 
     def fill(self, obs, model, ti):
-        obs['B.{}'.format(self.Name)] = self.Value
+        obs['B_{}'.format(self.Name)] = self.Value
+
+    def to_json(self):
+        return {'Name': self.Name,
+                'Type': 'InfectionFD',
+                't_tar': self.Target,
+                's_src': self.Src,
+                'Value': self.Value}
+
+    def from_json(self, js):
+        be = InfectionFD(js['Name'], js['t_tar'], js['s_src'])
+        be.Value = js['Value']
+        return be
 
 
 class InfectionDD(Behaviour):
@@ -81,13 +112,25 @@ class InfectionDD(Behaviour):
         s = core.count_st_ys(self.Src, model.Y)
         self.Value = s
 
-    def modify(self, rate, core, ys, t):
+    def modify(self, rate, core, ys, ti):
         s = core.count_st_ys(self.Src, ys)
         self.Value = s
         return rate * self.Value
 
     def fill(self, obs, model, ti):
-        obs['B.{}'.format(self.Name)] = self.Value
+        obs['B_{}'.format(self.Name)] = self.Value
+
+    def to_json(self):
+        return {'Name': self.Name,
+                'Type': 'InfectionDD',
+                't_tar': self.Target,
+                's_src': self.Src,
+                'Value': self.Value}
+
+    def from_json(self, js):
+        be = InfectionDD(js['Name'], js['t_tar'], js['s_src'])
+        be.Value = js['Value']
+        return be
 
 
 class Cohort(Behaviour):
@@ -104,7 +147,7 @@ class Cohort(Behaviour):
         dead = core.find_states(self.Death)
         self.IndexDeath = [i for i, v in enumerate(dead) if v]
 
-    def modify_in(self, ins, model, t):
+    def modify_in(self, ins, model, ti):
         dea = 0
         res = list()
         for flow in ins:
@@ -116,7 +159,21 @@ class Cohort(Behaviour):
         return res
 
     def fill(self, obs, model, ti):
-        obs['B.{}'.format(self.Name)] = self.Value
+        obs['B_{}'.format(self.Name)] = self.Value
+
+    def to_json(self):
+        return {'Name': self.Name,
+                'Type': 'Cohort',
+                's_death': self.Death,
+                'Value': self.Value,
+                'IndexDeath': list(self.IndexDeath)}
+
+    def from_json(self, js):
+        be = Cohort(js['Name'], js['s_death'])
+        be.Value = js['Value']
+        if 'IndexDeath' in js:
+            be.IndexDeath = list(js['IndexDeath'])
+        return be
 
 
 class Reincarnation(Behaviour):
@@ -134,7 +191,7 @@ class Reincarnation(Behaviour):
         dead = core.find_states(self.Death)
         self.IndexDeath = [i for i, v in enumerate(dead) if v]
 
-    def modify_in(self, ins, model, t):
+    def modify_in(self, ins, model, ti):
         dea = 0
         res = list()
         for flow in ins:
@@ -148,4 +205,19 @@ class Reincarnation(Behaviour):
         return res
 
     def fill(self, obs, model, ti):
-        obs['B.{}'.format(self.Name)] = self.Value
+        obs['B_{}'.format(self.Name)] = self.Value
+
+    def to_json(self):
+        return {'Name': self.Name,
+                'Type': 'Reincarnation',
+                's_death': self.Death,
+                's_birth': self.Birth,
+                'Value': self.Value,
+                'IndexDeath': list(self.IndexDeath)}
+
+    def from_json(self, js):
+        be = Reincarnation(js['Name'], js['s_death'], js['s_birth'])
+        be.Value = js['Value']
+        if 'IndexDeath' in js:
+            be.IndexDeath = list(js['IndexDeath'])
+        return be

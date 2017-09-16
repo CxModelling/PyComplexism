@@ -2,6 +2,7 @@ from epidag import DirectedAcyclicGraph
 import json
 from dzdy.dcore import build_from_script, build_from_json, BlueprintCTBN, BlueprintCTMC
 from dzdy.abmodel import BlueprintABM
+from dzdy.ebmodel import BlueprintCoreODE
 from dzdy.multimodel import ModelLayout
 from dzdy.mcore import Simulator
 
@@ -15,7 +16,8 @@ __all__ = ['load_txt', 'load_json', 'save_json',
            'load_mc', 'save_mc', 'new_mc', 'generate_model', 'copy_model',
            'new_abm', 'generate_abm', 'copy_abm',
            'add_abm_behaviour', 'add_abm_fillup', 'add_abm_network', 'set_abm_observations',
-           'new_ebm', 'generate_ebm', 'copy_ebm',
+           'new_core_ode', 'generate_core_ode', 'copy_core_ode',
+           'add_core_ode_behaviour',
            'load_layout', 'save_layout', 'new_layout', 'add_layout_entry', 'generate_multimodel',
            'simulate', 'update']
 
@@ -144,15 +146,20 @@ def new_abm(name, tar_pc, tar_dc, log=None):
     return bp_abm
 
 
-def new_ebm(name, tar_pc, tar_dc, log=None):
-    pass
+def new_core_ode(name, tar_pc, tar_dc, log=None):
+    bp_ebm = BlueprintCoreODE(name, tar_pc, tar_dc)
+    return bp_ebm
 
+def new_fn_ode(name, tar_pc, log=None):
+    pass
 
 def new_mc(name, model_type, log=None, **kwargs):
     if model_type == 'ABM':
-        return new_abm(name, kwargs['tar_pc'], kwargs['tar_dc'])
-    elif model_type == 'EBM':
-        return new_ebm(name, kwargs['tar_pc'], kwargs['tar_dc'])
+        return new_abm(name, kwargs['tar_pc'], kwargs['tar_dc'], log)
+    elif model_type == 'CoreODE':
+        return new_core_ode(name, kwargs['tar_pc'], kwargs['tar_dc'], log)
+    elif model_type == 'FnODE':
+        return new_fn_ode(name, kwargs['tar_pc'], log)
     else:
         raise ValueError('No this type of model')
 
@@ -198,6 +205,14 @@ def add_abm_behaviour(bp_mc, be_name, be_type, log=None, **kwargs):
 
 
 def set_abm_observations(bp_mc, states=None, transitions=None, behaviours=None, log=None):
+    bp_mc.set_observations(states, transitions, behaviours)
+
+
+def add_core_ode_behaviour(bp_mc, be_name, be_type, log=None, **kwargs):
+    bp_mc.add_behaviour(be_name, be_type, **kwargs)
+
+
+def set_core_ode_observations(bp_mc, states=None, transitions=None, behaviours=None, log=None):
     bp_mc.set_observations(states, transitions, behaviours)
 
 
@@ -276,9 +291,10 @@ def generate_abm(bp_mc, pc=None, dc=None, name=None, log=None, **kwargs):
     return bp_mc.generate(name, pc=pc, dc=dc, **kwargs)
 
 
-def generate_ebm(bp_mc, pc=None, dc=None, name=None, log=None, **kwargs):
-    # todo
-    pass
+def generate_core_ode(bp_mc, pc=None, dc=None, name=None, log=None, **kwargs):
+    if not name:
+        name = bp_mc.Name
+    return bp_mc.generate(name, pc=pc, dc=dc, **kwargs)
 
 
 def generate_multimodel(layout, pcs, dcs, mcs, log=None):
@@ -288,8 +304,8 @@ def generate_multimodel(layout, pcs, dcs, mcs, log=None):
 def generate_model(bp_mc, pc, dc, name=None, log=None, **kwargs):
     if isinstance(bp_mc, BlueprintABM):
         return generate_abm(bp_mc, pc, dc, name, **kwargs)
-    else:
-        return generate_ebm(bp_mc, pc, dc, name, **kwargs)
+    elif isinstance(bp_mc, BlueprintCoreODE):
+        return generate_core_ode(bp_mc, pc, dc, name, **kwargs)
 
 
 def copy_abm(mod_src, bp_mc, bp_pc, bp_dc, tr_tte=True, pc_new=False, intervention=None, log=None):
@@ -316,7 +332,7 @@ def copy_abm(mod_src, bp_mc, bp_pc, bp_dc, tr_tte=True, pc_new=False, interventi
     return bp_mc.clone(mod_src, pc=pc_new, dc=dc_new, tr_tte=tr_tte)
 
 
-def copy_ebm(mod_src, bp_mc, bp_pc, bp_dc, pc_new=False, intervention=None, log=None):
+def copy_core_ode(mod_src, bp_mc, bp_pc, bp_dc, pc_new=False, intervention=None, log=None):
     """
     copy an equation-based model
     :param mod_src: model to be replicated
@@ -353,8 +369,8 @@ def copy_model(mod_src, bp_mc, bp_pc, bp_dc, tr_tte=True, pc_new=False, interven
     """
     if isinstance(bp_mc, BlueprintABM):
         return copy_abm(mod_src, bp_mc, bp_pc, bp_dc, tr_tte, pc_new, intervention)
-    else:
-        return copy_ebm(mod_src, bp_mc, bp_pc, bp_dc, pc_new, intervention)
+    elif isinstance(bp_mc, BlueprintCoreODE):
+        return copy_core_ode(mod_src, bp_mc, bp_pc, bp_dc, pc_new, intervention)
 
 
 def copy_multimodel(mm_src, layout, bp_mcs, bp_pcs, bp_dcs, log=None):

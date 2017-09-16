@@ -9,7 +9,7 @@ Validation for values.
 Partially adapted from validators.py in WTForms
 """
 
-__all__ = ['Number', 'InSet', 'RegExp', 'ListSize', 'Options']
+__all__ = ['Number', 'InSet', 'RegExp', 'ListSize', 'Options', 'Existence']
 
 
 class ValidationError(ValueError):
@@ -38,6 +38,25 @@ class Validator(metaclass=ABCMeta):
     @abstractproperty
     def Default(self):
         pass
+
+
+class Existence(Validator):
+    def __init__(self):
+        pass
+
+    @property
+    def Default(self):
+        return None
+
+    def validate(self, value):
+        if value is None:
+            raise ValidationError('Value does not exist')
+
+    def filter(self, data):
+        return data
+
+    def to_form(self):
+        return {'Type': 'Existence', 'Options': list()}
 
 
 class Number(Validator):

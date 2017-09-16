@@ -78,6 +78,9 @@ class CoreODE:
 
         return dy
 
+    def add_behaviour(self, be):
+        self.Mods[be.Name] = be
+
     def form_ys(self, y):
         ys = np.zeros(self.Y_N)
         for k, v in enumerate(self.Y_Names):
@@ -117,3 +120,6 @@ class CoreODE:
         core.FlowLast = list(self.FlowLast)
         core.Ys = dict(self.Ys.items())
         return core
+
+    def to_json(self):
+        pass
