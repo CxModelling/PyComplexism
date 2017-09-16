@@ -225,7 +225,6 @@ class Director(DirectorDCPC):
         out = update(model, to, dt)
         return out
 
-
 #class DirectorABM(Director):
 #    def __init__(self):
 #        Director.__init__(self)

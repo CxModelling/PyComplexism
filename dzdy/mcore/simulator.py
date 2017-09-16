@@ -1,5 +1,6 @@
 from dzdy.mcore import *
 import numpy.random as rd
+import numpy as np
 
 __author__ = 'TimeWz667'
 
@@ -19,7 +20,8 @@ class Simulator:
         self.update(to, dt)
 
     def update(self, forward, dt):
-        ts = list(range(self.Time, forward, dt))
+        num = int((forward - self.Time) / dt) + 1
+        ts = list(np.linspace(self.Time, forward, num))
         if ts[-1] != forward:
             ts.append(forward)
         for f, t in zip(ts[:-1], ts[1:]):
