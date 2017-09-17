@@ -189,7 +189,7 @@ class Director(DirectorDCPC):
             pc = pc if pc else generate_pc(self.PCores[mc.TargetedPCore])
             if mc.require_dc:
                 dc = dc if dc else generate_dc(self.DCores[mc.TargetedDCore], pc)
-
+        kwargs = kwargs if kwargs else dict()
         return generate_model(mc, pc, dc, name, **kwargs)
 
     def copy_model(self, mod_src, tr_tte=True, pc_new=None, intervention=None):

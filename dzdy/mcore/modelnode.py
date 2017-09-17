@@ -63,6 +63,10 @@ class AbsModel(metaclass=ABCMeta):
     def output(self):
         pass
 
+    @abstractmethod
+    def clone(self, **kwargs):
+        pass
+
 
 class LeafModel(AbsModel, metaclass=ABCMeta):
     def __init__(self, name, meta=None):

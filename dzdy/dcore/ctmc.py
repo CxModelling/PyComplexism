@@ -9,6 +9,10 @@ class ModelCTMC(AbsDynamicModel):
         self.Transitions = trs
         self.Targets = tars
 
+    @property
+    def WellDefinedStates(self):
+        return self.States
+
     def get_transitions(self, fr):
         return self.Targets[fr]
 

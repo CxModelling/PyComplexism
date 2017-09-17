@@ -17,7 +17,6 @@ CTMC SIR_H{
     Rec
     Sus -- Infect(beta) -> Inf
     Inf -- Recov(gamma) -> Rec
-
 }
 """
 

@@ -10,7 +10,7 @@ __author__ = 'TimeWz667'
 __all__ = ['ObsEBM', 'ODEModel']
 
 
-Links = namedtuple('Links', ('mod_src', 'par_src', 'tar'))
+Links = namedtuple('Links', ('mod_src', 'par_src', 'tar', 'par_tar'))
 
 
 class ObsEBM(Observer):
@@ -67,6 +67,9 @@ class ODEModel(LeafModel):
             self.go_to(ti)
         self.Obs.observe(self, ti)
 
+    def __getitem__(self, item):
+        return self.Obs.Last[item]
+
     def output(self):
         return self.Obs.observation
 
@@ -99,14 +102,21 @@ class ODEModel(LeafModel):
 
     def listen(self, mod_src, par_src, tar, par_tar=None):
         tar = (tar, par_tar) if par_tar else tar
-        self.ForeignLinks.append(Links(mod_src, par_src, tar))
+        self.ForeignLinks.append(Links(mod_src, par_src, tar, par_tar))
 
     def listen_multi(self, mod_src_all, par_src, tar, par_tar=None):
         tar = (tar, par_tar) if par_tar else tar
-        self.ForeignLinks.append(Links(mod_src_all, par_src, tar))
+        self.ForeignLinks.append(Links(mod_src_all, par_src, tar, par_tar))
 
     def impulse_foreign(self, fore, ti):
-        pass
+        lks = [fl for fl in self.ForeignLinks if fl.mod_src == fore.Name]
+        for _, par, tar, par_tar in lks:
+            val = fore[par]
+            if par_tar is None:
+                self.ODE[tar] = val
+            else:
+                self.ODE[tar, par_tar] = val
+        # todo
 
     def clone(self, **kwargs):
         core = self.ODE.clone(**kwargs)

@@ -97,3 +97,6 @@ class DualModel(BranchModel):
     def to_json(self):
         # todo
         pass
+
+    def clone(self, **kwargs):
+        pass
