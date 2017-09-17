@@ -26,10 +26,12 @@ class BlueprintABM(AbsBlueprintMCore):
     def add_network(self, net_name, net_type, **kwargs):
         if net_name in self.Networks:
             return
-        self.Networks[net_name] = {'Type': net_type, 'Args': dict(kwargs)}
+        self.Networks[net_name] = {'Type': net_type,
+                                   'Args': dict(kwargs)}
 
     def add_trait(self, trt_name, trt_type, **kwargs):
-        self.Traits[trt_name] = {'Type': trt_type, 'Args': dict(kwargs)}
+        self.Traits[trt_name] = {'Type': trt_type,
+                                 'Args': dict(kwargs)}
 
     def add_behaviour(self, be_name, be_type, **kwargs):
         if be_name in self.Behaviours:
@@ -111,7 +113,7 @@ class BlueprintABM(AbsBlueprintMCore):
         js = dict()
         js['Name'] = self.Name
         js['Arguments'] = self.Arguments
-        js['Type'] = 'ABN'
+        js['Type'] = 'ABM'
         js['TargetedPCore'] = self.TargetedPCore
         js['TargetedDCore'] = self.TargetedDCore
         js['Networks'] = self.Networks

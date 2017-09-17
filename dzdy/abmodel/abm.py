@@ -205,5 +205,6 @@ class AgentBasedModel(LeafModel):
     def output(self):
         return self.Obs.observation
 
-    def clone(self):
-        pass
+    def clone(self, **kwargs):
+        # todo
+        return
