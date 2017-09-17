@@ -181,7 +181,7 @@ class Director(DirectorDCPC):
         self.MCores.update({k: load_mc(v) for k, v in js['MCores'].items()})
         self.Layouts.update({k: load_layout(v) for k, v in js['Layouts'].items()})
 
-    def generate_model(self, mc, name=None, pc=None, dc=None, **kwargs):
+    def generate_model(self, mc, name=None, pc=None, dc=None, kwargs=None):
         if not name:
             name = mc
         mc = self.MCores[mc]
@@ -209,11 +209,11 @@ class Director(DirectorDCPC):
             # todo logging
             pass
 
-    def simulate(self, model, to, y0=None, fr=0, dt=1):
+    def simulate(self, model, to, y0=None, fr=0, dt=1, model_args=None):
         if model in self.Layouts:
             m, y0 = self.generate(model)
         elif model in self.MCores and y0:
-            m = self.generate_model(model)
+            m = self.generate_model(model, kwargs=model_args)
         else:
             # todo logging
             raise ValueError('No match model')

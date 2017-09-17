@@ -7,7 +7,7 @@ __author__ = 'TimeWz667'
 
 class BlueprintCoreODE(AbsBlueprintMCore):
     def __init__(self, name, tar_pc, tar_dc):
-        self.Name = name
+        AbsBlueprintMCore.__init__(self, name, {'dt': 1, 'fdt': 0.1})
         self.TargetedCore = tar_pc, tar_dc
         self.Behaviours = list()
         self.Obs_s_t_b = list(), list(), list()
@@ -40,7 +40,7 @@ class BlueprintCoreODE(AbsBlueprintMCore):
         mc = CoreODE(dc)
         dt = kwargs['dt'] if 'dt' in kwargs else 1.0
         fdt = kwargs['fdt'] if 'fdt' in kwargs else 0.1
-        mod = ODEModel(name, mc, meta, dt=dt, fdt= fdt)
+        mod = ODEModel(name, mc, meta, **self.Arguments)
 
         for be in self.Behaviours:
             install_behaviour(mod, be['Name'], be['Type'], be['Args'])
@@ -70,6 +70,7 @@ class BlueprintCoreODE(AbsBlueprintMCore):
     def to_json(self):
         js = dict()
         js['Name'] = self.Name
+        js['Arguments'] = self.Arguments
         js['Type'] = 'CoreODE'
         js['TargetedPCore'] = self.TargetedPCore
         js['TargetedDCore'] = self.TargetedDCore
@@ -81,6 +82,8 @@ class BlueprintCoreODE(AbsBlueprintMCore):
     @staticmethod
     def from_json(js):
         bp = BlueprintCoreODE(js['Name'], js['TargetedPCore'], js['TargetedDCore'])
+        for k, v in js['Arguments']:
+            bp.set_arguments(k, v)
         bp.Behaviours = deepcopy(js['Behaviours'])
         obs = js['Observation']
         bp.set_observations(obs['State'], obs['Transition'], obs['Behaviour'])

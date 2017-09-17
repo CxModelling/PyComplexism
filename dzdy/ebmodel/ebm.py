@@ -50,7 +50,7 @@ class ODEModel(LeafModel):
         self.ODE = core
         self.Clock = Clock(by=dt)
         self.ForeignLinks = list()
-        self.Fdt = fdt if fdt else dt
+        self.Fdt = min(dt, fdt) if fdt else dt
         self.TimeLast = 0
 
     def add_obs_state(self, st):
@@ -110,7 +110,7 @@ class ODEModel(LeafModel):
 
     def clone(self, **kwargs):
         core = self.ODE.clone(**kwargs)
-        co = ODEModel(self.Name, core, self.Clock.By, self.Fdt)
+        co = ODEModel(self.Name, core, self.Meta, dt=self.Clock.By, fdt=self.Fdt)
         co.Clock.Initial = self.Clock.Initial
         co.Clock.Last = self.Clock.Last
         co.TimeLast = self.TimeLast

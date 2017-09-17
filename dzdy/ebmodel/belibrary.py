@@ -6,7 +6,7 @@ from collections import namedtuple
 __author__ = 'TimeWz667'
 
 __all__ = ['register_behaviour', 'validate_behaviour',
-           'get_behaviour', 'get_network_from_json',
+           'get_behaviour', 'get_behaviour_from_json',
            'get_behaviour_template', 'get_behaviour_defaults',
            'install_behaviour_from_json', 'install_behaviour']
 
@@ -32,10 +32,10 @@ def validate_behaviour(be_type, kwargs):
 
 
 def get_behaviour(be_name, be_type, kwargs):
-    net = BehaviourLibrary[be_type]
-    if net.Options.modify(kwargs, log):
-        kwargs = net.Options.extract(kwargs, log)
-        return net.Class(be_name, **kwargs)
+    be = BehaviourLibrary[be_type]
+    if be.Options.modify(kwargs, log):
+        kwargs = be.Options.extract(kwargs, log)
+        return be.Class(be_name, **kwargs)
 
 
 def get_behaviour_from_json(js):

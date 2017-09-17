@@ -8,7 +8,7 @@ __author__ = 'TimeWz667'
 
 class BlueprintABM(AbsBlueprintMCore):
     def __init__(self, name, tar_pc, tar_dc):
-        self.Name = name
+        AbsBlueprintMCore.__init__(self, name, {'ag_prefix': 'Ag'})
         self.TargetedCore = tar_pc, tar_dc
         self.Networks = dict()
         self.Behaviours = OrderedDict()
@@ -45,9 +45,8 @@ class BlueprintABM(AbsBlueprintMCore):
 
     def generate(self, name, **kwargs):
         pc, dc = kwargs['pc'], kwargs['dc'],
-        ag_prefix = kwargs['ag_prefix'] if 'ag_prefix' in kwargs else 'Ag'
         meta = MetaABM(self.TargetedPCore, self.TargetedDCore, self.Name)
-        mod = AgentBasedModel(name, dc, pc, meta, ag_prefix=ag_prefix)
+        mod = AgentBasedModel(name, dc, pc, meta, **self.Arguments)
         for k, v in self.Traits.items():
             install_trait(mod, k, v['Type'], v['Args'])
         for k, v in self.Behaviours.items():
@@ -111,6 +110,7 @@ class BlueprintABM(AbsBlueprintMCore):
     def to_json(self):
         js = dict()
         js['Name'] = self.Name
+        js['Arguments'] = self.Arguments
         js['Type'] = 'ABN'
         js['TargetedPCore'] = self.TargetedPCore
         js['TargetedDCore'] = self.TargetedDCore
@@ -125,6 +125,8 @@ class BlueprintABM(AbsBlueprintMCore):
     @staticmethod
     def from_json(js):
         bp = BlueprintABM(js['Name'], js['TargetedPCore'], js['TargetedDCore'])
+        for k, v in js['Arguments']:
+            bp.set_arguments(k, v)
         bp.Networks = deepcopy(js['Networks'])
         bes = deepcopy(js['Behaviours'])
         beo = js['BehaviourOrder']
