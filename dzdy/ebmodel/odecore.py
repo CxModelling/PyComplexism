@@ -38,7 +38,8 @@ class CoreODE:
         return self.Mods[item].Value
 
     def __setitem__(self, item, value):
-        self.Mods[item].Value = value
+        mod = self.Mods[item]
+        mod.Value = value
 
     def initialise(self, model, ti):
         for src in self.Y_Names:

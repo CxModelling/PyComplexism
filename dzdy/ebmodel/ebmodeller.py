@@ -38,7 +38,7 @@ class BlueprintCoreODE(AbsBlueprintMCore):
         pc, dc = kwargs['pc'], kwargs['dc'],
         meta = MetaCoreEBM(self.TargetedPCore, self.TargetedDCore, self.Name)
         mc = CoreODE(dc)
-        mod = ODEModel(name, mc, meta, **self.Arguments)
+        mod = ODEModel(name, mc, pc=pc, meta=meta, **self.Arguments)
 
         for be in self.Behaviours:
             install_behaviour(mod, be['Name'], be['Type'], be['Args'])
@@ -58,8 +58,9 @@ class BlueprintCoreODE(AbsBlueprintMCore):
     def clone(self, mod_src, **kwargs):
         # copy model structure
         dc_new = kwargs['dc'] if 'dc' in kwargs else mod_src.DCore
+        pc_new = kwargs['pc'] if 'pc' in kwargs else mod_src.DCore
 
-        mod_new = mod_src.clone(dc_new)
+        mod_new = mod_src.clone(dc=dc_new, pc=pc_new)
         mod_new.Obs.TimeSeries = mod_src.Obs.TimeSeries.copy()
 
         return mod_new

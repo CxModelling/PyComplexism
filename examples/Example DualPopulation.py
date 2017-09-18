@@ -42,5 +42,5 @@ flu.append(da.generate_model('SIR', name='B'))
 flu.link(RelationEntry('A@P_Inf'), RelationEntry('B@Out'))
 flu.link(RelationEntry('B@P_Inf'), RelationEntry('A@Out'))
 
-simulate(flu, y0={'A':{'Sus': 100}, 'B':{'Sus': 15, 'Inf': 5}}, fr=0, to=10)
+simulate(flu, y0={'A': {'Sus': 100}, 'B': {'Sus': 15, 'Inf': 5}}, fr=0, to=10)
 flu.Obs.print()

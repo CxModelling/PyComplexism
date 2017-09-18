@@ -43,10 +43,11 @@ class ObsEBM(Observer):
 
 
 class ODEModel(LeafModel):
-    def __init__(self, name, core, meta=None, dt=1, fdt=None):
+    def __init__(self, name, core, pc=None, meta=None, dt=1, fdt=None):
         LeafModel.__init__(self, name, meta=meta)
         self.Obs = ObsEBM()
         self.Y = None
+        self.PCore = pc
         self.ODE = core
         self.Clock = Clock(by=dt)
         self.ForeignLinks = list()
@@ -120,14 +121,16 @@ class ODEModel(LeafModel):
 
     def clone(self, **kwargs):
         core = self.ODE.clone(**kwargs)
-        co = ODEModel(self.Name, core, self.Meta, dt=self.Clock.By, fdt=self.Fdt)
+        pc = kwargs['pc'] if 'pc' in kwargs else None
+        co = ODEModel(self.Name, core, pc, self.Meta, dt=self.Clock.By, fdt=self.Fdt)
         co.Clock.Initial = self.Clock.Initial
         co.Clock.Last = self.Clock.Last
         co.TimeLast = self.TimeLast
+        co.TimeEnd = self.TimeEnd
         co.Obs.TimeSeries = deepcopy(self.Obs.TimeSeries)
         co.Obs.Last = dict(self.Obs.Last.items())
         co.Y = deepcopy(self.Y)
-        core.initialise(self.TimeLast)
+        core.initialise(co, self.TimeLast)
         return co
 
     def find_next(self):

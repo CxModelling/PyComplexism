@@ -135,6 +135,8 @@ def load_mc(js, log=None):
     """
     if js['Type'] == 'ABM':
         return BlueprintABM.from_json(js)
+    elif js['Type'] == 'CoreODE':
+        return BlueprintCoreODE.from_json(js)
 
 
 def save_mc(dc, path, log=None):
@@ -150,8 +152,10 @@ def new_core_ode(name, tar_pc, tar_dc, log=None):
     bp_ebm = BlueprintCoreODE(name, tar_pc, tar_dc)
     return bp_ebm
 
+
 def new_fn_ode(name, tar_pc, log=None):
     pass
+
 
 def new_mc(name, model_type, log=None, **kwargs):
     if model_type == 'ABM':

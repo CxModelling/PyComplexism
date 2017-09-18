@@ -48,7 +48,7 @@ class Multiplier(Behaviour):
         return rate * self.Value
 
     def fill(self, obs, model, ti):
-        pass
+        obs['B_{}'.format(self.Name)] = self.Value
 
     def to_json(self):
         return {'Name': self.Name,
