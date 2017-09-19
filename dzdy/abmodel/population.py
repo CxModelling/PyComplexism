@@ -17,6 +17,7 @@ class Breeder:
             raise KeyError('The state is not well-defined')
         info = info if info else dict()
         start = self.Last + 1
+        n = round(n)
         ags = [Agent('{}{}'.format(self.Prefix, start + i), st) for i in range(n)]
         for ag in ags:
             ag.update_info(info)

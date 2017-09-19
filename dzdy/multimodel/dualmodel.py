@@ -89,7 +89,6 @@ class DualModel(BranchModel):
     def link(self, src, tar):
         if src.is_single():
             self.Models[tar.Selector].listen(src.Selector, src.Parameter, tar.Parameter)
-            print(tar)
 
     def output(self):
         return self.Obs.observation

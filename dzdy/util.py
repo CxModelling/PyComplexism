@@ -142,6 +142,25 @@ class LinearCombination:
         return fn
 
 
+class StepFn:
+    def __init__(self, ts, ys):
+        self.Ts = ts
+        self.Ys = ys
+
+    def __call__(self, ti):
+        for t, y in zip(self.Ts, self.Ys):
+            if t > ti:
+                return y
+        return self.Ys[-1]
+
+    def __repr__(self):
+        s = ['{}({})'.format(y, t) for y, t in zip(self.Ys[1:], self.Ts)]
+        return self.Ys[0] + '-' + '-'.join(s)
+
+    def to_json(self):
+        return {'Fn': 'Step', 'Ts': self.Ts, 'Ys': self.Ys}
+
+
 if __name__ == '__main__':
     crv1 = CategoricalRV({'A': 3, 'B': 4, 'C': 7})
     print(crv1())

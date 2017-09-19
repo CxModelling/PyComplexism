@@ -131,7 +131,7 @@ class TimeIndBe:
 
 
 class TimeModBe(TimeDepBe, AbsBehaviour, metaclass=ABCMeta):
-    def __init__(self, name, clock: Clock, mod, tri=Trigger.NullTrigger):
+    def __init__(self, name, clock, mod, tri=Trigger.NullTrigger):
         TimeDepBe.__init__(self, clock)
         AbsBehaviour.__init__(self, name, tri)
         self.ModPrototype = mod
