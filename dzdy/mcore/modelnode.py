@@ -1,7 +1,9 @@
-from abc import ABCMeta, abstractmethod
-from dzdy.mcore.request import *
+from dzdy.mcore import *
 
 __author__ = 'TimeWz667'
+
+
+__all__ = ['LeafModel', 'BranchModel']
 
 
 class AbsModel(metaclass=ABCMeta):
@@ -23,7 +25,7 @@ class AbsModel(metaclass=ABCMeta):
     def read_y0(self, y0, ti):
         pass
 
-    def listen(self, src_model, src_value, src_target):
+    def listen(self, src_model, src_value, par_target):
         pass
 
     @property
@@ -87,9 +89,11 @@ class BranchModel(AbsModel, metaclass=ABCMeta):
         AbsModel.__init__(self, name, meta)
         self.Models = dict()
 
-    @abstractmethod
     def select(self, mod):
-        pass
+        return self.Models[mod]
+
+    def select_all(self, sel):
+        return ModelSelector(self.Models).select_all(sel)
 
     def fetch(self, res):
         self.Requests.clear()

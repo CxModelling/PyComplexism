@@ -26,6 +26,9 @@ class ModelSelector:
             mods = [mod for mod in mods if selector[0](mod, selector[1])]
         return ModelSelector(mods)
 
+    def items(self):
+        return self.Models.items()
+
     def sum_up(self, sel, par):
         ss, sp = ModelSelector.parse_selector(sel)
         if not ss:

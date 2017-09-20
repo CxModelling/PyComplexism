@@ -120,3 +120,6 @@ class LightSet(BranchModel):
 
     def to_json(self):
         pass
+
+    def clone(self, **kwargs):
+        pass

@@ -1,7 +1,8 @@
-from dzdy.mcore import *
-from .summarizer import *
-from .selector import *
 from collections import OrderedDict
+
+from dzdy.mcore import *
+from mcore.selector import *
+from .summarizer import *
 
 __author__ = 'TimeWz667'
 __all__ = ['ObsModelSet', 'ModelSet']
@@ -26,12 +27,6 @@ class ModelSet(BranchModel):
 
     def __getitem__(self, item):
         return self.Obs[item]
-
-    def select(self, name):
-        return self.Models[name]
-
-    def select_all(self, sel):
-        return ModelSelector(self.Models).select_all(sel)
 
     def append(self, model):
         self.Models[model.Name] = model

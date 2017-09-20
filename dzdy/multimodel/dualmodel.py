@@ -1,7 +1,8 @@
-from dzdy.mcore import *
-from dzdy.dcore import Event
-from .selector import *
 from collections import OrderedDict
+
+from dzdy.dcore import Event
+from dzdy.mcore import *
+from mcore.selector import *
 
 __author__ = 'TimeWz667'
 __all__ = ['ObsDualModel', 'DualModel']

@@ -46,10 +46,13 @@ class ObsABM(Observer):
 
         for fun in self.Sums:
             fun(self.Last, model, ti)
-        self.Recs = list()
 
     def record(self, ag, tr, ti):
         self.Recs.append(RecordABM(ag.Name, tr, ti))
+
+    def push_observation(self, model):
+        Observer.push_observation(self, model)
+        self.Recs = list()
 
 
 class AgentBasedModel(LeafModel):
