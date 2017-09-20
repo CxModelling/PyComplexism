@@ -8,8 +8,8 @@ Pats = {
     'PC': (r'PC\s*=\s*(\w+)', lambda x, v: x.Meta.PC == v),
     'DC': (r'DC\s*=\s*(\w+)', lambda x, v: x.Meta.DC == v),
     'MC': (r'MC\s*=\s*(\w+)', lambda x, v: x.Meta.Prototype == v),
-    'Proto': (r'#(\w+)', lambda x, v: x.Meta.Prototype == v),
-    'Prefix': (r'\.(\w+)', lambda x, v: x.Name.find(v) == 0)
+    'Proto': (r'\.(\w+)', lambda x, v: x.Meta.Prototype == v),
+    'Prefix': (r'#(\w+)', lambda x, v: x.Name.find(v) == 0)
 }
 
 

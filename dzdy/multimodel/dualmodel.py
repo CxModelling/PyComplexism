@@ -67,7 +67,6 @@ class DualModel(BranchModel):
     def find_next(self):
         for k, model in self.Models.items():
             self.Requests.add([evt.up(k) for evt in model.next])
-
         su = Event('Summary', self.ObsDT.get_next())
         self.Requests.append_src('Summary', su, su.Time)
 

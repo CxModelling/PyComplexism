@@ -21,11 +21,11 @@ class ObsModelSet(Observer):
 class ModelSet(BranchModel):
     def __init__(self, name, odt=1):
         BranchModel.__init__(self, name)
-        self.Summarizer = Summarizer(dt=odt)
         self.Obs = ObsModelSet()
+        self.Summarizer = Summarizer(dt=odt)
 
     def __getitem__(self, item):
-        return self.Summarizer.Summary[item]
+        return self.Obs[item]
 
     def select(self, name):
         return self.Models[name]
@@ -53,11 +53,11 @@ class ModelSet(BranchModel):
             for fore in self.Models.values():
                 if m is not fore:
                     m.impulse_foreign(fore, ti)
+        self.Obs.single_observe(self, ti)
 
     def observe(self, ti):
         for m in self.Models.values():
             m.observe(ti)
-
         self.Obs.observe(self, ti)
 
     def find_next(self):
@@ -91,4 +91,7 @@ class ModelSet(BranchModel):
 
     def to_json(self):
         # todo
+        pass
+
+    def clone(self, **kwargs):
         pass
