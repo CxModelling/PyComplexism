@@ -40,14 +40,15 @@ class ForeignShock(ModBe):
         model.Behaviours[name] = ForeignShock(name, mod_src, par_src, target)
 
     def fill(self, obs, model, ti):
-        obs['B.{}'.format(self.Name)] = self.Val
+        obs['B_{}'.format(self.Name)] = self.Val
         return obs
 
     def match(self, be_src, ags_src, ags_new, ti):
         self.Val = be_src.Val
         for ag_new, ag_src in zip(ags_new.values(), ags_src.values()):
             self.register(ag_new, ti)
-            ag_new.Mods[self.Name].Val = ag_src.Mods[self.Name].Val
+            mod = ag_new.Mods[self.Name]
+            mod.Val = ag_src.Mods[self.Name].Val
 
 
 class ForeignAddShock(ModBe):
@@ -89,7 +90,7 @@ class ForeignAddShock(ModBe):
         return m
 
     def fill(self, obs, model, ti):
-        obs['B.{}'.format(self.Name)] = self.Sum
+        obs['B_{}'.format(self.Name)] = self.Sum
         return obs
 
     def match(self, be_src, ags_src, ags_new, ti):
@@ -126,7 +127,7 @@ class BirthListener(RealTimeBehaviour):
         model.Behaviours[name] = BirthListener(name, s_death)
 
     def fill(self, obs, model, ti):
-        obs['B.{}'.format(self.Name)] = self.N_birth
+        obs['B_{}'.format(self.Name)] = self.N_birth
 
     def match(self, be_src, ags_src, ags_new, ti):
         self.N_birth = be_src.N_birth

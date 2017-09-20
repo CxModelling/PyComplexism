@@ -438,9 +438,9 @@ class NerfDecision(ModBe):
 
     def fill(self, obs, model, ti):
         try:
-            obs['B.{}'.format(self.Name)] = self.Nerf/self.Decision
+            obs['B_{}'.format(self.Name)] = self.Nerf/self.Decision
         except ZeroDivisionError:
-            obs['B.{}'.format(self.Name)] = 0
+            obs['B_{}'.format(self.Name)] = 0
 
     def match(self, be_src, ags_src, ags_new, ti):
         for ag_new, ag_src in zip(ags_new.values(), ags_src.values()):
@@ -494,9 +494,9 @@ class BuffDecision(ModBe):
 
     def fill(self, obs, model, ti):
         try:
-            obs['B.{}'.format(self.Name)] = self.Buff/self.Decision
+            obs['B_{}'.format(self.Name)] = self.Buff/self.Decision
         except ZeroDivisionError:
-            obs['B.{}'.format(self.Name)] = 0
+            obs['B_{}'.format(self.Name)] = 0
 
     def match(self, be_src, ags_src, ags_new, ti):
         for ag_new, ag_src in zip(ags_new.values(), ags_src.values()):

@@ -119,6 +119,7 @@ class Population:
         Returns: a list of generated agents
 
         """
+        n = round(n)
         ags = self.Eve.breed(atr, n, info)
         ags = list(ags)
         for ag in ags:
