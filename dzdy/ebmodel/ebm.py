@@ -34,25 +34,23 @@ class ObsEBM(Observer):
         self.Last['Time'] = ti
 
         for st in self.ObsSt:
-            self.Last['P_{}'.format(st)] = model.ODE.count_st(st)
+            self.Last[st] = model.ODE.count_st(st)
 
         for tr in self.ObsTr:
-            self.Last['I_{}'.format(tr)] = model.ODE.count_tr(tr)
+            self.Last[tr] = model.ODE.count_tr(tr)
         for be in self.ObsBe:
             model.ODE.fill(be, self.Last, ti)
 
 
 class ODEModel(LeafModel):
     def __init__(self, name, core, pc=None, meta=None, dt=1, fdt=None):
-        LeafModel.__init__(self, name, meta=meta)
-        self.Obs = ObsEBM()
+        LeafModel.__init__(self, name, ObsEBM(), meta=meta)
         self.Y = None
         self.PCore = pc
         self.ODE = core
         self.Clock = Clock(by=dt)
         self.ForeignLinks = list()
         self.Fdt = min(dt, fdt) if fdt else dt
-        self.TimeLast = 0
 
     def add_obs_state(self, st):
         self.Obs.add_obs_state(st)
@@ -63,17 +61,6 @@ class ODEModel(LeafModel):
     def add_obs_behaviour(self, be):
         self.Obs.add_obs_behaviour(be)
 
-    def observe(self, ti):
-        if ti > self.TimeLast:
-            self.go_to(ti)
-        self.Obs.observe(self, ti)
-
-    def __getitem__(self, item):
-        return self.Obs.Last[item]
-
-    def output(self):
-        return self.Obs.observation
-
     def read_y0(self, y0, ti):
         self.Y = self.ODE.form_ys(y0)
         self.ODE.set_Ys(self.Y)
@@ -81,16 +68,13 @@ class ODEModel(LeafModel):
     def reset(self, ti):
         self.Clock.initialise(ti, ti)
         self.ODE.update(self.Y, ti)
-        self.TimeLast = ti
+        self.TimeEnd = ti
         self.ODE.initialise(self, ti)
         self.Obs.single_observe(self, ti)
 
-    def to_json(self):
-        pass
-
     def go_to(self, ti):
-        f, t = self.TimeLast, ti
-        self.TimeLast = ti
+        f, t = self.TimeEnd, ti
+        self.TimeEnd = ti
         num = int((t - f) / self.Fdt) + 1
         ts = np.linspace(f, t, num)
         self.Y = odeint(self.ODE, self.Y, ts)[-1]
@@ -98,8 +82,11 @@ class ODEModel(LeafModel):
         self.Clock.update(ti)
 
     def do_request(self, req):
-        if req.Time > self.TimeLast:
+        if req.Time > self.TimeEnd:
             self.go_to(req.Time)
+
+    def find_next(self):
+        self.Requests.append(Request(None, self.Clock.get_next()))
 
     def listen(self, mod_src, par_src, tar, par_tar=None):
         tar = (tar, par_tar) if par_tar else tar
@@ -117,7 +104,9 @@ class ODEModel(LeafModel):
                 self.ODE[tar] = val
             else:
                 self.ODE[tar, par_tar] = val
-        # todo
+
+    def to_json(self):
+        pass
 
     def clone(self, **kwargs):
         core = self.ODE.clone(**kwargs)
@@ -125,13 +114,9 @@ class ODEModel(LeafModel):
         co = ODEModel(self.Name, core, pc, self.Meta, dt=self.Clock.By, fdt=self.Fdt)
         co.Clock.Initial = self.Clock.Initial
         co.Clock.Last = self.Clock.Last
-        co.TimeLast = self.TimeLast
         co.TimeEnd = self.TimeEnd
         co.Obs.TimeSeries = deepcopy(self.Obs.TimeSeries)
         co.Obs.Last = dict(self.Obs.Last.items())
         co.Y = deepcopy(self.Y)
-        core.initialise(co, self.TimeLast)
+        core.initialise(co, self.TimeEnd)
         return co
-
-    def find_next(self):
-        self.Requests.append(Request(None, self.Clock.get_next()))

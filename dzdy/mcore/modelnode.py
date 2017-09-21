@@ -7,9 +7,10 @@ __all__ = ['LeafModel', 'BranchModel']
 
 
 class AbsModel(metaclass=ABCMeta):
-    def __init__(self, name, meta=None):
+    def __init__(self, name, obs, meta=None):
         self.Meta = meta
         self.Name = name
+        self.Obs = obs
         self.Requests = RequestSet()
         self.TimeEnd = None
 
@@ -21,6 +22,18 @@ class AbsModel(metaclass=ABCMeta):
 
     def reset(self, ti):
         pass
+
+    def __getitem__(self, item):
+        return self.Obs.Last[item]
+
+    def observe(self, ti):
+        self.Obs.observe(self, ti)
+
+    def after_shock_observe(self, ti):
+        self.Obs.after_shock_observe(self, ti)
+
+    def output(self):
+        return self.Obs.observation
 
     def read_y0(self, y0, ti):
         pass
@@ -58,10 +71,6 @@ class AbsModel(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def observe(self, ti):
-        pass
-
-    @abstractmethod
     def output(self):
         pass
 
@@ -71,8 +80,8 @@ class AbsModel(metaclass=ABCMeta):
 
 
 class LeafModel(AbsModel, metaclass=ABCMeta):
-    def __init__(self, name, meta=None):
-        AbsModel.__init__(self, name, meta)
+    def __init__(self, name, obs, meta=None):
+        AbsModel.__init__(self, name, obs, meta)
 
     def fetch(self, rs):
         self.Requests.clear()
@@ -85,8 +94,8 @@ class LeafModel(AbsModel, metaclass=ABCMeta):
 
 
 class BranchModel(AbsModel, metaclass=ABCMeta):
-    def __init__(self, name, meta=None):
-        AbsModel.__init__(self, name, meta)
+    def __init__(self, name, obs, meta=None):
+        AbsModel.__init__(self, name, obs, meta)
         self.Models = dict()
 
     def select(self, mod):

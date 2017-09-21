@@ -84,7 +84,7 @@ class InfectionFD(Behaviour):
         return rate * self.Value
 
     def fill(self, obs, model, ti):
-        obs['B_{}'.format(self.Name)] = self.Value
+        obs[self.Name] = self.Value
 
     def to_json(self):
         return {'Name': self.Name,
@@ -118,7 +118,7 @@ class InfectionDD(Behaviour):
         return rate * self.Value
 
     def fill(self, obs, model, ti):
-        obs['B_{}'.format(self.Name)] = self.Value
+        obs[self.Name] = self.Value
 
     def to_json(self):
         return {'Name': self.Name,
@@ -159,7 +159,7 @@ class Cohort(Behaviour):
         return res
 
     def fill(self, obs, model, ti):
-        obs['B_{}'.format(self.Name)] = self.Value
+        obs[self.Name] = self.Value
 
     def to_json(self):
         return {'Name': self.Name,
@@ -205,7 +205,7 @@ class Reincarnation(Behaviour):
         return res
 
     def fill(self, obs, model, ti):
-        obs['B_{}'.format(self.Name)] = self.Value
+        obs[self.Name] = self.Value
 
     def to_json(self):
         return {'Name': self.Name,
@@ -254,7 +254,7 @@ class PopDynamic(Behaviour):
         return res
 
     def fill(self, obs, model, ti):
-        obs['B_{}'.format(self.Name)] = self.Value
+        obs[self.Name] = self.Value
 
     def to_json(self):
         return {'Name': self.Name,

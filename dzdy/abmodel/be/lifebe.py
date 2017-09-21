@@ -37,7 +37,7 @@ class Reincarnation(RealTimeBehaviour):
         model.Behaviours[name] = Reincarnation(name, s_death, kwargs['s_birth'])
 
     def fill(self, obs, model, ti):
-        obs['B_{}'.format(self.Name)] = self.N_birth
+        obs[self.Name] = self.N_birth
 
     def match(self, be_src, ags_src, ags_new, ti):
         self.N_birth = be_src.N_birth
@@ -69,7 +69,7 @@ class Cohort(RealTimeBehaviour):
         model.Behaviours[name] = Cohort(name, s_death)
 
     def fill(self, obs, model, ti):
-        obs['B_{}'.format(self.Name)] = self.N_dead
+        obs[self.Name] = self.N_dead
 
     def match(self, be_src, ags_src, ags_new, ti):
         self.N_dead = be_src.N_dead
@@ -106,7 +106,7 @@ class LifeRate(TimeBe):
         return Event(self.Name, ti)
 
     def fill(self, obs, model, ti):
-        obs['B_{}'.format(self.Name)] = self.N_birth
+        obs[self.Name] = self.N_birth
 
     @staticmethod
     def decorate(name, model, *args, **kwargs):
@@ -154,7 +154,7 @@ class LifeS(TimeBe):
         return Event(self.Name, ti)
 
     def fill(self, obs, model, ti):
-        obs['B_{}'.format(self.Name)] = self.N_birth
+        obs[self.Name] = self.N_birth
 
     @staticmethod
     def decorate(name, model, *args, **kwargs):
@@ -231,10 +231,10 @@ class LifeLeeCarter(TimeModBe):
         if not self.Rec_Death:
             return
         for k, v in dat.groupby('Sex').mean().iterrows():
-            obs['B_{}.DeaAge{}'.format(self.Name, k[0])] = float(v)
+            obs['{}.DeaAge{}'.format(self.Name, k[0])] = float(v)
 
         for k, v in dat.groupby('Sex').count().iterrows():
-            obs['B_{}.DeaNum{}'.format(self.Name, k[0])] = float(v)
+            obs['{}.DeaNum{}'.format(self.Name, k[0])] = float(v)
         self.Rec_Death.clear()
 
     def match(self, be_src, ags_src, ags_new, ti):

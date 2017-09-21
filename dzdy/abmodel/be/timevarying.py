@@ -51,7 +51,7 @@ class TimeVaryingInterp(TimeModBe):
         model.Behaviours[name] = TimeVaryingInterp(name, kwargs['ts'], y, tr, dt)
 
     def fill(self, obs, model, ti):
-        obs['B_{}'.format(self.Name)] = float(self.Val)
+        obs[self.Name] = float(self.Val)
 
     def match(self, be_src, ags_src, ags_new, ti):
         self.Val = be_src.Val
@@ -93,7 +93,7 @@ class TimeVarying(TimeModBe):
         model.Behaviours[name] = TimeVarying(name, kwargs['func'], tr, dt)
 
     def fill(self, obs, model, ti):
-        obs['B_{}'.format(self.Name)] = self.Val
+        obs[self.Name] = self.Val
 
     def match(self, be_src, ags_src, ags_new, ti):
         for ag in ags_new.values():
@@ -135,7 +135,7 @@ class TimeStep(TimeModBe):
         model.Behaviours[name] = TimeStep(name, ts, ys, tr)
 
     def fill(self, obs, model, ti):
-        obs['B_{}'.format(self.Name)] = self.Val
+        obs[self.Name] = self.Val
 
     def match(self, be_src, ags_src, ags_new, ti):
         for ag in ags_new.values():

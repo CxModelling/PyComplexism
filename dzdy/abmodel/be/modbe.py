@@ -47,7 +47,7 @@ class ComFDShock(ModBe):
         model.Behaviours[name] = ComFDShock(name, s_src, t_tar)
 
     def fill(self, obs, model, ti):
-        obs['B.{}'.format(self.Name)] = self.Val
+        obs[self.Name] = self.Val
 
     def match(self, be_src, ags_src, ags_new, ti):
         self.Val = be_src.Val
@@ -91,7 +91,7 @@ class ComFDShockFast(TimeModBe):
         model.Behaviours[name] = ComFDShockFast(name, s_src, t_tar, dt)
 
     def fill(self, obs, model, ti):
-        obs['B.{}'.format(self.Name)] = self.Val
+        obs[self.Name] = self.Val
 
     def match(self, be_src, ags_src, ags_new, ti):
         self.Val = be_src.Val
@@ -140,7 +140,7 @@ class ComDDShock(ModBe):
         model.Behaviours[name] = ComDDShock(name, s_src, t_tar)
 
     def fill(self, obs, model, ti):
-        obs['B.{}'.format(self.Name)] = self.Val
+        obs[self.Name] = self.Val
 
     def match(self, be_src, ags_src, ags_new, ti):
         self.Val = be_src.Val
@@ -184,7 +184,7 @@ class ComDDShockFast(TimeModBe):
         model.Behaviours[name] = ComDDShockFast(name, s_src, t_tar, dt)
 
     def fill(self, obs, model, ti):
-        obs['B.{}'.format(self.Name)] = self.Val
+        obs[self.Name] = self.Val
 
     def match(self, be_src, ags_src, ags_new, ti):
         self.Val = be_src.Val
@@ -232,7 +232,7 @@ class ComWeightSumShock(TimeModBe):
         model.Behaviours[name] = ComWeightSumShock(name, s_src, t_tar, wt, dt)
 
     def fill(self, obs, model, ti):
-        obs['B.{}'.format(self.Name)] = self.Val
+        obs[self.Name] = self.Val
 
     def match(self, be_src, ags_src, ags_new, ti):
         self.Val = be_src.Val
@@ -438,9 +438,9 @@ class NerfDecision(ModBe):
 
     def fill(self, obs, model, ti):
         try:
-            obs['B_{}'.format(self.Name)] = self.Nerf/self.Decision
+            obs[self.Name] = self.Nerf/self.Decision
         except ZeroDivisionError:
-            obs['B_{}'.format(self.Name)] = 0
+            obs[self.Name] = 0
 
     def match(self, be_src, ags_src, ags_new, ti):
         for ag_new, ag_src in zip(ags_new.values(), ags_src.values()):
@@ -494,9 +494,9 @@ class BuffDecision(ModBe):
 
     def fill(self, obs, model, ti):
         try:
-            obs['B_{}'.format(self.Name)] = self.Buff/self.Decision
+            obs[self.Name] = self.Buff/self.Decision
         except ZeroDivisionError:
-            obs['B_{}'.format(self.Name)] = 0
+            obs[self.Name] = 0
 
     def match(self, be_src, ags_src, ags_new, ti):
         for ag_new, ag_src in zip(ags_new.values(), ags_src.values()):

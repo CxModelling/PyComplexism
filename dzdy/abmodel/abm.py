@@ -17,7 +17,6 @@ class ObsABM(Observer):
         self.ObsTr = list()
         self.Bes = list()
         self.Recs = list()
-        self.Sums = list()
 
     def add_obs_state(self, st):
         self.ObsSt.append(st)
@@ -25,47 +24,41 @@ class ObsABM(Observer):
     def add_obs_transition(self, tr):
         self.ObsTr.append(tr)
 
-    def add_obs_function(self, func):
-        self.Sums.append(func)
-
     def add_obs_behaviour(self, beh):
         self.Bes.append(beh)
 
-    def single_observe(self, model, ti):
+    def point_observe(self, model, ti):
         self.Last = OrderedDict()
         self.Last['Time'] = ti
 
         for st in self.ObsSt:
-            self.Last['P_{}'.format(st.Name)] = model.Pop.count(st)
+            self.Last[st.Name] = model.Pop.count(st)
 
         for tr in self.ObsTr:
-            self.Last['I_{}'.format(tr.Name)] = sum(rec.Tr == tr for rec in self.Recs)
+            self.Last[tr.Name] = sum(rec.Tr == tr for rec in self.Recs)
 
         for be in self.Bes:
             model.Behaviours[be].fill(self.Last, model, ti)
 
-        for fun in self.Sums:
-            fun(self.Last, model, ti)
+    def after_shock_observe(self, model, ti):
+        for be in self.Bes:
+            model.Behaviours[be].fill(self.Last, model, ti)
 
     def record(self, ag, tr, ti):
         self.Recs.append(RecordABM(ag.Name, tr, ti))
 
-    def push_observation(self, model):
-        Observer.push_observation(self, model)
+    def push_observation(self):
+        Observer.push_observation(self)
         self.Recs = list()
 
 
 class AgentBasedModel(LeafModel):
     def __init__(self, name, dc, pc, meta=None, ag_prefix='Ag'):
-        LeafModel.__init__(self, name, meta)
+        LeafModel.__init__(self, name, ObsABM(), meta)
         self.DCore = dc
         self.PCore = pc
-        self.Obs = ObsABM()
         self.Pop = Population(dc, ag_prefix)
         self.Behaviours = OrderedDict()
-
-    def __getitem__(self, item):
-        return self.Obs.Last[item]
 
     def add_obs_state(self, st):
         if st in self.DCore.States:
@@ -74,9 +67,6 @@ class AgentBasedModel(LeafModel):
     def add_obs_transition(self, tr):
         if tr in self.DCore.Transitions:
             self.Obs.add_obs_transition(self.DCore.Transitions[tr])
-
-    def add_obs_function(self, fun):
-        self.Obs.add_obs_function(fun)
 
     def add_obs_behaviour(self, be):
         if be in self.Behaviours:
@@ -96,7 +86,6 @@ class AgentBasedModel(LeafModel):
             for mod in mod_src_all:
                 be.set_source(mod, par_src, par_tar)
         except KeyError:
-
             name = '{}->{}'.format(par_src, tar)
             m = ForeignAddShock.decorate(name, self, t_tar=tar)
             for mod in mod_src_all:
@@ -112,7 +101,7 @@ class AgentBasedModel(LeafModel):
             be.initialise(self, ti)
         for ag in self.Pop.Agents.values():
             ag.initialise(ti)
-        self.Obs.single_observe(self, ti)
+        self.Obs.point_observe(self, ti)
 
     def make_agent(self, atr, n, ti):
         ags = self.Pop.add_agent(atr, n)
@@ -170,9 +159,6 @@ class AgentBasedModel(LeafModel):
         bes = self.check_out(ag)
         self.Pop.remove_agent(i)
         self.impulse_out(bes, ag, ti)
-
-    def observe(self, ti):
-        self.Obs.observe(self, ti)
 
     def find_next(self):
         # to be parallel

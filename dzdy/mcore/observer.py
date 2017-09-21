@@ -16,10 +16,10 @@ class Observer:
     def renew(self):
         self.TimeSeries = list()
 
-    def single_observe(self, model, ti):
+    def point_observe(self, model, ti):
         pass
 
-    def update_observe(self, model):
+    def after_shock_observe(self, model, ti):
         pass
 
     def push_observation(self):
