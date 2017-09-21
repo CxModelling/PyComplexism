@@ -1,5 +1,5 @@
 from dzdy.mcore import *
-from .summarizer import *
+from .summariser import *
 from collections import OrderedDict
 
 __author__ = 'TimeWz667'

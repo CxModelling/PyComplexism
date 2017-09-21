@@ -1,5 +1,5 @@
 from dzdy.mcore import *
-from .summarizer import *
+from .summariser import *
 
 __author__ = 'TimeWz667'
 __all__ = ['ObsModelSet', 'ModelSet']
@@ -25,7 +25,7 @@ class ModelSet(BranchModel):
     def __init__(self, name, odt=1):
         BranchModel.__init__(self, name, ObsModelSet())
         self.Network = dict()
-        self.Summarizer = Summarizer(dt=odt)
+        self.Summariser = Summariser(dt=odt)
 
     def __getitem__(self, item):
         return self.Obs[item]
@@ -77,10 +77,21 @@ class ModelSet(BranchModel):
             self.after_shock_observe(ti)
 
     def link(self, src, tar):
+        if src.Selector is self.Name:
+            m_src = [self.Summarizer]
+        m_src = self.select_all(src.Selector)
+        m_tar = self.select_all(tar.Selector)
+        if not m_src or not m_tar:
+            return
+        if len(m_src) == 1:
+            fr = m_src[0]
+            for m in m_tar:
+                if fr is not m:
+                    m.listen(fr.Name, src.Parameter, tar.Parameter)
+                else
         if src.is_single():
             for m in self.select_all(tar.Selector):
                 m.listen(src.Selector, src.Parameter, tar.Parameter)
-
         else:
             ss = self.select_all(src.Selector)
             ss = [sr.Name for sr in ss]

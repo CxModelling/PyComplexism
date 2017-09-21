@@ -26,7 +26,7 @@ class Observer:
         self.TimeSeries.append(self.Last)
 
     def observe(self, model, ti):
-        self.single_observe(model, ti)
+        self.point_observe(model, ti)
         self.push_observation()
 
     @property
