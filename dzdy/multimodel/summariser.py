@@ -1,6 +1,5 @@
-from dzdy import Event, Clock, LeafModel, ModelSelector
-from collections import OrderedDict, namedtuple
-import pandas as pd
+from dzdy import Request, Clock, LeafModel
+from collections import OrderedDict
 
 __author__ = 'TimeWz667'
 __all__ = ['Summariser']
@@ -10,13 +9,11 @@ class Summariser(LeafModel):
     def __init__(self, dt):
         LeafModel.__init__(self, 'Summary', None)
         self.Clock = Clock(by=dt)
-        self.Nxt = Event.NullEvent
         self.Tasks = list()  # (selector, parameters, new name)
         self.Summary = OrderedDict()
 
     def find_next(self):
-        ti = self.Clock.get_next()
-        self.Nxt = Event(self.Name, ti)
+        self.Requests.append(Request('Summary', self.Clock.get_next()))
 
     def clone(self, **kwargs):
         s = Summariser(self.Clock.By)
@@ -28,7 +25,6 @@ class Summariser(LeafModel):
 
     def reset(self, ti):
         self.Clock.initialise(ti)
-        self.Nxt = Event.NullEvent
         self.Summary = OrderedDict()
 
     def summarise(self, ms, evt):
@@ -47,9 +43,9 @@ class Summariser(LeafModel):
 
         s = OrderedDict()
         for k, vs in tasks.items():
-            ms.select_all(k)
+            sel = ms.select_all(k)
             for (sp, tar) in vs:
-                s[tar] = ms.extract(sp).sum()
+                s[tar] = sel.extract(sp).sum()
 
         self.Summary = s
 
@@ -62,4 +58,4 @@ class Summariser(LeafModel):
                 par_target = src_value
             else:
                 par_target = '{}@{}'.format(src_model, src_value)
-        self.Tasks.append((src_model, src_model, par_target))
+        self.Tasks.append((src_model, src_value, par_target))

@@ -23,7 +23,7 @@ class ObsDualModel(Observer):
 
 class DualModel(BranchModel):
     def __init__(self, name, odt=1):
-        BranchModel.__init__(self, name)
+        BranchModel.__init__(self, name, ObsDualModel())
         self.Obs = ObsDualModel()
         self.ObsDT = Clock(odt)
         self.NameA = None

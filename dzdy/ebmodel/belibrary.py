@@ -8,7 +8,7 @@ __author__ = 'TimeWz667'
 __all__ = ['register_behaviour', 'validate_behaviour',
            'get_behaviour', 'get_behaviour_from_json',
            'get_behaviour_template', 'get_behaviour_defaults',
-           'install_behaviour_from_json', 'install_behaviour']
+           'install_behaviour_from_json', 'install_behaviour', 'BehaviourLibrary']
 
 log = logging.getLogger(__name__)
 

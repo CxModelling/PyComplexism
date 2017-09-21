@@ -330,7 +330,10 @@ class NetShock(ModBe):
         model.Behaviours[name] = NetShock(name, s_src, t_tar, kwargs['net'])
 
     def fill(self, obs, model, ti):
-        return obs
+        vs = 0
+        for ag in model.agents:
+            vs += ag.Mods[self.Name].Val
+        obs[self.Name] = vs/len(model.agents)
 
     def match(self, be_src, ags_src, ags_new, ti):
         self.Val = be_src.Val
@@ -384,7 +387,10 @@ class NetWeightShock(ModBe):
         model.Behaviours[name] = NetWeightShock(name, s_src, t_tar, kwargs['net'], wt)
 
     def fill(self, obs, model, ti):
-        return obs
+        vs = 0
+        for ag in model.agents:
+            vs += ag.Mods[self.Name].Val
+        obs[self.Name] = vs/len(model.agents)
 
     def match(self, be_src, ags_src, ags_new, ti):
         self.Val = be_src.Val

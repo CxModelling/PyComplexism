@@ -145,6 +145,7 @@ def list_traits():
 
 register_network('BA', NetworkBA, {'m': vld.Number(lower=0, is_float=False)})
 register_network('GNP', NetworkGNP, {'p': vld.Number(lower=0, upper=1)})
+register_network('Prob', NetworkProb, {'p': vld.Number(lower=0, upper=1)})
 
 
 register_trait('Binary', TraitBinary,

@@ -29,13 +29,21 @@ class ObsEBM(Observer):
     def add_obs_behaviour(self, be):
         self.ObsBe.append(be)
 
-    def single_observe(self, model, ti):
+    def point_observe(self, model, ti):
         self.Last = OrderedDict()
         self.Last['Time'] = ti
 
         for st in self.ObsSt:
             self.Last[st] = model.ODE.count_st(st)
+        for tr in self.ObsTr:
+            self.Last[tr] = model.ODE.count_tr(tr)
+        for be in self.ObsBe:
+            model.ODE.fill(be, self.Last, ti)
 
+    def after_shock_observe(self, model, ti):
+        model.ODE.update(model.Y, ti)
+        for st in self.ObsSt:
+            self.Last[st] = model.ODE.count_st(st)
         for tr in self.ObsTr:
             self.Last[tr] = model.ODE.count_tr(tr)
         for be in self.ObsBe:
@@ -48,6 +56,7 @@ class ODEModel(LeafModel):
         self.Y = None
         self.PCore = pc
         self.ODE = core
+        self.UpdateEnd = 0
         self.Clock = Clock(by=dt)
         self.ForeignLinks = list()
         self.Fdt = min(dt, fdt) if fdt else dt
@@ -67,19 +76,20 @@ class ODEModel(LeafModel):
 
     def reset(self, ti):
         self.Clock.initialise(ti, ti)
-        self.ODE.update(self.Y, ti)
-        self.TimeEnd = ti
+        self.UpdateEnd = self.TimeEnd = ti
         self.ODE.initialise(self, ti)
-        self.Obs.single_observe(self, ti)
+        self.ODE.update(self.Y, ti)
+        #self.Obs.point_observe(self, ti)
 
     def go_to(self, ti):
-        f, t = self.TimeEnd, ti
-        self.TimeEnd = ti
+        f, t = self.UpdateEnd, ti
+        self.UpdateEnd = ti
         num = int((t - f) / self.Fdt) + 1
         ts = np.linspace(f, t, num)
         self.Y = odeint(self.ODE, self.Y, ts)[-1]
         self.ODE.set_Ys(self.Y)
         self.Clock.update(ti)
+        self.Obs.after_shock_observe(self, ti)
 
     def do_request(self, req):
         if req.Time > self.TimeEnd:
@@ -115,6 +125,7 @@ class ODEModel(LeafModel):
         co.Clock.Initial = self.Clock.Initial
         co.Clock.Last = self.Clock.Last
         co.TimeEnd = self.TimeEnd
+        co.UpdateEnd = self.UpdateEnd
         co.Obs.TimeSeries = deepcopy(self.Obs.TimeSeries)
         co.Obs.Last = dict(self.Obs.Last.items())
         co.Y = deepcopy(self.Y)

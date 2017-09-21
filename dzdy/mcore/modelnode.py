@@ -1,4 +1,5 @@
 from dzdy.mcore import *
+from abc import ABCMeta, abstractmethod
 
 __author__ = 'TimeWz667'
 
@@ -70,9 +71,8 @@ class AbsModel(metaclass=ABCMeta):
     def do_request(self, req):
         pass
 
-    @abstractmethod
     def output(self):
-        pass
+        return self.Obs.observation
 
     @abstractmethod
     def clone(self, **kwargs):

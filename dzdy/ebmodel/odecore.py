@@ -65,7 +65,6 @@ class CoreODE:
 
     def __call__(self, y, t):
         self.update(y, t)
-
         inflows = self.FlowLast
         outflows = self.FlowLast
         for be in self.Mods.values():

@@ -96,7 +96,7 @@ class Population:
         if st:
             if isinstance(st, str):
                 st = self.Eve.States[st]
-            return sum([st in nei for nei in nes])
+            return sum([nei.isa(st) for nei in nes])
         else:
             return len(list(nes))
 

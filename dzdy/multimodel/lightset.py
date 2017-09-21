@@ -1,5 +1,5 @@
 from dzdy import Observer, BranchModel
-from dzdy.multimodel import Summarizer
+from dzdy.multimodel import Summariser
 from collections import OrderedDict
 
 __author__ = 'TimeWz667'
@@ -12,7 +12,7 @@ class ObsLightSet(Observer):
     def single_observe(self, model, ti):
         self.Last = OrderedDict()
         self.Last['Time'] = ti
-        for k, v in model.Summarizer.Summary.items():
+        for k, v in model.Summariser.Summary.items():
             self.Last[k] = v
         for k, v in model.SystemDynamics.Obs.Last.items():
             if k is not 'Time':
@@ -23,7 +23,7 @@ class LightSet(BranchModel):
     def __init__(self, name, sdy, odt=0.5):
         BranchModel.__init__(self, name)
         self.SystemDynamics = sdy
-        self.Summarizer = Summarizer(dt=odt)
+        self.Summarizer = Summariser(dt=odt)
         self.Relations = {'ABM': list(), 'SD': list()}
         self.Obs = ObsLightSet()
 
@@ -48,9 +48,6 @@ class LightSet(BranchModel):
     def add_obs_be(self, be):
         for m in self.Models.values():
             m.add_obs_be(be)
-
-    def add_summary(self, su):
-        self.Summarizer.Func.append(su)
 
     def read_y0(self, y0, ti):
         for k, v in y0.items():

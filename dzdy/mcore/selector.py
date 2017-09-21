@@ -9,7 +9,8 @@ Pats = {
     'DC': (r'DC\s*=\s*(\w+)', lambda x, v: x.Meta.DC == v),
     'MC': (r'MC\s*=\s*(\w+)', lambda x, v: x.Meta.Prototype == v),
     'Proto': (r'\.(\w+)', lambda x, v: x.Meta.Prototype == v),
-    'Prefix': (r'#(\w+)', lambda x, v: x.Name.find(v) == 0)
+    'Prefix': (r'#(\w+)', lambda x, v: x.Name.find(v) == 0),
+    'Name': (r'(\w+)', lambda x, v: x.Name == v)
 }
 
 
@@ -23,11 +24,21 @@ class ModelSelector:
             return self
         mods = self.Models
         for selector in ss:
-            mods = [mod for mod in mods if selector[0](mod, selector[1])]
+            mods = {k: mod for k, mod in mods.items() if selector[0](mod, selector[1])}
         return ModelSelector(mods)
 
-    def items(self):
-        return self.Models.items()
+    def __iter__(self):
+        return iter(self.Models)
+
+    def keys(self):
+        return self.Models.keys()
+
+    def values(self):
+        return self.Models.values()
+
+    def first(self):
+        for v in self.Models.values():
+            return v
 
     def sum_up(self, sel, par):
         ss, sp = ModelSelector.parse_selector(sel)
@@ -62,7 +73,7 @@ class ModelSelector:
 
     def extract(self, k):
         vs = list()
-        for mod in self.Models:
+        for mod in self.Models.values():
             try:
                 vs.append(mod[k])
             except KeyError:

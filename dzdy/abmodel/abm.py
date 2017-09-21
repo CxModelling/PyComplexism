@@ -191,9 +191,6 @@ class AgentBasedModel(LeafModel):
     def agents(self):
         return self.Pop.Agents.values()
 
-    def output(self):
-        return self.Obs.observation
-
     def clone(self, **kwargs):
         # todo
         return

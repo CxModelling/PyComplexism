@@ -23,7 +23,8 @@ class Observer:
         pass
 
     def push_observation(self):
-        self.TimeSeries.append(self.Last)
+        if not self.TimeSeries or self.TimeSeries[-1]['Time'] != self.Last['Time']:
+            self.TimeSeries.append(self.Last)
 
     def observe(self, model, ti):
         self.point_observe(model, ti)

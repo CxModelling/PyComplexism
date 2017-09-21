@@ -11,7 +11,10 @@ class Network(metaclass=ABCMeta):
         self.Graph = nx.Graph()
 
     def __getitem__(self, ag):
-        return list(self.Graph[ag].keys())
+        try:
+            return list(self.Graph[ag].keys())
+        except KeyError:
+            return list()
 
     def initialise(self):
         self.Graph = nx.Graph()
@@ -78,6 +81,43 @@ class NetworkGNP(Network):
 
     def to_json(self):
         return {'Name': self.Name, 'Type': 'GNP', 'p': self.P}
+
+
+class NetworkProb(Network):
+    def __init__(self, name, p):
+        Network.__init__(self, name)
+        self.Outside = list()
+        self.P = p
+
+    def add_agent(self, ag):
+
+        self.Graph.add_node(ag)
+        if random() < self.P:
+            for ne in self.Graph.nodes():
+                if ne not in self.Outside:
+                    self.Graph.add_edge(ag, ne)
+        else:
+            self.Outside.append(ag)
+
+    def reform(self):
+        ags = list(self.Graph.node)
+        ags += self.Outside
+        self.Graph = nx.Graph()
+        self.Outside = list()
+        for ag in ags:
+            self.add_agent(ag)
+
+    def __repr__(self):
+        return 'Prob(N={}, P={})'.format(len(self.Graph), self.P)
+
+    __str__ = __repr__
+
+    @staticmethod
+    def from_json(js):
+        return NetworkProb(js['Name'], js['p'])
+
+    def to_json(self):
+        return {'Name': self.Name, 'Type': 'Prob', 'p': self.P}
 
 
 class NetworkBA(Network):
@@ -223,26 +263,29 @@ class NetworkSet:
 if __name__ == '__main__':
     ns1 = NetworkBA('ns1', m=2)
     ns2 = NetworkGNP('ns2', p=0.3)
+    ns3 = NetworkProb('ns3', p=0.2)
 
-    for nod in range(100):
+    for nod in range(20):
         ns1.add_agent('Ag{}'.format(nod))
         ns2.add_agent('Ag{}'.format(nod))
+        ns3.add_agent('Ag{}'.format(nod))
 
     # ns1.reform()
-    # plt.figure(1)
-    # plt.subplot(2, 2, 1)
-    # nx.draw_circular(ns1.Graph)
+    import matplotlib.pyplot as plt
+    plt.figure(1)
+    plt.subplot(2, 2, 1)
+    nx.draw_circular(ns1.Graph)
+
+    plt.subplot(2, 2, 2)
+    nx.draw_circular(ns3.Graph)
     #
-    # plt.subplot(2, 2, 2)
-    # nx.draw_circular(ns2.Graph)
+    plt.subplot(2, 2, 3)
+    plt.hist(list(ns1.Graph.degree().values()))
     #
-    # plt.subplot(2, 2, 3)
-    # plt.hist(list(ns1.Graph.degree().values()))
+    plt.subplot(2, 2, 4)
+    plt.hist(list(ns3.Graph.degree().values()))
     #
-    # plt.subplot(2, 2, 4)
-    # plt.hist(list(ns2.Graph.degree().values()))
-    #
-    # plt.show()
+    plt.show()
 
     ag1 = ns1['Ag1']
     nsc = NetworkSet()

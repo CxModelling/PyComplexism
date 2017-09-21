@@ -1,5 +1,5 @@
 from dzdy import *
-
+import dzdy.abmodel as ab
 
 __author__ = 'TimeWz667'
 
@@ -16,11 +16,11 @@ print(abm)
 
 abm.Pop.add_network(NetworkBA('N1', m=5))
 # abm.Pop.add_network(NetworkBA('N1', m=5))
-abm.Pop.add_network(NetworkBA('N2', m=2))
+# abm.Pop.add_network(NetworkBA('N2', m=2))
 
 
-install_behaviour(abm, 'Net', 'NetShock', {'s_src': 'Inf', 't_tar': 'Infect', 'net': 'N1'})
-abm.add_obs_be('Net')
-abm.add_obs_st('Inf')
+ab.install_behaviour(abm, 'Net', 'NetShock', {'s_src': 'Inf', 't_tar': 'Infect', 'net': 'N1'})
+abm.add_obs_behaviour('Net')
+abm.add_obs_state('Inf')
 simulate(abm, {'Sus': 50, 'Inf': 50}, fr=0, to=10)
 print(abm.output())

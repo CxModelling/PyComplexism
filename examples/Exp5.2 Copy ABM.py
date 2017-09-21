@@ -39,7 +39,7 @@ cfd.add_trait(trt_type='Distribution', trt_name='BMI', Distribution='norm(23,5)'
 
 cfd.add_network('IDU', 'BA', m=2)
 cfd.add_behaviour('cycle', be_type='Reincarnation', s_birth='Sus', s_death='Dead')
-cfd.add_behaviour('transmission', be_type='NetShock', s_src='Inf', t_tar='Infect', net='')
+cfd.add_behaviour('transmission', be_type='NetShock', s_src='Inf', t_tar='Infect', net='IDU')
 
 cfd.set_observations(states=['Sus', 'Inf', 'Rec'], behaviours=['transmission'])
 
@@ -47,7 +47,7 @@ mod_src, out_src = da.simulate('ABM_SIR', y0={'Sus': 45, 'Inf': 5}, fr=0, to=10)
 out_src.plot()
 plt.show()
 
-mod_new = da.copy_abm(mod_src)
+mod_new = da.copy_model(mod_src)
 out_src = update(mod_src, 20)
 out_src.plot()
 out_new = update(mod_new, 20)
