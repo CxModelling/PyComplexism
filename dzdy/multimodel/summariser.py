@@ -6,8 +6,8 @@ __all__ = ['Summariser']
 
 
 class Summariser(LeafModel):
-    def __init__(self, dt):
-        LeafModel.__init__(self, 'Summary', None)
+    def __init__(self, name, dt):
+        LeafModel.__init__(self, name, None)
         self.Clock = Clock(by=dt)
         self.Tasks = list()  # (selector, parameters, new name)
         self.Summary = OrderedDict()
@@ -15,8 +15,14 @@ class Summariser(LeafModel):
     def find_next(self):
         self.Requests.append(Request('Summary', self.Clock.get_next()))
 
+    def __getitem__(self, item):
+        try:
+            return self.Summary[item]
+        except KeyError:
+            return 0
+
     def clone(self, **kwargs):
-        s = Summariser(self.Clock.By)
+        s = Summariser(self.Name, self.Clock.By)
         s.TimeEnd = self.TimeEnd
         s.Clock.Initial = self.Clock.Initial
         s.Clock.Last = self.Clock.Last

@@ -34,7 +34,7 @@ hu.set_arguments('fdt', 0.01)
 hu.set_arguments('dt', 0.1)
 
 
-flu = ModelSet('Flu', odt=0.25)
+flu = ModelSet('Flu', odt=0.5)
 flu.append(da.generate_model('SIR', name='A'))
 flu.append(da.generate_model('SIR', name='B'))
 
@@ -43,5 +43,6 @@ flu.link(RelationEntry('B@Inf'), RelationEntry('Flu@'))
 flu.link(RelationEntry('A@Inf'), RelationEntry('Flu@'))
 #flu.link(RelationEntry('B@Inf'), RelationEntry('A@Out'))
 
-simulate(flu, y0={'A': {'Sus': 100}, 'B': {'Sus': 15, 'Inf': 5}}, fr=0, to=5, dt=0.5)
+simulate(flu, y0={'A': {'Sus': 100}, 'B': {'Sus': 15, 'Inf': 5}}, fr=0, to=5, dt=1)
 flu.Obs.print()
+flu.Models['A'].Obs.print()

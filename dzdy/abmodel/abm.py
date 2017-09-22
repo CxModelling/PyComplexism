@@ -41,6 +41,8 @@ class ObsABM(Observer):
             model.Behaviours[be].fill(self.Last, model, ti)
 
     def after_shock_observe(self, model, ti):
+        for st in self.ObsSt:
+            self.Last[st.Name] = model.Pop.count(st)
         for be in self.Bes:
             model.Behaviours[be].fill(self.Last, model, ti)
 
