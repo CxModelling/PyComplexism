@@ -44,8 +44,6 @@ class ModelSet(BranchModel):
             m.observe(ti)
         self.Summariser.reset(ti)
         self.Summariser.read_obs(self)
-        self.Obs.point_observe(self, ti)
-
         for k, vs in self.Network.items():
             ms = self.Summariser if k is self.Name else self.Models[k]
             for v in vs:
@@ -53,6 +51,9 @@ class ModelSet(BranchModel):
                     continue
                 mt = self.Models[v]
                 mt.impulse_foreign(ms, ti)
+        self.Obs.point_observe(self, ti)
+
+
 
         self.after_shock_observe(ti)
 
