@@ -24,6 +24,6 @@ ab.install_behaviour(abm, 'Net', 'NetShock', {'s_src': 'Inf', 't_tar': 'Infect',
 abm.add_obs_behaviour('Net')
 abm.add_obs_state('Inf')
 abm.add_obs_state('Sus')
-abm.add_obs_transition('Die')
+abm.add_obs_transition('Infect')
 simulate(abm, {'Sus': 50, 'Inf': 50}, fr=0, to=10)
 print(abm.output())
