@@ -44,6 +44,9 @@ class ModelLayout:
         except ValueError as e:
             raise e
 
+    def set_observations(self, mods):
+        self.Summary += mods
+
     def models(self):
         for v in self.Entries:
             for m in v.gen():
@@ -83,6 +86,9 @@ class ModelLayout:
 
             for rel in self.Relations:
                 models.link(rel['Source'], rel['Target'])
+
+            for mod in self.Summary:
+                models.add_obs_model(mod)
 
         return models, y0s
 
