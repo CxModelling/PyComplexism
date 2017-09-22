@@ -36,21 +36,17 @@ class Observer:
         self.TimeSeries.append(self.Current)
         self.Last, self.Current = self.Current, OrderedDict()
 
-        #else:
-        #    self.TimeSeries[-1].update(self.Last)
-        #    self.TimeSeries.append(self.Last)
-
     @property
     def observation(self):
         dat = pd.DataFrame(self.TimeSeries)
-        return pd.DataFrame(self.TimeSeries, index=dat.Time)[[col for col in dat.columns if col is not 'Time']]
+        dat = dat.set_index('Time')
+        return dat
 
     def output_csv(self, file):
         self.observation.to_csv(file)
 
     def output_json(self, file):
-        dat = pd.DataFrame(self.TimeSeries)
-        dat.transpose().to_json(file)
+        self.observation.to_json(file, orient='records')
 
     def print(self):
         print(self.observation)

@@ -36,6 +36,9 @@ class ModelSelector:
     def values(self):
         return self.Models.values()
 
+    def items(self):
+        return self.Models.items()
+
     def first(self):
         for v in self.Models.values():
             return v

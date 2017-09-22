@@ -31,10 +31,6 @@ class ObsABM(Observer):
         for st in self.ObsSt:
             self.Current[st.Name] = model.Pop.count(st)
 
-        # for tr in self.ObsTr:
-        #     self.Current[tr.Name] = sum(rec.Tr == tr for rec in self.Recs)
-        # self.Recs = list()
-
         for be in self.Bes:
             model.Behaviours[be].fill(self.Current, model, ti)
 
@@ -42,7 +38,7 @@ class ObsABM(Observer):
         for st in self.ObsSt:
             self.Current[st.Name] = model.Pop.count(st)
 
-        t0 = self.Last['Time']
+        t0 = self.Last['Time'] if 'Time' in self.Last else float('-inf')
         r0 = [rec for rec in self.Recs if rec.Time < t0]
         r1 = [rec for rec in self.Recs if rec.Time >= t0]
         self.Recs = list()

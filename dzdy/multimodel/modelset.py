@@ -9,18 +9,46 @@ __all__ = ['ObsModelSet', 'ModelSet']
 class ObsModelSet(Observer):
     def __init__(self):
         Observer.__init__(self)
+        self.ObsModels = dict()
+        self.All = False
 
     def initialise_observation(self, model, ti):
         for m in model.Models.values():
             m.initialise_observation(ti)
         model.Summariser.read_obs(model)
-        self.Current.update(model.Summariser.Summary)
+        model.cross_impulse(ti)
+        self.update_observation(model, ti)
 
     def update_observation(self, model, ti):
         for m in model.Models.values():
             m.update_observation(ti)
         model.Summariser.read_obs(model)
         self.Current.update(model.Summariser.Summary)
+
+    def add_obs_model(self, mod):
+        self.ObsModels[mod.Name] = mod.Obs
+
+    @property
+    def observation(self):
+        ts = [OrderedDict(v) for v in self.TimeSeries]
+        for m, ob in self.ObsModels.items():
+            for a, b in zip(ts, ob.TimeSeries):
+                for k, v in b.items():
+                    if k != 'Time':
+                        a['{}@{}'.format(m, k)] = v
+
+        if self.All:
+            obs = [ob.TimeSeries for ob in self.ObsModels.values()]
+            obs = [OrderedDict(pd.DataFrame(list(k)).sum()) for k in zip(*obs)]
+
+            for a, b in zip(ts, obs):
+                for k, v in b.items():
+                    if k != 'Time':
+                        a[k] = v
+
+        dat = pd.DataFrame(ts)
+        dat = dat.set_index('Time')
+        return dat
 
 
 class ModelSet(BranchModel):
@@ -33,6 +61,13 @@ class ModelSet(BranchModel):
     def __getitem__(self, item):
         return self.Obs[item]
 
+    def add_obs_model(self, mod):
+        try:
+            self.Obs.add_obs_model(self.Models[mod])
+        except KeyError:
+            if mod == '*':
+                self.Obs.All = True
+
     def append(self, model):
         self.Models[model.Name] = model
 
@@ -43,18 +78,7 @@ class ModelSet(BranchModel):
     def reset(self, ti):
         for m in self.Models.values():
             m.reset(ti)
-            # m.observe(ti)
         self.Summariser.reset(ti)
-        #self.Summariser.read_obs(self)
-        # self.Obs.point_observe(self, ti)
-        # for k, vs in self.Network.items():
-        #     ms = self.Summariser if k is self.Name else self.Models[k]
-        #     for v in vs:
-        #         if v is self.Name:
-        #             continue
-        #         mt = self.Models[v]
-        #         mt.impulse_foreign(ms, ti)
-        # self.after_shock_observe(ti)
 
     def find_next(self):
         for k, model in self.Models.items():
@@ -65,16 +89,8 @@ class ModelSet(BranchModel):
     def do_request(self, req):
         if req.Node == 'Summary':
             ti = req.Time
-            print(ti)
             self.update_observation(ti)
-            # self.after_shock_observe(ti)
-            for k, vs in self.Network.items():
-                ms = self.Summariser if k is self.Name else self.Models[k]
-                for v in vs:
-                    if v is self.Name:
-                        continue
-                    mt = self.Models[v]
-                    mt.impulse_foreign(ms, ti)
+            self.cross_impulse(ti)
             self.update_observation(ti)
             self.Summariser.Requests.clear()
             self.Summariser.do_request(req)
@@ -82,12 +98,12 @@ class ModelSet(BranchModel):
     def link(self, src, tar):
         if src.Selector == self.Name:
             m_tar = self.select_all(tar.Selector)
-            for m in m_tar.values():
-                m.listen(src.Selector, src.Parameter, tar.Parameter)
+            for kt, mt in m_tar.items():
+                mt.listen(src.Selector, src.Parameter, tar.Parameter)
                 try:
-                    self.Network[self.Name].add(m.Name)
+                    self.Network[self.Name].add(kt)
                 except KeyError:
-                    self.Network[self.Name] = {m.Name}
+                    self.Network[self.Name] = {kt}
             return
 
         if tar.Selector == self.Name:
@@ -105,13 +121,13 @@ class ModelSet(BranchModel):
 
         if src.is_single():
             ms = m_src.first()
-            for mt in m_tar.keys():
+            for kt, mt in m_tar.items():
                 if ms is not mt:
                     mt.listen(ms.Name, src.Parameter, tar.Parameter)
                     try:
-                        self.Network[ms].add(mt)
+                        self.Network[ms.Name].add(kt)
                     except KeyError:
-                        self.Network[ms] = {mt}
+                        self.Network[ms.Name] = {kt}
         else:
             for mt in m_tar.values():
                 ms = [m for m in m_src.keys() if m == mt.Name]
@@ -121,6 +137,15 @@ class ModelSet(BranchModel):
                         self.Network[m].add(mt)
                     except KeyError:
                         self.Network[m] = {mt}
+
+    def cross_impulse(self, ti):
+        for k, vs in self.Network.items():
+            ms = self.Summariser if k is self.Name else self.Models[k]
+            for v in vs:
+                if v is self.Name:
+                    continue
+                mt = self.Models[v]
+                mt.impulse_foreign(ms, ti)
 
     def push_observation(self, ti):
         for m in self.Models.values():
