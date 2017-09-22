@@ -27,31 +27,33 @@ class ObsABM(Observer):
     def add_obs_behaviour(self, beh):
         self.Bes.append(beh)
 
-    def point_observe(self, model, ti):
-        self.Last = OrderedDict()
-        self.Last['Time'] = ti
-
+    def initialise_observation(self, model, ti):
         for st in self.ObsSt:
-            self.Last[st.Name] = model.Pop.count(st)
+            self.Current[st.Name] = model.Pop.count(st)
 
         for tr in self.ObsTr:
-            self.Last[tr.Name] = sum(rec.Tr == tr for rec in self.Recs)
+            self.Current[tr.Name] = sum(rec.Tr == tr for rec in self.Recs)
+        self.Recs = list()
 
         for be in self.Bes:
-            model.Behaviours[be].fill(self.Last, model, ti)
+            model.Behaviours[be].fill(self.Current, model, ti)
 
-    def after_shock_observe(self, model, ti):
+    def update_observation(self, model, ti):
         for st in self.ObsSt:
-            self.Last[st.Name] = model.Pop.count(st)
+            self.Current[st.Name] = model.Pop.count(st)
+
+        for tr in self.ObsTr:
+            if tr.Name in self.Last:
+                self.Last[tr.Name] += sum(rec.Tr == tr for rec in self.Recs)
+            else:
+                self.Last[tr.Name] = sum(rec.Tr == tr for rec in self.Recs)
+        self.Recs = list()
+
         for be in self.Bes:
-            model.Behaviours[be].fill(self.Last, model, ti)
+            model.Behaviours[be].fill(self.Current, model, ti)
 
     def record(self, ag, tr, ti):
         self.Recs.append(RecordABM(ag.Name, tr, ti))
-
-    def push_observation(self):
-        Observer.push_observation(self)
-        self.Recs = list()
 
 
 class AgentBasedModel(LeafModel):
@@ -103,7 +105,6 @@ class AgentBasedModel(LeafModel):
             be.initialise(self, ti)
         for ag in self.Pop.Agents.values():
             ag.initialise(ti)
-        self.Obs.point_observe(self, ti)
 
     def make_agent(self, atr, n, ti):
         ags = self.Pop.add_agent(atr, n)

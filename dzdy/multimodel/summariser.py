@@ -30,7 +30,7 @@ class Summariser(LeafModel):
         return s
 
     def reset(self, ti):
-        self.Clock.initialise(ti)
+        self.Clock.initialise(ti, ti)
         self.Summary = OrderedDict()
 
     def summarise(self, ms, evt):
@@ -57,6 +57,7 @@ class Summariser(LeafModel):
 
     def do_request(self, req):
         self.Clock.update(req.Time)
+        self.TimeEnd = req.Time
 
     def listen(self, src_model, src_value, par_target):
         if not par_target:

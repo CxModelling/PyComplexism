@@ -10,15 +10,17 @@ class ObsModelSet(Observer):
     def __init__(self):
         Observer.__init__(self)
 
-    def point_observe(self, model, ti):
-        self.Last = OrderedDict()
-        self.Last['Time'] = ti
-        self.after_shock_observe(model, ti)
+    def initialise_observation(self, model, ti):
+        for m in model.Models.values():
+            m.initialise_observation(ti)
+        model.Summariser.read_obs(model)
+        self.Current.update(model.Summariser.Summary)
 
-    def after_shock_observe(self, model, ti):
-        # model.Summariser.read_obs(model)
-        for k, v in model.Summariser.Summary.items():
-            self.Last[k] = v
+    def update_observation(self, model, ti):
+        for m in model.Models.values():
+            m.update_observation(ti)
+        model.Summariser.read_obs(model)
+        self.Current.update(model.Summariser.Summary)
 
 
 class ModelSet(BranchModel):
@@ -41,37 +43,18 @@ class ModelSet(BranchModel):
     def reset(self, ti):
         for m in self.Models.values():
             m.reset(ti)
-            m.observe(ti)
+            # m.observe(ti)
         self.Summariser.reset(ti)
-        self.Summariser.read_obs(self)
-        self.Obs.point_observe(self, ti)
-        for k, vs in self.Network.items():
-            ms = self.Summariser if k is self.Name else self.Models[k]
-            for v in vs:
-                if v is self.Name:
-                    continue
-                mt = self.Models[v]
-                mt.impulse_foreign(ms, ti)
-        self.after_shock_observe(ti)
-
-    def observe(self, ti):
-        #for m in self.Models.values():
-        #    m.observe(ti)
-        self.Obs.observe(self, ti)
-        #for k, vs in self.Network.items():
-        #    ms = self.Summariser if k is self.Name else self.Models[k]
-        #    for v in vs:
-        #        if v is self.Name:
-        #            continue
-        #        mt = self.Models[v]
-        #        mt.impulse_foreign(ms, ti)
-        #self.after_shock_observe(ti)
-
-    def after_shock_observe(self, ti):
-        for m in self.Models.values():
-            m.after_shock_observe(ti)
-        self.Summariser.read_obs(self)
-        self.Obs.after_shock_observe(self, ti)
+        #self.Summariser.read_obs(self)
+        # self.Obs.point_observe(self, ti)
+        # for k, vs in self.Network.items():
+        #     ms = self.Summariser if k is self.Name else self.Models[k]
+        #     for v in vs:
+        #         if v is self.Name:
+        #             continue
+        #         mt = self.Models[v]
+        #         mt.impulse_foreign(ms, ti)
+        # self.after_shock_observe(ti)
 
     def find_next(self):
         for k, model in self.Models.items():
@@ -82,9 +65,8 @@ class ModelSet(BranchModel):
     def do_request(self, req):
         if req.Node == 'Summary':
             ti = req.Time
-            for m in self.Models.values():
-                m.observe(ti)
-            self.Summariser.read_obs(self)
+            print(ti)
+            self.update_observation(ti)
             # self.after_shock_observe(ti)
             for k, vs in self.Network.items():
                 ms = self.Summariser if k is self.Name else self.Models[k]
@@ -93,14 +75,14 @@ class ModelSet(BranchModel):
                         continue
                     mt = self.Models[v]
                     mt.impulse_foreign(ms, ti)
-            self.after_shock_observe(ti)
+            self.update_observation(ti)
             self.Summariser.Requests.clear()
             self.Summariser.do_request(req)
 
     def link(self, src, tar):
         if src.Selector == self.Name:
             m_tar = self.select_all(tar.Selector)
-            for m in m_tar:
+            for m in m_tar.values():
                 m.listen(src.Selector, src.Parameter, tar.Parameter)
                 try:
                     self.Network[self.Name].add(m.Name)
@@ -139,6 +121,11 @@ class ModelSet(BranchModel):
                         self.Network[m].add(mt)
                     except KeyError:
                         self.Network[m] = {mt}
+
+    def push_observation(self, ti):
+        for m in self.Models.values():
+            m.push_observation(ti)
+        BranchModel.push_observation(self, ti)
 
     def to_json(self):
         # todo

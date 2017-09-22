@@ -30,6 +30,7 @@ hu = da.new_mc('SIR', 'CoreODE', tar_pc='pSIR', tar_dc='SIR')
 hu.add_behaviour('In', 'InfectionDD', t_tar='Infect', s_src='Inf')
 hu.set_observations(states=['Inf'], transitions=['Infect'])
 hu.set_arguments('fdt', 0.01)
+hu.set_arguments('dt', 0.1)
 
 mod, out = da.simulate('SIR', y0={'Sus': 15, 'Inf': 5}, fr=0, to=10)
 print(out)

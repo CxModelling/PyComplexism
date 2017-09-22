@@ -26,10 +26,10 @@ da.read_dc(dc)
 
 
 hu = da.new_mc('SIR', 'CoreODE', tar_pc='pSIR', tar_dc='SIR')
-hu.add_behaviour('Out', 'Multiplier', t_tar='InfO')
-hu.add_behaviour('In', 'InfectionDD', t_tar='InfI', s_src='Inf')
+hu.add_behaviour('Out', 'Multiplier', t_tar='Infect')
+# hu.add_behaviour('In', 'InfectionDD', t_tar='Infect', s_src='Inf')
 hu.set_observations(states=['Inf'],
-                    transitions=['InfO', 'InfI'])
+                    transitions=['Infect'], behaviours=['Out'])
 hu.set_arguments('fdt', 0.01)
 hu.set_arguments('dt', 0.1)
 
@@ -39,10 +39,14 @@ flu.append(da.generate_model('SIR', name='A'))
 flu.append(da.generate_model('SIR', name='B'))
 
 flu.link(RelationEntry('*@Inf'), RelationEntry('Flu@FOI'))
+flu.link(RelationEntry('Flu@FOI'), RelationEntry('*@Out'))
+flu.link(RelationEntry('B@Infect'), RelationEntry('Flu@'))
 flu.link(RelationEntry('B@Inf'), RelationEntry('Flu@'))
-flu.link(RelationEntry('A@Inf'), RelationEntry('Flu@'))
+flu.link(RelationEntry('A@Out'), RelationEntry('Flu@'))
+flu.link(RelationEntry('B@Out'), RelationEntry('Flu@'))
+
 #flu.link(RelationEntry('B@Inf'), RelationEntry('A@Out'))
 
 simulate(flu, y0={'A': {'Sus': 100}, 'B': {'Sus': 15, 'Inf': 5}}, fr=0, to=5, dt=1)
 flu.Obs.print()
-flu.Models['A'].Obs.print()
+flu.Models['B'].Obs.print()

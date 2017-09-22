@@ -8,7 +8,7 @@ __all__ = ['LeafModel', 'BranchModel']
 
 
 class AbsModel(metaclass=ABCMeta):
-    def __init__(self, name, obs, meta=None):
+    def __init__(self, name, obs: Observer, meta=None):
         self.Meta = meta
         self.Name = name
         self.Obs = obs
@@ -25,13 +25,7 @@ class AbsModel(metaclass=ABCMeta):
         pass
 
     def __getitem__(self, item):
-        return self.Obs.Last[item]
-
-    def observe(self, ti):
-        self.Obs.observe(self, ti)
-
-    def after_shock_observe(self, ti):
-        self.Obs.after_shock_observe(self, ti)
+        return self.Obs[item]
 
     def output(self):
         return self.Obs.observation
@@ -70,6 +64,15 @@ class AbsModel(metaclass=ABCMeta):
     @abstractmethod
     def do_request(self, req):
         pass
+
+    def initialise_observation(self, ti):
+        self.Obs.initialise_observation(self, ti)
+
+    def update_observation(self, ti):
+        self.Obs.update_observation(self, ti)
+
+    def push_observation(self, ti):
+        self.Obs.push_observation(ti)
 
     def output(self):
         return self.Obs.observation

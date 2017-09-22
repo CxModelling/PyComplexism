@@ -1,39 +1,44 @@
 import pandas as pd
+from collections import OrderedDict
 __author__ = 'TimeWz667'
 
 
 class Observer:
     def __init__(self):
-        self.Last = None
+        self.Last = OrderedDict()
+        self.Current = self.Last
         self.TimeSeries = list()
 
     def __getitem__(self, item):
         try:
-            return self.Last[item]
+            return self.Current[item]
         except KeyError:
             return 0
 
     def renew(self):
         self.TimeSeries = list()
+        self.Last = OrderedDict()
+        self.Current = self.Last
 
-    def point_observe(self, model, ti):
+    def observe_fully(self, model, ti):
+        self.initialise_observation(model, ti)
+        self.update_observation(model, ti)
+        self.push_observation(ti)
+
+    def initialise_observation(self, model, ti):
         pass
 
-    def after_shock_observe(self, model, ti):
+    def update_observation(self, model, ti):
         pass
 
-    def push_observation(self):
-        if not self.TimeSeries:
-            self.TimeSeries.append(self.Last)
-        elif self.TimeSeries[-1]['Time'] == self.Last['Time']:
-            self.TimeSeries[-1].update(self.Last)
-        else:
-            self.TimeSeries.append(self.Last)
+    def push_observation(self, ti):
+        self.Current['Time'] = ti
+        self.TimeSeries.append(self.Current)
+        self.Last, self.Current = self.Current, OrderedDict()
 
-
-    def observe(self, model, ti):
-        self.point_observe(model, ti)
-        self.push_observation()
+        #else:
+        #    self.TimeSeries[-1].update(self.Last)
+        #    self.TimeSeries.append(self.Last)
 
     @property
     def observation(self):

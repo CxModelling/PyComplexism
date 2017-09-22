@@ -1,5 +1,4 @@
 from dzdy.mcore import Observer, LeafModel, Clock, Request
-from collections import OrderedDict
 from scipy.integrate import odeint
 import numpy as np
 from copy import deepcopy
@@ -29,25 +28,21 @@ class ObsEBM(Observer):
     def add_obs_behaviour(self, be):
         self.ObsBe.append(be)
 
-    def point_observe(self, model, ti):
-        self.Last = OrderedDict()
-        self.Last['Time'] = ti
-
+    def initialise_observation(self, model, ti):
         for st in self.ObsSt:
-            self.Last[st] = model.ODE.count_st(st)
+            self.Current[st] = model.ODE.count_st(st)
         for tr in self.ObsTr:
-            self.Last[tr] = model.ODE.count_tr(tr)
+            self.Current[tr] = model.ODE.count_tr(tr)
         for be in self.ObsBe:
-            model.ODE.fill(be, self.Last, ti)
+            model.ODE.fill(be, self.Current, ti)
 
-    def after_shock_observe(self, model, ti):
-        model.ODE.update(model.Y, ti)
+    def update_observation(self, model, ti):
         for st in self.ObsSt:
-            self.Last[st] = model.ODE.count_st(st)
+            self.Current[st] = model.ODE.count_st(st)
         for tr in self.ObsTr:
-            self.Last[tr] = model.ODE.count_tr(tr)
+            self.Current[tr] = model.ODE.count_tr(tr)
         for be in self.ObsBe:
-            model.ODE.fill(be, self.Last, ti)
+            model.ODE.fill(be, self.Current, ti)
 
 
 class ODEModel(LeafModel):
@@ -79,7 +74,6 @@ class ODEModel(LeafModel):
         self.UpdateEnd = self.TimeEnd = ti
         self.ODE.initialise(self, ti)
         self.ODE.update(self.Y, ti)
-        #self.Obs.point_observe(self, ti)
 
     def go_to(self, ti):
         f, t = self.UpdateEnd, ti
@@ -89,7 +83,6 @@ class ODEModel(LeafModel):
         self.Y = odeint(self.ODE, self.Y, ts)[-1]
         self.ODE.set_Ys(self.Y)
         self.Clock.update(ti)
-        self.Obs.after_shock_observe(self, ti)
 
     def do_request(self, req):
         if req.Time > self.TimeEnd:
