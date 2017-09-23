@@ -62,33 +62,27 @@ class ModelLayout:
         proto = set(proto)
         return len(proto)
 
-    def generate(self, gen, reduce=False, dt_update=1):
-        if dt_update <= 0:
+    def generate(self, gen, reduce=False, odt=0.5):
+        if odt <= 0:
             return None
 
         if len(self.Entries) is 1 & isinstance(self.Entries[0], SingleEntry):
             name, proto, y0 = self.Entries[0]
             return gen(proto, name), y0
 
-        if reduce:
-            # todo select best structure
-            models = None
-            y0s = None
+        models = ModelSet(self.Name, odt)
+        y0s = dict()
 
-        else:
-            models = ModelSet(self.Name, dt_update)
-            y0s = dict()
+        for mod in self.models():
+            name, proto, y0 = mod
+            models.append(gen(proto, name))
+            y0s[name] = y0
 
-            for mod in self.models():
-                name, proto, y0 = mod
-                models.append(gen(proto, name))
-                y0s[name] = y0
+        for rel in self.Relations:
+            models.link(rel['Source'], rel['Target'])
 
-            for rel in self.Relations:
-                models.link(rel['Source'], rel['Target'])
-
-            for mod in self.Summary:
-                models.add_obs_model(mod)
+        for mod in self.Summary:
+            models.add_obs_model(mod)
 
         return models, y0s
 

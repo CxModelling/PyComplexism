@@ -220,17 +220,19 @@ def set_core_ode_observations(bp_mc, states=None, transitions=None, behaviours=N
     bp_mc.set_observations(states, transitions, behaviours)
 
 
-def generate_pc(bp_pc, log=None):
+def generate_pc(bp_pc, cond=None, log=None):
     """
     generate a parameter core
-    Args:
-        bp_pc (SimulationModel): a blueprint of pc
-        log (Logging): logging object
+    :param cond: condition of parameters
+    :param bp_pc: a blueprint of pc
 
-    Returns:
-        parameter core
+    :param log: logging object
+    :return:
     """
-    return bp_pc.sample_core()
+    if cond:
+        return bp_pc.sample_core(cond)
+    else:
+        return bp_pc.sample_core()
 
 
 def generate_dc(bp_dc, pc, log=None):
@@ -245,37 +247,35 @@ def generate_dc(bp_dc, pc, log=None):
     return bp_dc.generate_model(pc)
 
 
-def generate_pc_dc(bp_pc, bp_dc, one_one=True, size=1, log=None):
+def generate_pc_dc(bp_pc, bp_dc, cond=None, one_one=True, size=1, log=None):
     """
-    generate set of pc and dc
-    Args:
-        bp_pc:
-        bp_dc:
-        one_one:
-        size:
-        log:
 
-    Returns:
-
+    :param bp_pc:
+    :param bp_dc:
+    :param cond:
+    :param one_one:
+    :param size:
+    :param log:
+    :return:
     """
     if one_one and size > 0:
         if size == 1:
-            pc = generate_pc(bp_pc)
-            return pc, generate_dc(bp_dc, pc)
+            pc = generate_pc(bp_pc, cond, log)
+            return pc, generate_dc(bp_dc, pc, log)
         else:
             pd_list = list()
             for _ in range(size):
-                pc = generate_pc(bp_pc)
-                dc = generate_dc(bp_dc, pc)
+                pc = generate_pc(bp_pc, cond, log)
+                dc = generate_dc(bp_dc, pc, log)
                 pd_list.append((pc, dc))
             return pd_list
 
     else:
-        pc_proto = generate_pc(bp_pc)
+        pc_proto = generate_pc(bp_pc, cond, log)
         pd_list = list()
         for _ in range(size):
             pc = pc_proto.clone()
-            dc = generate_dc(bp_dc, pc)
+            dc = generate_dc(bp_dc, pc, log)
             pd_list.append((pc, dc))
         return pd_list
 

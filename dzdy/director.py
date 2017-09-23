@@ -201,17 +201,17 @@ class Director(DirectorDCPC):
 
         return copy_model(mod_src, mc, pc, dc, tr_tte=tr_tte, pc_new=pc_new, intervention=intervention)
 
-    def generate(self, model, random_effect=False):
+    def generate(self, model, cond=None, random_effect=False, odt=0.5):
         try:
             lyo = self.Layouts[model]
-            return lyo.generate(self.generate_model)
+            return lyo.generate(self.generate_model, odt)
         except KeyError:
             # todo logging
             pass
 
     def simulate(self, model, to, y0=None, fr=0, dt=1, model_args=None):
         if model in self.Layouts:
-            m, y0 = self.generate(model)
+            m, y0 = self.generate(model, odt=dt/2)
         elif model in self.MCores and y0:
             m = self.generate_model(model, kwargs=model_args)
         else:
