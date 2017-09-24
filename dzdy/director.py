@@ -181,12 +181,12 @@ class Director(DirectorDCPC):
         self.MCores.update({k: load_mc(v) for k, v in js['MCores'].items()})
         self.Layouts.update({k: load_layout(v) for k, v in js['Layouts'].items()})
 
-    def generate_model(self, mc, name=None, pc=None, dc=None, kwargs=None):
+    def generate_model(self, mc, name=None, pc=None, dc=None, cond=None, kwargs=None):
         if not name:
             name = mc
         mc = self.MCores[mc]
         if mc.require_pc:
-            pc = pc if pc else generate_pc(self.PCores[mc.TargetedPCore])
+            pc = pc if pc else generate_pc(self.PCores[mc.TargetedPCore], cond=cond)
             if mc.require_dc:
                 dc = dc if dc else generate_dc(self.DCores[mc.TargetedDCore], pc)
         kwargs = kwargs if kwargs else dict()
@@ -202,16 +202,17 @@ class Director(DirectorDCPC):
         return copy_model(mod_src, mc, pc, dc, tr_tte=tr_tte, pc_new=pc_new, intervention=intervention)
 
     def generate(self, model, cond=None, random_effect=False, odt=0.5):
+        # todo random effect
         try:
             lyo = self.Layouts[model]
-            return lyo.generate(self.generate_model, odt)
+            return lyo.generate(lambda m, n: self.generate_model(m, n, cond=cond), odt)
         except KeyError:
             # todo logging
             pass
 
-    def simulate(self, model, to, y0=None, fr=0, dt=1, model_args=None):
+    def simulate(self, model, to, y0=None, fr=0, dt=1, model_args=None, cond=None):
         if model in self.Layouts:
-            m, y0 = self.generate(model, odt=dt/2)
+            m, y0 = self.generate(model, odt=dt/2, cond=cond)
         elif model in self.MCores and y0:
             m = self.generate_model(model, kwargs=model_args)
         else:

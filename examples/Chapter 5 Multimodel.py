@@ -44,6 +44,7 @@ flu.link(RelationEntry('B@Infect'), RelationEntry('Flu@'))
 flu.link(RelationEntry('B@Inf'), RelationEntry('Flu@'))
 flu.link(RelationEntry('A@Out'), RelationEntry('Flu@'))
 flu.link(RelationEntry('B@Out'), RelationEntry('Flu@'))
+flu.add_obs_model('*')
 
 #flu.link(RelationEntry('B@Inf'), RelationEntry('A@Out'))
 

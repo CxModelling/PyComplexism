@@ -62,7 +62,7 @@ class ModelLayout:
         proto = set(proto)
         return len(proto)
 
-    def generate(self, gen, reduce=False, odt=0.5):
+    def generate(self, gen, odt=0.5):
         if odt <= 0:
             return None
 

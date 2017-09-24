@@ -10,6 +10,7 @@ class ObsModelSet(Observer):
     def __init__(self):
         Observer.__init__(self)
         self.ObsModels = dict()
+        self.FullObs = set()
         self.All = False
 
     def initialise_observation(self, model, ti):
@@ -26,12 +27,13 @@ class ObsModelSet(Observer):
         self.Current.update(model.Summariser.Summary)
 
     def add_obs_model(self, mod):
-        self.ObsModels[mod.Name] = mod.Obs
+        self.FullObs.add(mod)
 
     @property
     def observation(self):
         ts = [OrderedDict(v) for v in self.TimeSeries]
-        for m, ob in self.ObsModels.items():
+        for m in self.FullObs:
+            ob = self.ObsModels[m]
             for a, b in zip(ts, ob.TimeSeries):
                 for k, v in b.items():
                     if k != 'Time':
@@ -62,14 +64,14 @@ class ModelSet(BranchModel):
         return self.Obs[item]
 
     def add_obs_model(self, mod):
-        try:
-            self.Obs.add_obs_model(self.Models[mod])
-        except KeyError:
-            if mod == '*':
-                self.Obs.All = True
+        if mod in self.Models:
+            self.Obs.add_obs_model(mod)
+        elif mod == '*':
+            self.Obs.All = True
 
     def append(self, model):
         self.Models[model.Name] = model
+        self.Obs.ObsModels[model.Name] = model.Obs
 
     def read_y0(self, y0, ti):
         for k, v in y0.items():
