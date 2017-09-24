@@ -201,20 +201,22 @@ class Director(DirectorDCPC):
 
         return copy_model(mod_src, mc, pc, dc, tr_tte=tr_tte, pc_new=pc_new, intervention=intervention)
 
-    def generate(self, model, cond=None, random_effect=False, odt=0.5):
-        # todo random effect
+    def generate(self, model, cond=None, fixed=None, odt=0.5):
+        if fixed is None:
+            fixed = list()
+
         try:
             lyo = self.Layouts[model]
-            return lyo.generate(lambda m, n: self.generate_model(m, n, cond=cond), odt)
+            return lyo.generate(self.generate_model, odt, fixed=fixed, cond=cond)
         except KeyError:
             # todo logging
             pass
 
-    def simulate(self, model, to, y0=None, fr=0, dt=1, model_args=None, cond=None):
+    def simulate(self, model, to, y0=None, fr=0, dt=1, fixed=None, cond=None):
         if model in self.Layouts:
-            m, y0 = self.generate(model, odt=dt/2, cond=cond)
+            m, y0 = self.generate(model, odt=dt/2, cond=cond, fixed=fixed)
         elif model in self.MCores and y0:
-            m = self.generate_model(model, kwargs=model_args)
+            m = self.generate_model(model)
         else:
             # todo logging
             raise ValueError('No match model')

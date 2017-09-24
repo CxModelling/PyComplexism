@@ -333,7 +333,10 @@ class NetShock(ModBe):
         vs = 0
         for ag in model.agents:
             vs += ag.Mods[self.Name].Val
-        obs[self.Name] = vs/len(model.agents)
+        try:
+            obs[self.Name] = vs/len(model.agents)
+        except ZeroDivisionError:
+            obs[self.Name] = 0
 
     def match(self, be_src, ags_src, ags_new, ti):
         self.Val = be_src.Val
@@ -390,7 +393,10 @@ class NetWeightShock(ModBe):
         vs = 0
         for ag in model.agents:
             vs += ag.Mods[self.Name].Val
-        obs[self.Name] = vs/len(model.agents)
+        try:
+            obs[self.Name] = vs/len(model.agents)
+        except ZeroDivisionError:
+            obs[self.Name] = 0
 
     def match(self, be_src, ags_src, ags_new, ti):
         self.Val = be_src.Val

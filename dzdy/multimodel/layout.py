@@ -62,20 +62,25 @@ class ModelLayout:
         proto = set(proto)
         return len(proto)
 
-    def generate(self, gen, odt=0.5):
+    def generate(self, gen, odt=0.5, cond=None, fixed=None):
+        cd = dict(cond) if cond else dict()
+        fixed = fixed if fixed else list()
         if odt <= 0:
             return None
 
         if len(self.Entries) is 1 & isinstance(self.Entries[0], SingleEntry):
             name, proto, y0 = self.Entries[0]
-            return gen(proto, name), y0
+            return gen(proto, name, cond=cd), y0
 
         models = ModelSet(self.Name, odt)
         y0s = dict()
 
         for mod in self.models():
             name, proto, y0 = mod
-            models.append(gen(proto, name))
+            m = gen(proto, name, cond=cd)
+            pc = m.PCore
+            cd.update({k: v for k, v in pc.Locus.items() if k in fixed})
+            models.append(m)
             y0s[name] = y0
 
         for rel in self.Relations:
