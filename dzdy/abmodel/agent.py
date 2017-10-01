@@ -165,7 +165,7 @@ class Agent:
                     ag_new.Trans[dc_new.Transitions[tr.Name]] = tte
 
         else:
-            ag_new = Agent(self.Name, self.State.Name)
+            ag_new = Agent(self.Name, self.State)
 
         ag_new.Info.update(self.Info)
         return ag_new
