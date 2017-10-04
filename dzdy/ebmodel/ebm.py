@@ -66,13 +66,12 @@ class ODEModel(LeafModel):
         self.Obs.add_obs_behaviour(be)
 
     def read_y0(self, y0, ti):
-        self.Y = self.ODE.form_ys(y0)
-        self.ODE.set_Ys(self.Y)
+        self.ODE.initialise(self, y0, ti)
+        #self.Y = self.ODE.form_ys(self.ODE.Ys)
 
     def reset(self, ti):
         self.Clock.initialise(ti, ti)
         self.UpdateEnd = self.TimeEnd = ti
-        self.ODE.initialise(self, ti)
         self.ODE.update(self.Y, ti)
 
     def go_to(self, ti):

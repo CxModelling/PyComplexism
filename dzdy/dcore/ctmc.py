@@ -13,6 +13,9 @@ class ModelCTMC(AbsDynamicModel):
     def WellDefinedStates(self):
         return self.States
 
+    def get_reachable(self, sts):
+        return self.States
+
     def get_transitions(self, fr):
         return self.Targets[fr]
 

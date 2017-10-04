@@ -25,9 +25,9 @@ class Incidence:
 class CoreODE:
     def __init__(self, dc):
         self.DCore = dc
-        self.Y_Names = list(dc.WellDefinedStates)
-        self.Y_N = len(self.Y_Names)
-        self.Transition_Names = list(dc.Transitions.keys())
+        self.Y_Names = None
+        self.Y_N = None
+        self.Transition_Names = None
         self.Flows = list()
         self.Mods = dict()
         # self.initialise(dc)
@@ -41,7 +41,14 @@ class CoreODE:
         mod = self.Mods[item]
         mod.Value = value
 
-    def initialise(self, model, ti):
+    def initialise(self, model, y0, ti):
+        dc = self.DCore
+        self.Y_Names = list(dc.get_reachable(y0.keys()).keys())
+        self.Y_N = len(self.Y_Names)
+        self.Transition_Names = list(dc.Transitions.keys())
+        self.Ys = y0
+        model.Y = self.form_ys(self.Ys)
+
         for src in self.Y_Names:
             st_src = self.DCore[src]
             i_src = self.Y_Names.index(st_src.Name)

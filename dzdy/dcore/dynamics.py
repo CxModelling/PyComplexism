@@ -127,6 +127,10 @@ class AbsDynamicModel(metaclass=ABCMeta):
         pass
 
     @abstractmethod
+    def get_reachable(self, sts):
+        pass
+
+    @abstractmethod
     def get_transition_space(self):
         pass
 

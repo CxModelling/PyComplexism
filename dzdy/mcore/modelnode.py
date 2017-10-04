@@ -74,9 +74,6 @@ class AbsModel(metaclass=ABCMeta):
     def push_observation(self, ti):
         self.Obs.push_observation(ti)
 
-    def output(self):
-        return self.Obs.observation
-
     @abstractmethod
     def clone(self, **kwargs):
         pass
