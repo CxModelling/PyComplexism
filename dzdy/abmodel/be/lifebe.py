@@ -257,11 +257,11 @@ class TimeSeriesLife(TimeModBe):
 
     def initialise(self, model, ti):
         self.Clock.initialise(ti)
-        nb = rd.binomial(model.Pop.count(), self.Demography.RateBir(ti))
+        nb = rd.binomial(model.Pop.count(), self.Demography.RateBirth(ti))
         # nb = self.Demography.get_n_birth(np.floor(ti), self.Pop0)
         self.NBirth += nb
         model.birth(self.S_birth, ti, n=nb)
-        self.ModPrototype.Val = self.Demography.RateDea(ti)
+        self.ModPrototype.Val = self.Demography.RateDeath(ti)
         for ag in model.agents:
             ag.modify(self.Name, ti)
 
@@ -270,11 +270,11 @@ class TimeSeriesLife(TimeModBe):
         model.kill(ag.Name, ti)
 
     def do_request(self, model, evt, ti):
-        nb = rd.binomial(model.Pop.count(), self.Demography.RateBir(ti))
+        nb = rd.binomial(model.Pop.count(), self.Demography.RateBirth(ti))
         # nb = self.Demography.get_n_birth(np.floor(ti), self.Pop0)
         self.NBirth += nb
         model.birth(self.S_birth, ti, n=nb)
-        self.ModPrototype.Val = self.Demography.RateDea(ti)
+        self.ModPrototype.Val = self.Demography.RateDeath(ti)
         for ag in model.agents:
             ag.modify(self.Name, ti)
 
@@ -289,10 +289,8 @@ class TimeSeriesLife(TimeModBe):
     def decorate(name, model, **kwargs):
         s_death = model.DCore.States[kwargs['s_death']]
         t_death = model.DCore.Transitions[kwargs['t_death']]
-        adj = kwargs['adj'] if 'adj' in kwargs else 1
-        demo = DemographySimplified(kwargs['path_life'], adj)
 
-        model.Behaviours[name] = TimeSeriesLife(name, demo, kwargs['s_birth'], s_death, t_death)
+        model.Behaviours[name] = TimeSeriesLife(name, kwargs['demo'], kwargs['s_birth'], s_death, t_death)
 
     def fill(self, obs, model, ti):
         obs['{}.DeaNum'.format(self.Name)] = self.NDeath

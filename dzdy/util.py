@@ -118,9 +118,9 @@ class DemographySimplified:
         br = np.array(demo.BirthRate)
         self.StartYear = yrs[0]
 
-        self.RateDea = interpolate.interp1d(yrs, dr, bounds_error=False, fill_value=(dr[0], dr[-1]))
+        self.RateDeath = interpolate.interp1d(yrs, dr, bounds_error=False, fill_value=(dr[0], dr[-1]))
         self.Num = interpolate.interp1d(yrs, ns, bounds_error=False, fill_value=(ns[0], ns[-1]))
-        self.RateBir = interpolate.interp1d(yrs, br, bounds_error=False, fill_value=(br[0], br[-1]))
+        self.RateBirth = interpolate.interp1d(yrs, br, bounds_error=False, fill_value=(br[0], br[-1]))
 
 
 class LinearCombination:

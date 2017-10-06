@@ -41,6 +41,9 @@ class CoreODE:
         mod = self.Mods[item]
         mod.Value = value
 
+    def __len__(self):
+        return sum(self.Ys)
+
     def initialise(self, model, y0, ti):
         dc = self.DCore
         self.Y_Names = list(dc.get_reachable(y0.keys()).keys())

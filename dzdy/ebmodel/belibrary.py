@@ -79,3 +79,7 @@ register_behaviour('Cohort', Cohort,
                {'s_death': vld.Existence()})
 register_behaviour('Reincarnation', Reincarnation,
                {'s_death': vld.Existence(), 's_birth': vld.Existence()})
+
+register_behaviour('DemoDynamic', DemoDynamic,
+               {'s_death': vld.Existence(), 's_birth': vld.Existence(),
+                't_death': vld.Existence(), 'demo': vld.Existence()})

@@ -29,10 +29,10 @@ def check_arguments(mod, be_type, kwargs):
                 if v not in dc.Transitions:
                     print('Transitions {} does not exist'.format(arg))
                     return False
-            # elif arg.startswith('path_'):
-            #     if not os.path.isfile(v):
-            #         print('File {} does not exist'.format(arg))
-            #         return False
+            elif arg.startswith('path_'):
+                if not os.path.isfile(v):
+                    print('File {} does not exist'.format(arg))
+                    return False
     return True
 
 
@@ -47,7 +47,7 @@ register_behaviour('LifeRate', ['s_birth', 's_death', 'rate', 'dt'])
 register_behaviour('LifeS', ['s_birth', 's_death', 'cap', 'rate', 'dt'])
 register_behaviour('LifeLeeCarter', ['s_birth', 's_death', 't_death', 'yr',
                                      'path_lct', 'path_lcx', 'path_nb', 'path_agestr', 'rmf'])
-register_behaviour('TimeSeriesLife', ['s_birth', 's_death', 't_death', 'adj', 'path_life'])
+register_behaviour('TimeSeriesLife', ['s_birth', 's_death', 't_death', 'demo'])
 
 register_behaviour('ComFDShock', ['s_src', 't_tar'])
 register_behaviour('ComFDShockFast', ['s_src', 't_tar', 'dt'])

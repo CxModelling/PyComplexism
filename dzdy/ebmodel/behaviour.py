@@ -274,11 +274,10 @@ class PopDynamic(Behaviour):
 
 class DemoDynamic(Behaviour):
     def __init__(self, name, s_birth, s_death, t_death, demo):
-        Behaviour.__init__(self, name, None)
+        Behaviour.__init__(self, name, t_death)
         self.Value = 0
         self.Death = s_death
         self.Birth = s_birth
-        self.Die = t_death
         self.Demo = demo
         self.IndexDeath = None
 
@@ -290,17 +289,16 @@ class DemoDynamic(Behaviour):
         self.IndexDeath = [i for i, v in enumerate(dead) if v]
 
     def modify_in(self, ins, model, ti):
-        dea = 0
-        res = list()
-        for flow in ins:
-            if flow[1] in self.IndexDeath:
-                dea += flow[3]
-            else:
-                res.append(flow)
-        self.Value = dea
 
-        res.append(model.compose_incidence(None, self.Birth, 'Birth', self.Value))
+        res = [flow for flow in ins if flow[1] not in self.IndexDeath]
+        bir = self.Demo.RateBirth(ti) * sum(model.Ys.values())
+        res.append(model.compose_incidence(None, self.Birth, 'Birth', bir))
         return res
+
+    def modify(self, rate, core, ys, ti):
+        self.Value = self.Demo.RateDeath(ti)
+        print(rate*self.Value)
+        return rate * self.Value
 
     def fill(self, obs, model, ti):
         obs[self.Name] = self.Value

@@ -42,14 +42,14 @@ abm = AgentBasedModel('BAD', dc, pc)
 print(abm)
 
 
+demo = DemographySimplified('../data/Life_All.csv')
 install_behaviour(abm, 'BD', 'TimeSeriesLife', {'s_birth': 'Young',
                                                 's_death': 'Dead',
                                                 't_death': 'Die',
-                                                'adj': 1/1000,
-                                                'path_life': '../data/Life_All.csv'})
+                                                'demo': demo})
 abm.add_obs_behaviour('BD')
 abm.add_obs_state('Alive')
 abm.add_obs_state('Death')
 abm.add_obs_transition('Die')
-simulate(abm, {'Young': 10000}, fr=0, to=10)
+simulate(abm, {'Young': 1000}, fr=0, to=10)
 print(abm.output())

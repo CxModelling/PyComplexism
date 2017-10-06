@@ -32,5 +32,21 @@ hu.set_observations(states=['Inf'], transitions=['Infect'])
 hu.set_arguments('fdt', 0.01)
 hu.set_arguments('dt', 0.1)
 
-mod, out = da.simulate('SIR', y0={'Sus': 15, 'Inf': 5}, fr=0, to=10)
+_, out = da.simulate('SIR', y0={'Sus': 15, 'Inf': 5}, fr=0, to=10)
 print(out)
+
+
+da.load_pc('scripts/pBAD.txt')
+da.load_dc('scripts/BAD.txt')
+
+demo = DemographySimplified('../Data/Life_All.csv')
+
+hu = da.new_mc('BAD', 'CoreODE', tar_pc='pBAD', tar_dc='BAD')
+hu.add_behaviour('Life', 'DemoDynamic', s_death='Dead', s_birth='Young', t_death='Ddie', demo=demo)
+hu.set_observations(states=['Alive'], transitions=['Die'])
+hu.set_arguments('fdt', 0.01)
+hu.set_arguments('dt', 0.1)
+
+_, out = da.simulate('BAD', y0={'Young': 100, 'Middle': 100}, fr=0, to=10)
+print(out)
+
