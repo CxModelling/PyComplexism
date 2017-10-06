@@ -5,9 +5,51 @@ from abc import ABCMeta, abstractmethod
 __author__ = 'TimeWizard'
 
 
-class Network(metaclass=ABCMeta):
+class INetwork(metaclass=ABCMeta):
     def __init__(self, name):
         self.Name = name
+
+    @abstractmethod
+    def initialise(self):
+        pass
+
+    @abstractmethod
+    def add_agent(self, ag):
+        pass
+
+    @abstractmethod
+    def remove_agent(self, ag):
+        pass
+
+    @abstractmethod
+    def reform(self):
+        pass
+
+    @abstractmethod
+    def degree(self, ag):
+        pass
+
+    @abstractmethod
+    def cluster(self, ag):
+        pass
+
+    @abstractmethod
+    def match(self, net_src, ags_new):
+        pass
+
+    @staticmethod
+    @abstractmethod
+    def from_json(js):
+        pass
+
+    @abstractmethod
+    def to_json(self):
+        pass
+
+
+class Network(INetwork, metaclass=ABCMeta):
+    def __init__(self, name):
+        INetwork.__init__(self, name)
         self.Graph = nx.Graph()
 
     def __getitem__(self, ag):
@@ -25,10 +67,6 @@ class Network(metaclass=ABCMeta):
     def remove_agent(self, ag):
         self.Graph.remove_node(ag)
 
-    @abstractmethod
-    def reform(self):
-        pass
-
     def degree(self, ag):
         return self.Graph.degree(ag)
 
@@ -38,15 +76,6 @@ class Network(metaclass=ABCMeta):
     def match(self, net_src, ags_new):
         for f, t in net_src.Graph.edges():
             self.Graph.add_edge(ags_new[f.Name], ags_new[t.Name])
-
-    @staticmethod
-    @abstractmethod
-    def from_json(js):
-        pass
-
-    @abstractmethod
-    def to_json(self):
-        pass
 
 
 class NetworkGNP(Network):
@@ -83,32 +112,51 @@ class NetworkGNP(Network):
         return {'Name': self.Name, 'Type': 'GNP', 'p': self.P}
 
 
-class NetworkProb(Network):
+class NetworkProb(INetwork):
     def __init__(self, name, p):
-        Network.__init__(self, name)
+        INetwork.__init__(self, name)
         self.Outside = list()
+        self.Inside = list()
         self.P = p
 
-    def add_agent(self, ag):
+    def __getitem__(self, ag):
+        if ag in self.Inside:
+            return [nei for nei in self.Inside if ag is not nei]
 
-        self.Graph.add_node(ag)
+    def add_agent(self, ag):
         if random() < self.P:
-            for ne in self.Graph.nodes():
-                if ne not in self.Outside:
-                    self.Graph.add_edge(ag, ne)
+            self.Inside.append(ag)
         else:
             self.Outside.append(ag)
 
-    def reform(self):
-        ags = list(self.Graph.node)
-        ags += self.Outside
-        self.Graph = nx.Graph()
+    def cluster(self, ag):
+        # todo
+        return 0
+
+    def degree(self, ag):
+        # todo
+        return 0
+
+    def initialise(self):
         self.Outside = list()
+        self.Inside = list()
+
+    def match(self, net_src, ags_new):
+        self.Outside = [ags_new[ag.Name] for ag in net_src.Outside]
+        self.Inside = [ags_new[ag.Name] for ag in net_src.Inside]
+
+    def remove_agent(self, ag):
+        self.Outside.remove(ag)
+        self.Inside.remove(ag)
+
+    def reform(self):
+        ags = list(self.Outside) + list(self.Inside)
         for ag in ags:
             self.add_agent(ag)
 
     def __repr__(self):
-        return 'Prob(N={}, P={})'.format(len(self.Graph), self.P)
+        n = len(self.Inside) + len(self.Outside)
+        return 'Prob(N={}, P={})'.format(n, self.P)
 
     __str__ = __repr__
 
