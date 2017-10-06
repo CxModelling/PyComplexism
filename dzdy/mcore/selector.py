@@ -9,8 +9,7 @@ Pats = {
     'DC': (r'DC\s*=\s*(\w+)', lambda x, v: x.Meta.DC == v),
     'MC': (r'MC\s*=\s*(\w+)', lambda x, v: x.Meta.Prototype == v),
     'Proto': (r'\.(\w+)', lambda x, v: x.Meta.Prototype == v),
-    'Prefix': (r'#(\w+)', lambda x, v: x.Name.find(v) == 0),
-    'Name': (r'(\w+)', lambda x, v: x.Name == v)
+    'Prefix': (r'#(\w+)', lambda x, v: x.Name.find(v) == 0)
 }
 
 
@@ -47,9 +46,9 @@ class ModelSelector:
         ss, sp = ModelSelector.parse_selector(sel)
         if not ss:
             return self
-        mods = self.Models
-        for selector in ss:
-            mods = [mod for mod in mods if selector[0](mod, selector[1])]
+        mods = list(self.Models.values())
+        for fn, opt in ss:
+            mods = [mod for mod in mods if fn(mod, opt)]
         vs = list()
         for mod in mods:
             try:
@@ -62,15 +61,15 @@ class ModelSelector:
         return par, np.array(vs).sum()
 
     def foreach(self, fn):
-        for mod in self.Models:
+        for mod in self.Models.values():
             fn(mod)
 
     def map(self, fn):
-        return [fn(mod) for mod in self.Models]
+        return [fn(mod) for mod in self.Models.values()]
 
     def reduce(self, fn, ini=0):
         val = ini
-        for mod in self.Models:
+        for mod in self.Models.values():
             val = fn(val, mod)
         return val
 
@@ -84,7 +83,7 @@ class ModelSelector:
         return np.array(vs)
 
     def __repr__(self):
-        return ', '.join([mod.Name for mod in self.Models])
+        return ', '.join([mod for mod in self.Models.keys()])
 
     @staticmethod
     def parse_selector(sel):
@@ -96,6 +95,11 @@ class ModelSelector:
             sr = re.search(reg, sel, re.I)
             if sr:
                 ss.append((fil, sr.group(1)))
+                sp.append(sr.group(0))
+        if not ss:
+            sr = re.search(r'(\w+)', sel, re.I)
+            if sr:
+                ss.append((lambda x, v: x.Name == v, sr.group(1)))
                 sp.append(sr.group(0))
         if not ss:
             raise ValueError('No matched pattern')

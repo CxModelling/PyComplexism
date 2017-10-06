@@ -289,7 +289,6 @@ class DemoDynamic(Behaviour):
         self.IndexDeath = [i for i, v in enumerate(dead) if v]
 
     def modify_in(self, ins, model, ti):
-
         res = [flow for flow in ins if flow[1] not in self.IndexDeath]
         bir = self.Demo.RateBirth(ti) * sum(model.Ys.values())
         res.append(model.compose_incidence(None, self.Birth, 'Birth', bir))
@@ -297,7 +296,6 @@ class DemoDynamic(Behaviour):
 
     def modify(self, rate, core, ys, ti):
         self.Value = self.Demo.RateDeath(ti)
-        print(rate*self.Value)
         return rate * self.Value
 
     def fill(self, obs, model, ti):

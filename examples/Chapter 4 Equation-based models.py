@@ -42,7 +42,7 @@ da.load_dc('scripts/BAD.txt')
 demo = DemographySimplified('../Data/Life_All.csv')
 
 hu = da.new_mc('BAD', 'CoreODE', tar_pc='pBAD', tar_dc='BAD')
-hu.add_behaviour('Life', 'DemoDynamic', s_death='Dead', s_birth='Young', t_death='Ddie', demo=demo)
+hu.add_behaviour('Life', 'DemoDynamic', s_death='Dead', s_birth='Young', t_death='Die', demo=demo)
 hu.set_observations(states=['Alive'], transitions=['Die'])
 hu.set_arguments('fdt', 0.01)
 hu.set_arguments('dt', 0.1)
