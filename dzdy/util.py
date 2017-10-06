@@ -109,6 +109,20 @@ class Demography:
         return fn(age, n)
 
 
+class DemographySimplified:
+    def __init__(self, path_life, adj=1):
+        demo = pd.DataFrame.from_csv(path_life)
+        yrs = np.array(demo.Year)
+        ns = np.array(demo.Pop) * adj
+        dr = np.array(demo.DeathRate)
+        br = np.array(demo.BirthRate)
+        self.StartYear = yrs[0]
+
+        self.RateDea = interpolate.interp1d(yrs, dr, bounds_error=False, fill_value=(dr[0], dr[-1]))
+        self.Num = interpolate.interp1d(yrs, ns, bounds_error=False, fill_value=(ns[0], ns[-1]))
+        self.RateBir = interpolate.interp1d(yrs, br, bounds_error=False, fill_value=(br[0], br[-1]))
+
+
 class LinearCombination:
     def __init__(self, intercept=0, default=0, ):
         self.Coefficients = dict()

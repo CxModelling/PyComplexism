@@ -1,6 +1,7 @@
-from dzdy.abmodel import RealTimeBehaviour, StateInTrigger, StateTrigger, TimeBe, TimeModBe, DirectModifier
+from dzdy.abmodel import RealTimeBehaviour, StateInTrigger, StateTrigger, TimeBe, TimeModBe, DirectModifier, GloRateModifier
 from dzdy.mcore import Clock
 from dzdy.dcore import Event
+from dzdy.util import DemographySimplified
 import numpy as np
 import pandas as pd
 import numpy.random as rd
@@ -236,6 +237,66 @@ class LifeLeeCarter(TimeModBe):
         for k, v in dat.groupby('Sex').count().iterrows():
             obs['{}.DeaNum{}'.format(self.Name, k[0])] = float(v)
         self.Rec_Death.clear()
+
+    def match(self, be_src, ags_src, ags_new, ti):
+        for ag in ags_new.values():
+            self.register(ag, ti)
+
+
+class TimeSeriesLife(TimeModBe):
+    def __init__(self, name, demo, s_birth, s_death, t_death):
+        mod = GloRateModifier(name, t_death)
+        TimeModBe.__init__(self, name, Clock(by=0.5), mod, StateTrigger(s_death))
+        self.Demography = demo
+        self.S_death = s_death.Name
+        self.S_birth = s_birth
+        self.T_death = t_death.Name
+        self.NDeath = 0
+        self.NBirth = 0
+        self.LastUpdate = 0
+
+    def initialise(self, model, ti):
+        self.Clock.initialise(ti)
+        nb = rd.binomial(model.Pop.count(), self.Demography.RateBir(ti))
+        # nb = self.Demography.get_n_birth(np.floor(ti), self.Pop0)
+        self.NBirth += nb
+        model.birth(self.S_birth, ti, n=nb)
+        self.ModPrototype.Val = self.Demography.RateDea(ti)
+        for ag in model.agents:
+            ag.modify(self.Name, ti)
+
+    def impulse_tr(self, model, ag, ti):
+        self.NDeath += 1
+        model.kill(ag.Name, ti)
+
+    def do_request(self, model, evt, ti):
+        nb = rd.binomial(model.Pop.count(), self.Demography.RateBir(ti))
+        # nb = self.Demography.get_n_birth(np.floor(ti), self.Pop0)
+        self.NBirth += nb
+        model.birth(self.S_birth, ti, n=nb)
+        self.ModPrototype.Val = self.Demography.RateDea(ti)
+        for ag in model.agents:
+            ag.modify(self.Name, ti)
+
+    def compose_event(self, ti):
+        return Event(self.Name, ti)
+
+    def __repr__(self):
+        opt = self.Name, self.T_death, self.Demography.StartYear
+        return 'TimeSeriesLife({} on {}, from {})'.format(*opt)
+
+    @staticmethod
+    def decorate(name, model, **kwargs):
+        s_death = model.DCore.States[kwargs['s_death']]
+        t_death = model.DCore.Transitions[kwargs['t_death']]
+        adj = kwargs['adj'] if 'adj' in kwargs else 1
+        demo = DemographySimplified(kwargs['path_life'], adj)
+
+        model.Behaviours[name] = TimeSeriesLife(name, demo, kwargs['s_birth'], s_death, t_death)
+
+    def fill(self, obs, model, ti):
+        obs['{}.DeaNum'.format(self.Name)] = self.NDeath
+        obs['{}.BirNum'.format(self.Name)] = self.NBirth
 
     def match(self, be_src, ags_src, ags_new, ti):
         for ag in ags_new.values():

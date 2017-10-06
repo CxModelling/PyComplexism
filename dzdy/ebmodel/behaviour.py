@@ -271,3 +271,52 @@ class PopDynamic(Behaviour):
             be.IndexDeath = list(js['IndexDeath'])
         return be
 
+
+class DemoDynamic(Behaviour):
+    def __init__(self, name, s_birth, s_death, t_death, demo):
+        Behaviour.__init__(self, name, None)
+        self.Value = 0
+        self.Death = s_death
+        self.Birth = s_birth
+        self.Die = t_death
+        self.Demo = demo
+        self.IndexDeath = None
+
+    def __repr__(self):
+        return 'DemoDynamic'
+
+    def initialise(self, model, core, ti):
+        dead = core.find_states(self.Death)
+        self.IndexDeath = [i for i, v in enumerate(dead) if v]
+
+    def modify_in(self, ins, model, ti):
+        dea = 0
+        res = list()
+        for flow in ins:
+            if flow[1] in self.IndexDeath:
+                dea += flow[3]
+            else:
+                res.append(flow)
+        self.Value = dea
+
+        res.append(model.compose_incidence(None, self.Birth, 'Birth', self.Value))
+        return res
+
+    def fill(self, obs, model, ti):
+        obs[self.Name] = self.Value
+
+    def to_json(self):
+        return {'Name': self.Name,
+                'Type': 'Reincarnation',
+                's_death': self.Death,
+                's_birth': self.Birth,
+                'Value': self.Value,
+                'IndexDeath': list(self.IndexDeath)}
+
+    def from_json(self, js):
+        be = Reincarnation(js['Name'], js['s_death'], js['s_birth'])
+        be.Value = js['Value']
+        if 'IndexDeath' in js:
+            be.IndexDeath = list(js['IndexDeath'])
+        return be
+

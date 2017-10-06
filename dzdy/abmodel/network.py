@@ -122,6 +122,7 @@ class NetworkProb(INetwork):
     def __getitem__(self, ag):
         if ag in self.Inside:
             return [nei for nei in self.Inside if ag is not nei]
+        return []
 
     def add_agent(self, ag):
         if random() < self.P:
@@ -272,6 +273,7 @@ class NetworkSet:
     def neighbours_of(self, ag, net=None):
         if net:
             try:
+                n = self.Nets[net]
                 return list(self.Nets[net][ag])
             except KeyError:
                 return list()

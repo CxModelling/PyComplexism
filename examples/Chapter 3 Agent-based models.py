@@ -1,4 +1,5 @@
 from dzdy import *
+from dzdy.abmodel import install_behaviour
 import dzdy.abmodel as ab
 
 __author__ = 'TimeWz667'
@@ -20,10 +21,35 @@ abm.Pop.add_network(NetworkProb('N1', p=0.2))
 # abm.Pop.add_network(NetworkBA('N2', m=2))
 
 
-ab.install_behaviour(abm, 'Net', 'NetShock', {'s_src': 'Inf', 't_tar': 'Infect', 'net': 'N1'})
+install_behaviour(abm, 'Net', 'NetShock', {'s_src': 'Inf', 't_tar': 'Infect', 'net': 'N1'})
 abm.add_obs_behaviour('Net')
 abm.add_obs_state('Inf')
 abm.add_obs_state('Sus')
 abm.add_obs_transition('Infect')
 simulate(abm, {'Sus': 50, 'Inf': 50}, fr=0, to=10)
+print(abm.output())
+
+
+ctrl = DirectorDCPC()
+ctrl.load_pc('scripts/pBAD.txt')
+ctrl.load_dc('scripts/BAD.txt')
+
+
+pc = ctrl.get_pc('pBAD').sample_core()
+dc = ctrl.get_dc('BAD').generate_model(pc)
+
+abm = AgentBasedModel('BAD', dc, pc)
+print(abm)
+
+
+install_behaviour(abm, 'BD', 'TimeSeriesLife', {'s_birth': 'Young',
+                                                's_death': 'Dead',
+                                                't_death': 'Die',
+                                                'adj': 1/1000,
+                                                'path_life': '../data/Life_All.csv'})
+abm.add_obs_behaviour('BD')
+abm.add_obs_state('Alive')
+abm.add_obs_state('Death')
+abm.add_obs_transition('Die')
+simulate(abm, {'Young': 10000}, fr=0, to=10)
 print(abm.output())
