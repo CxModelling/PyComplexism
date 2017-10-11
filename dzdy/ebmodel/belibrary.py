@@ -83,3 +83,7 @@ register_behaviour('Reincarnation', Reincarnation,
 register_behaviour('DemoDynamic', DemoDynamic,
                {'s_death': vld.Existence(), 's_birth': vld.Existence(),
                 't_death': vld.Existence(), 'demo': vld.Existence()})
+
+register_behaviour('TimeStep', TimeStep,
+               {'t_tar': vld.Existence(), 'ys': vld.Existence(),
+                'ts': vld.Existence()})
