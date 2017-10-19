@@ -21,6 +21,7 @@ class MicroState:
 
     __str__ = __repr__
 
+
 MicroState.NullState = MicroState("_")
 
 
@@ -180,6 +181,12 @@ class BlueprintCTBN(AbsBlueprint):
         return True
 
     def link_state_transition(self, st, tr):
+        """
+        Make connection between a state to a transition
+        :param st: name of the state
+        :param tr: name of the transition
+        :return: true if the link is established
+        """
         self.add_state(st)
         if tr not in self.Transitions:
             raise KeyError('Transition {} does not exist'.format(tr))

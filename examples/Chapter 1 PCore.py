@@ -7,7 +7,7 @@ __author__ = 'TimeWz667'
 script = """
 PCore ABC{
     beta ~ exp(0.5)
-    TrAB ~ lognorm(beta, 1)
+    TrAB ~ lnorm(beta, 1)
     TrBC ~ gamma(beta, 100)
     TrCA ~ k(100)
 }

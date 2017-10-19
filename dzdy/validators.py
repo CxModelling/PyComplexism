@@ -35,7 +35,7 @@ class Validator(metaclass=ABCMeta):
     def to_form(self):
         pass
 
-    @abstractproperty
+    @property
     def Default(self):
         pass
 
