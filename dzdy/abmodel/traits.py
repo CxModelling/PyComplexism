@@ -34,11 +34,6 @@ class AbsTrait(metaclass=ABCMeta):
     def to_json(self):
         pass
 
-    @staticmethod
-    @abstractmethod
-    def from_json(js):
-        pass
-
     def __repr__(self):
         return str(self.to_json())
 
@@ -60,10 +55,6 @@ class TraitBinary(AbsTrait):
         return {'Name': self.Name, 'Type': 'Binary',
                 'prob': self.Prob, 'tf': [self.TrueFalse[0], self.TrueFalse[1]]}
 
-    @staticmethod
-    def from_json(js):
-        return TraitBinary(js['Name'], js['prob'], js['tf'])
-
 
 class TraitDistribution(AbsTrait):
     def __init__(self, name, dist):
@@ -80,10 +71,6 @@ class TraitDistribution(AbsTrait):
         return {'Name': self.Name, 'Type': 'Distribution',
                 'dist': self.Dist.Name}
 
-    @staticmethod
-    def from_json(js):
-        return TraitDistribution(js['Name'], js['Distribution'])
-
 
 class TraitCategory(AbsTrait):
     def __init__(self, name, kv):
@@ -99,10 +86,6 @@ class TraitCategory(AbsTrait):
     def to_json(self):
         return {'Name': self.Name, 'Type': 'Category',
                 'kv': self.Cat.get_xs()}
-
-    @staticmethod
-    def from_json(js):
-        return TraitCategory(js['Name'], js['kv'])
 
 
 if __name__ == '__main__':
