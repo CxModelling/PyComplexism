@@ -1,7 +1,7 @@
-import dzdy.validators as vld
 from dzdy.ebmodel.behaviour import *
 import logging
-from collections import namedtuple
+from factory.manager import ResourceManager
+import factory.arguments as vld
 
 __author__ = 'TimeWz667'
 
@@ -10,80 +10,55 @@ __all__ = ['register_behaviour', 'validate_behaviour',
            'get_behaviour_template', 'get_behaviour_defaults',
            'install_behaviour_from_json', 'install_behaviour', 'BehaviourLibrary']
 
-log = logging.getLogger(__name__)
-
-
-Entry = namedtuple('Entry', ('Class', 'Options'))
+logger = logging.getLogger(__name__)
 
 # Network library
-BehaviourLibrary = dict()
+EBMBehaviourLibrary = ResourceManager()
+
+EBMBehaviourLibrary.register('Multiplier', Multiplier, [vld.Options('t_tar', 'transitions')])
+
+EBMBehaviourLibrary.register('InfectionFD', InfectionFD,
+                             [vld.Options('t_tar', 'transitions'), vld.Options('s_src', 'states')])
+
+EBMBehaviourLibrary.register('InfectionDD', InfectionDD,
+                             [vld.Options('t_tar', 'transitions'), vld.Options('s_src', 'states')])
+
+EBMBehaviourLibrary.register('Cohort', Cohort, [vld.Options('s_death', 'states')])
+
+EBMBehaviourLibrary.register('Reincarnation', Reincarnation,
+                             [vld.Options('s_death', 'states'), vld.Options('s_birth', 'states')])
+
+EBMBehaviourLibrary.register('DemoDynamic', DemoDynamic,
+                             [vld.Options('s_death', 'states'), vld.Options('s_birth', 'states'),
+                              vld.Options('t_death', 'transitions'), vld.NotNull('demo')])
+
+EBMBehaviourLibrary.register('TimeStep', TimeStep,
+                             [vld.Options('t_tar', 'transitions'),
+                              vld.ListString('ys'), vld.ListString('ts')])
 
 
-def register_behaviour(be_type, cls, vls):
-    opts = vld.Options()
-    for k, vl in vls.items():
-        opts.append(k, vl)
-    BehaviourLibrary[be_type] = Entry(cls, opts)
+def get_ebm_behaviour_from_json(js):
+    return EBMBehaviourLibrary.create(js, logger=logger)
 
 
-def validate_behaviour(be_type, kwargs):
-    opts = BehaviourLibrary[be_type].Options
-    return opts.check_all(kwargs, log=log)
+def get_ebm_behaviour(be_name, be_type, kwargs):
+    js = {'Name': be_name, 'Type': be_type, 'Args': kwargs}
+    return get_ebm_behaviour_from_json(js)
 
 
-def get_behaviour(be_name, be_type, kwargs):
-    be = BehaviourLibrary[be_type]
-    if be.Options.modify(kwargs, log):
-        kwargs = be.Options.extract(kwargs, log)
-        return be.Class(be_name, **kwargs)
+def get_ebm_behaviour_template(be_type):
+    return EBMBehaviourLibrary.get_form(be_type)
 
 
-def get_behaviour_from_json(js):
-    tp = js['Type']
-    be = BehaviourLibrary[tp]
-    return be.from_json(js)
-
-
-def get_behaviour_template(be_type):
-    return BehaviourLibrary[be_type].Options.get_form()
-
-
-def get_behaviour_defaults(be_type):
-    return BehaviourLibrary[be_type].Options.get_defaults()
-
-
-def install_behaviour(mod, be_name, be_type, kwargs):
-    be = get_behaviour(be_name, be_type, kwargs)
+def install_ebm_behaviour(mod, be_name, be_type, kwargs):
+    be = get_ebm_behaviour(be_name, be_type, kwargs)
     mod.ODE.add_behaviour(be)
 
 
-def install_behaviour_from_json(mod, js):
-    name = js['Name']
-    tp = js['Type']
-    net = get_behaviour(name, tp, js)
-    if net:
-        mod.Pop.add_network(net)
+def install_ebm_behaviour_from_json(mod, js):
+    be = get_ebm_behaviour_from_json(js)
+    mod.ODE.add_behaviour(be)
 
 
-def list_behaviours():
-    return list(BehaviourLibrary.keys())
-
-
-register_behaviour('Multiplier', Multiplier,
-               {'t_tar': vld.Existence()})
-register_behaviour('InfectionFD', InfectionFD,
-               {'t_tar': vld.Existence(), 's_src': vld.Existence()})
-register_behaviour('InfectionDD', InfectionDD,
-               {'t_tar': vld.Existence(), 's_src': vld.Existence()})
-register_behaviour('Cohort', Cohort,
-               {'s_death': vld.Existence()})
-register_behaviour('Reincarnation', Reincarnation,
-               {'s_death': vld.Existence(), 's_birth': vld.Existence()})
-
-register_behaviour('DemoDynamic', DemoDynamic,
-               {'s_death': vld.Existence(), 's_birth': vld.Existence(),
-                't_death': vld.Existence(), 'demo': vld.Existence()})
-
-register_behaviour('TimeStep', TimeStep,
-               {'t_tar': vld.Existence(), 'ys': vld.Existence(),
-                'ts': vld.Existence()})
+def list_ebm_behaviours():
+    return EBMBehaviourLibrary.list()
