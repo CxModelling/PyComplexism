@@ -1,6 +1,6 @@
 from dzdy.abmodel.network import *
 from dzdy.abmodel.traits import *
-from factory.manager import ResourceManager
+from factory.manager import getWorkshop
 import factory.arguments as vld
 
 import logging
@@ -18,7 +18,7 @@ __all__ = [
 logger = logging.getLogger(__name__)
 
 # Network library
-NetworkLibrary = ResourceManager()
+NetworkLibrary = getWorkshop('Networks')
 NetworkLibrary.register('BA', NetworkBA, [vld.PositiveInteger('m')])
 NetworkLibrary.register('GNP', NetworkGNP, [vld.Prob('p')])
 NetworkLibrary.register('Category', NetworkProb, [vld.Prob('p')])
@@ -46,8 +46,8 @@ def list_networks():
     return NetworkLibrary.list()
 
 
-TraitLibrary = ResourceManager()
-TraitLibrary.register('Binary', TraitBinary, [vld.Prob('prob'), vld.ListString('tf', 2)])
+TraitLibrary = getWorkshop('Traits')
+TraitLibrary.register('Binary', TraitBinary, [vld.Prob('prob'), vld.List('tf', 2)])
 TraitLibrary.register('Distribution', TraitDistribution, [vld.RegExp('dist', r'\w+\(')])
 TraitLibrary.register('Category', TraitCategory, [vld.ProbTab('kv')])
 

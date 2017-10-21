@@ -102,8 +102,8 @@ class CoreODE:
         self.Ys = {k: y for k, y in zip(self.Y_Names, ys) if y != 0}
 
     def find_states(self, st):
-        st = self.DCore[st]
-        return [int(self.DCore[y].isa(st)) for y in self.Y_Names]
+        st = self.DCore.States[st]
+        return [int(self.DCore.States[y].isa(st)) for y in self.Y_Names]
 
     def count_st_ys(self, st, ys):
         sel = self.find_states(st)

@@ -1,24 +1,16 @@
 from dzdy.ebmodel import *
 from dzdy.mcore import AbsBlueprintMCore
 from copy import deepcopy
+from factory import getWorkshop
 
 __author__ = 'TimeWz667'
 
 
 class BlueprintCoreODE(AbsBlueprintMCore):
     def __init__(self, name, tar_pc, tar_dc):
-        AbsBlueprintMCore.__init__(self, name, {'dt': 1, 'fdt': 0.1})
-        self.TargetedCore = tar_pc, tar_dc
+        AbsBlueprintMCore.__init__(self, name, {'dt': 1, 'fdt': 0.1}, pc=tar_pc, dc=tar_dc)
         self.Behaviours = list()
         self.Obs_s_t_b = list(), list(), list()
-
-    @property
-    def TargetedPCore(self):
-        return self.TargetedCore[0]
-
-    @property
-    def TargetedDCore(self):
-        return self.TargetedCore[1]
 
     def add_behaviour(self, be_name, be_type, **kwargs):
         if be_name in self.Behaviours:
@@ -34,15 +26,26 @@ class BlueprintCoreODE(AbsBlueprintMCore):
         b = behaviours if behaviours else b
         self.Obs_s_t_b = s, t, b
 
-    def generate(self, name, **kwargs):
+    def generate(self, name, logger=None, **kwargs):
         pc, dc = kwargs['pc'], kwargs['dc'],
         meta = MetaCoreEBM(self.TargetedPCore, self.TargetedDCore, self.Name)
         mc = CoreODE(dc)
         mod = ODEModel(name, mc, pc=pc, meta=meta, **self.Arguments)
 
-        for be in self.Behaviours:
-            install_behaviour(mod, be['Name'], be['Type'], be['Args'])
+        ws = getWorkshop('EBM_BE')
+        resources = {
+            'states': list(dc.States.keys()),
+            'transitions': list(dc.Transitions.keys())
+        }
+        resources.update(pc.Locus)
+        # lock
+        ws.renew_resources(resources)
 
+        for be in self.Behaviours:
+            mod.ODE.add_behaviour(ws.create(be, logger=logger))
+
+        ws.clear_resources()
+        # release
         sts, trs, bes = self.Obs_s_t_b
         if sts:
             for st in sts:
