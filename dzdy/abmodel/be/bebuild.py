@@ -1,7 +1,14 @@
 from dzdy.abmodel.be import *
 import os
+from factory import getWorkshop
+import factory.arguments as vld
+
 
 __author__ = 'TimeWz667'
+
+
+ABMBehaviourLibrary = getWorkshop('ABM_BE')
+ABMBehaviourLibrary.register()
 
 
 BehaviourLibrary = dict()

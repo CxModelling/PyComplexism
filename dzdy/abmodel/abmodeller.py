@@ -1,37 +1,39 @@
-from dzdy.abmodel import AgentBasedModel, MetaABM, install_behaviour, install_network, install_trait
+from dzdy.abmodel import AgentBasedModel, MetaABM
 from dzdy.mcore import AbsBlueprintMCore
 from copy import deepcopy
 from collections import OrderedDict
+from factory import getWorkshop
 
 __author__ = 'TimeWz667'
 
 
 class BlueprintABM(AbsBlueprintMCore):
     def __init__(self, name, tar_pc, tar_dc):
-        AbsBlueprintMCore.__init__(self, name, {'ag_prefix': 'Ag'})
-        self.TargetedCore = tar_pc, tar_dc
-        self.Networks = dict()
+        AbsBlueprintMCore.__init__(self, name, {'ag_prefix': 'Ag'}, pc=tar_pc, dc=tar_dc)
+        self.Networks = list()
         self.Behaviours = OrderedDict()
-        self.Traits = dict()
+        self.Traits = list()
         self.Obs_s_t_b = list(), list(), list()
 
-    @property
-    def TargetedPCore(self):
-        return self.TargetedCore[0]
-
-    @property
-    def TargetedDCore(self):
-        return self.TargetedCore[1]
-
     def add_network(self, net_name, net_type, **kwargs):
-        if net_name in self.Networks:
-            return
-        self.Networks[net_name] = {'Type': net_type,
-                                   'Args': dict(kwargs)}
+        self.Networks.append({
+            'Name': net_name,
+            'Type': net_type,
+            'Args': dict(kwargs)
+        })
+
+    def add_network_json(self, js):
+        self.Networks.append(js)
 
     def add_trait(self, trt_name, trt_type, **kwargs):
-        self.Traits[trt_name] = {'Type': trt_type,
-                                 'Args': dict(kwargs)}
+        self.Traits.append({
+            'Name': trt_name,
+            'Type': trt_type,
+            'Args': dict(kwargs)
+        })
+
+    def add_trait_json(self, js):
+        self.Traits.append(js)
 
     def add_behaviour(self, be_name, be_type, **kwargs):
         if be_name in self.Behaviours:
@@ -45,16 +47,39 @@ class BlueprintABM(AbsBlueprintMCore):
         b = behaviours if behaviours else b
         self.Obs_s_t_b = s, t, b
 
-    def generate(self, name, **kwargs):
+    def generate(self, name, logger=None, **kwargs):
         pc, dc = kwargs['pc'], kwargs['dc'],
         meta = MetaABM(self.TargetedPCore, self.TargetedDCore, self.Name)
         mod = AgentBasedModel(name, dc, pc, meta, **self.Arguments)
-        for k, v in self.Traits.items():
-            install_trait(mod, k, v['Type'], v['Args'])
-        for k, v in self.Behaviours.items():
-            install_behaviour(mod, k, v['Type'], v['Args'])
-        for k, v in self.Networks.items():
-            install_network(mod, k, v['Type'], v['Args'])
+
+        resources = {
+            'states': list(dc.States.keys()),
+            'transitions': list(dc.Transitions.keys()),
+            'networks': [net[0] for net in self.Networks],
+            'traits': [trt[0] for trt in self.Traits]
+        }
+        resources.update(pc.Locus)
+        # lock
+
+        ws = getWorkshop('ABM_BE')
+        ws.renew_resources(resources)
+        for be in self.Behaviours:
+            be = ws.create(be, logger=logger)
+            mod.Behaviours[be.Name] = be
+        ws.clear_resources()
+
+        ws = getWorkshop('Traits')
+        ws.renew_resources(resources)
+        for trt in self.Traits:
+            mod.Pop.add_trait(ws.create(trt, logger=logger))
+        ws.clear_resources()
+
+        ws = getWorkshop('Networks')
+        ws.renew_resources(resources)
+        for net in self.Networks:
+            mod.Pop.add_trait(ws.create(net, logger=logger))
+        ws.clear_resources()
+
         sts, trs, bes = self.Obs_s_t_b
         if sts:
             for st in sts:
@@ -120,7 +145,7 @@ class BlueprintABM(AbsBlueprintMCore):
         js['Behaviours'] = self.Behaviours
         js['BehaviourOrder'] = list(self.Behaviours.keys())
         js['Traits'] = self.Traits
-        js['Observation'] = {k: v for k, v in zip(['State', 'Transition', 'Behaviour'],self.Obs_s_t_b)}
+        js['Observation'] = {k: v for k, v in zip(['State', 'Transition', 'Behaviour'], self.Obs_s_t_b)}
 
         return js
 

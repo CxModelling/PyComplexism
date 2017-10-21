@@ -31,3 +31,17 @@ EBMBehaviourLibrary.register('DemoDynamic', DemoDynamic,
 
 EBMBehaviourLibrary.register('TimeStep', TimeStep,
                              [vld.Options('t_tar', 'transitions'), vld.List('ys'), vld.List('ts')])
+
+
+logger.info('EBM Behaviour library (EBM_BE) loaded')
+
+
+def register_ebm_behaviour(name, cls, args):
+    if not isinstance(name, str):
+        raise TypeError('A behaviour name must be str')
+    if not isinstance(name, Behaviour):
+        raise TypeError('cls is not behaviour class for EBM')
+    for arg in args:
+        if not isinstance(arg, vld.Argument):
+            raise TypeError('arg is not a well-defined argument')
+    EBMBehaviourLibrary.register(name, cls, args)
