@@ -2,8 +2,12 @@ from dzdy.ebmodel import *
 from dzdy.mcore import AbsBlueprintMCore
 from copy import deepcopy
 from factory import getWorkshop
+from collections import namedtuple
 
 __author__ = 'TimeWz667'
+
+
+MetaABM = namedtuple('MetaABM', ('PC', 'DC', 'Prototype'))
 
 
 class BlueprintCoreODE(AbsBlueprintMCore):
@@ -76,7 +80,7 @@ class BlueprintCoreODE(AbsBlueprintMCore):
         js['TargetedPCore'] = self.TargetedPCore
         js['TargetedDCore'] = self.TargetedDCore
         js['Behaviours'] = self.Behaviours
-        js['Observation'] = {k: v for k, v in zip(['State', 'Transition', 'Behaviour'],self.Obs_s_t_b)}
+        js['Observation'] = {k: v for k, v in zip(['State', 'Transition', 'Behaviour'], self.Obs_s_t_b)}
 
         return js
 

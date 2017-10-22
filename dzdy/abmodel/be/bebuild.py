@@ -8,7 +8,6 @@ __author__ = 'TimeWz667'
 
 
 ABMBehaviourLibrary = getWorkshop('ABM_BE')
-ABMBehaviourLibrary.register()
 
 
 BehaviourLibrary = dict()
