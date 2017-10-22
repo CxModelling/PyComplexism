@@ -249,7 +249,7 @@ class TimeSeriesLife(TimeModBe):
         TimeModBe.__init__(self, name, Clock(by=0.5), mod, StateTrigger(s_death))
         self.Demography = demo
         self.S_death = s_death.Name
-        self.S_birth = s_birth
+        self.S_birth = s_birth.Name
         self.T_death = t_death.Name
         self.NDeath = 0
         self.NBirth = 0

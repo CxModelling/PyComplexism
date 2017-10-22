@@ -81,6 +81,16 @@ class AgentBasedModel(LeafModel):
         if be in self.Behaviours:
             self.Obs.add_obs_behaviour(be)
 
+    def add_behaviour(self, be):
+        if be.Name not in self.Behaviours:
+            self.Behaviours[be.Name] = be
+
+    def add_trait(self, trt):
+        self.Pop.add_trait(trt)
+
+    def add_network(self, net):
+        self.Pop.add_network(net)
+
     def listen(self, mod_src, par_src, tar, par_tar=None):
         try:
             be = self.Behaviours[tar]

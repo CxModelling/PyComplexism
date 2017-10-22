@@ -28,6 +28,9 @@ class TraitSet:
     def __str__(self):
         return str(self.to_json())
 
+    def list(self):
+        return [trt.Name for trt in self.Traits]
+
 
 class AbsTrait(metaclass=ABCMeta):
     @abstractmethod

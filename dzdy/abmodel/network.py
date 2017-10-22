@@ -248,6 +248,9 @@ class NetworkSet:
     def __contains__(self, item):
         return item in self.Nets
 
+    def list(self):
+        return list(self.Nets.keys())
+
     def append(self, net):
         if isinstance(net, Network):
             self.Nets[net.Name] = net

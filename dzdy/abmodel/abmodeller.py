@@ -6,6 +6,8 @@ from factory import getWorkshop
 
 __author__ = 'TimeWz667'
 
+__all__ = ['BlueprintABM', 'install_behaviour', 'install_network', 'install_trait']
+
 
 class BlueprintABM(AbsBlueprintMCore):
     def __init__(self, name, tar_pc, tar_dc):
@@ -53,8 +55,8 @@ class BlueprintABM(AbsBlueprintMCore):
         mod = AgentBasedModel(name, dc, pc, meta, **self.Arguments)
 
         resources = {
-            'states': list(dc.States.keys()),
-            'transitions': list(dc.Transitions.keys()),
+            'states': dc.States,
+            'transitions': dc.Transitions,
             'networks': [net[0] for net in self.Networks],
             'traits': [trt[0] for trt in self.Traits]
         }
@@ -65,19 +67,21 @@ class BlueprintABM(AbsBlueprintMCore):
         ws.renew_resources(resources)
         for be in self.Behaviours:
             be = ws.create(be, logger=logger)
-            mod.Behaviours[be.Name] = be
+            mod.add_behaviour(be)
         ws.clear_resources()
 
         ws = getWorkshop('Traits')
         ws.renew_resources(resources)
         for trt in self.Traits:
-            mod.Pop.add_trait(ws.create(trt, logger=logger))
+            trt = ws.create(trt, logger=logger)
+            mod.add_trait(trt)
         ws.clear_resources()
 
         ws = getWorkshop('Networks')
         ws.renew_resources(resources)
         for net in self.Networks:
-            mod.Pop.add_trait(ws.create(net, logger=logger))
+            net = ws.create(net, logger=logger)
+            mod.add_trait(net)
         ws.clear_resources()
 
         sts, trs, bes = self.Obs_s_t_b
@@ -163,3 +167,46 @@ class BlueprintABM(AbsBlueprintMCore):
         obs = js['Observation']
         bp.set_observations(obs['State'], obs['Transition'], obs['Behaviour'])
         return bp
+
+
+def form_resources(abm):
+    pc, dc = abm.PCore, abm.DCore
+    resources = {
+        'states': dc.States,
+        'transitions': dc.Transitions,
+        'networks': abm.Pop.Networks.list(),
+        'traits': abm.Pop.Eve.Traits.list()
+    }
+    resources.update(pc.Locus)
+    return resources
+
+
+def install_behaviour(abm, be_name, be_type, logger=None, **kwargs):
+    js = {'Name': be_name, 'Type': be_type, 'Args': dict(kwargs)}
+    ws = getWorkshop('ABM_BE')
+    ws.renew_resources(form_resources(abm))
+    if ws.validate(js, logger=logger):
+        be = ws.create(js, logger=logger)
+        abm.add_behaviour(be)
+    ws.clear_resources()
+
+
+def install_trait(abm, trt_name, trt_type, logger=None, **kwargs):
+    js = {'Name': trt_name, 'Type': trt_type, 'Args': dict(kwargs)}
+    ws = getWorkshop('Traits')
+    ws.renew_resources(form_resources(abm))
+    if ws.validate(js, logger=logger):
+        trt = ws.create(js, logger=logger)
+        abm.add_trait(trt)
+    ws.clear_resources()
+
+
+def install_network(abm, net_name, net_type, logger=None, **kwargs):
+    js = {'Name': net_name, 'Type': net_type, 'Args': dict(kwargs)}
+    ws = getWorkshop('Networks')
+    ws.renew_resources(form_resources(abm))
+    if ws.validate(js, logger=logger):
+        net = ws.create(js, logger=logger)
+        abm.add_network(net)
+    ws.clear_resources()
+
