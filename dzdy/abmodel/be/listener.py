@@ -4,8 +4,9 @@ __author__ = 'TimeWz667'
 
 
 class ForeignShock(ModBe):
-    def __init__(self, name, mod_src, par_src, t_tar):
+    def __init__(self, name, t_tar, mod_src=None, par_src=None):
         tri = ForeignTrigger(mod_src)
+
         mod = GloRateModifier(name, t_tar)
         ModBe.__init__(self, name, mod, tri)
         self.RefMod, self.RefPar = mod_src, par_src

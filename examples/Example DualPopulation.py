@@ -32,15 +32,17 @@ hu.add_behaviour('Out', 'Multiplier', t_tar='InfO')
 hu.add_behaviour('In', 'InfectionDD', t_tar='InfI', s_src='Inf')
 hu.set_observations(states=['Inf'],
                     transitions=['InfO', 'InfI'])
-hu.set_arguments('fdt', 0.01)
+hu.set_arguments('fdt', 0.1)
 
 
-flu = DualModel('Flu', odt=0.05)
+flu = ModelSet('Flu', odt=0.05)
 flu.append(da.generate_model('SIR', name='A'))
 flu.append(da.generate_model('SIR', name='B'))
 
 flu.link(RelationEntry('A@Inf'), RelationEntry('B@Out'))
 flu.link(RelationEntry('B@Inf'), RelationEntry('A@Out'))
+flu.add_obs_model('A')
+flu.add_obs_model('B')
 
 simulate(flu, y0={'A': {'Sus': 100}, 'B': {'Sus': 15, 'Inf': 5}}, fr=0, to=10)
 flu.Obs.print()

@@ -74,6 +74,8 @@ BehaviourLibrary.register('NetWeightShock', NetWeightShock,
                            vld.Options('net', 'networks'), vld.ProbTab('weight')])
 BehaviourLibrary.register('TimeStep', TimeStep,
                           [vld.Options('t_tar', 'transitions'), vld.List('ys'), vld.List('ts')])
+BehaviourLibrary.register('ForeignShock', ForeignShock,
+                          [vld.Options('t_tar', 'transitions'), vld.String('mod_src', opt=True), vld.String('mod_src', opt=True)])
 
 logger.info('ABM Behaviour library (ABM_BE) loaded')
 

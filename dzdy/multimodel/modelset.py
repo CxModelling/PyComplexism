@@ -1,6 +1,7 @@
 from dzdy.mcore import *
 from .summariser import *
 from collections import OrderedDict
+from dzdy.multimodel import RelationEntry
 
 __author__ = 'TimeWz667'
 __all__ = ['ObsModelSet', 'ModelSet']
@@ -98,6 +99,9 @@ class ModelSet(BranchModel):
             self.Summariser.do_request(req)
 
     def link(self, src, tar):
+        src = src if isinstance(src, RelationEntry) else RelationEntry(src)
+        tar = tar if isinstance(tar, RelationEntry) else RelationEntry(tar)
+
         if src.Selector == self.Name:
             m_tar = self.select_all(tar.Selector)
             for kt, mt in m_tar.items():

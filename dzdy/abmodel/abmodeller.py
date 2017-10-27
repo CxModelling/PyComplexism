@@ -1,19 +1,22 @@
 from dzdy.abmodel import AgentBasedModel, MetaABM
 from dzdy.mcore import AbsBlueprintMCore
 from copy import deepcopy
-from collections import OrderedDict
 from factory import getWorkshop
+import logging
+
 
 __author__ = 'TimeWz667'
 
 __all__ = ['BlueprintABM', 'install_behaviour', 'install_network', 'install_trait']
+
+logger = logging.getLogger('__name__')
 
 
 class BlueprintABM(AbsBlueprintMCore):
     def __init__(self, name, tar_pc, tar_dc):
         AbsBlueprintMCore.__init__(self, name, {'ag_prefix': 'Ag'}, pc=tar_pc, dc=tar_dc)
         self.Networks = list()
-        self.Behaviours = OrderedDict()
+        self.Behaviours = list()
         self.Traits = list()
         self.Obs_s_t_b = list(), list(), list()
 
@@ -38,9 +41,7 @@ class BlueprintABM(AbsBlueprintMCore):
         self.Traits.append(js)
 
     def add_behaviour(self, be_name, be_type, **kwargs):
-        if be_name in self.Behaviours:
-            return
-        self.Behaviours[be_name] = {'Type': be_type, 'Args': dict(kwargs)}
+        self.Behaviours.append({"Name": be_name, 'Type': be_type, 'Args': dict(kwargs)})
 
     def set_observations(self, states=None, transitions=None, behaviours=None):
         s, t, b = self.Obs_s_t_b
@@ -49,7 +50,7 @@ class BlueprintABM(AbsBlueprintMCore):
         b = behaviours if behaviours else b
         self.Obs_s_t_b = s, t, b
 
-    def generate(self, name, logger=None, **kwargs):
+    def generate(self, name, **kwargs):
         pc, dc = kwargs['pc'], kwargs['dc'],
         meta = MetaABM(self.TargetedPCore, self.TargetedDCore, self.Name)
         mod = AgentBasedModel(name, dc, pc, meta, **self.Arguments)
@@ -147,7 +148,6 @@ class BlueprintABM(AbsBlueprintMCore):
         js['TargetedDCore'] = self.TargetedDCore
         js['Networks'] = self.Networks
         js['Behaviours'] = self.Behaviours
-        js['BehaviourOrder'] = list(self.Behaviours.keys())
         js['Traits'] = self.Traits
         js['Observation'] = {k: v for k, v in zip(['State', 'Transition', 'Behaviour'], self.Obs_s_t_b)}
 

@@ -52,11 +52,11 @@ mo = da.new_mc('Mos', 'ABM', tar_pc='pM', tar_dc='SIS_M')
 mo.add_behaviour('M2M', 'ComFDShock', s_src='Inf', t_tar='Infect')
 mo.set_observations(states=['Sus', 'Inf'], behaviours=['M2M'])
 
-den = ModelSet('Den', odt=0.5)
+den = ModelSet('Den', odt=0.25)
 den.append(da.generate_model('Human'))
 den.append(da.generate_model('Mos'))
 
-den.link(RelationEntry('Mos@Inf'), RelationEntry('Human@FOI'))
+den.link('Mos@Inf', 'Human@FOI')
 
 den.add_obs_model('Mos')
 den.add_obs_model('Human')
