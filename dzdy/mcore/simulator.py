@@ -16,8 +16,8 @@ class Simulator:
     def simulate(self, y0, fr, to, dt):
         self.Time = fr
         self.Model.initialise(ti=fr, y0=y0)
-        self.Model.initialise_observation(fr)
-        self.Model.push_observation(fr)
+        self.Model.initialise_observations(fr)
+        self.Model.push_observations(fr)
         self.update(to, dt)
 
     def update(self, forward, dt):
@@ -26,12 +26,11 @@ class Simulator:
         if ts[-1] != forward:
             ts.append(forward)
         for f, t in zip(ts[:-1], ts[1:]):
-            self.Model.update_observation(f)
             self.step(f, (f+t)/2)
-            self.Model.update_observation((f+t)/2)
-            self.Model.push_observation(t)
+            self.Model.captureMidTermObservations(t)
             self.step((f+t)/2, t)
-            self.Model.update_observation(t)
+            self.Model.update_observations(t)
+            self.Model.push_observations(t)
 
     def step(self, t, end):
         tx = t

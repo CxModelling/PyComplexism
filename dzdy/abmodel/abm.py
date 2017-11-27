@@ -27,35 +27,16 @@ class ObsABM(Observer):
     def add_obs_behaviour(self, beh):
         self.Bes.append(beh)
 
-    def initialise_observation(self, model, ti):
-        for st in self.ObsSt:
-            self.Current[st.Name] = model.Pop.count(st)
-
-        for be in self.Bes:
-            model.Behaviours[be].fill(self.Current, model, ti)
-
-    def update_observation(self, model, ti):
-        for st in self.ObsSt:
-            self.Current[st.Name] = model.Pop.count(st)
-
-        t0 = self.Last['Time'] if 'Time' in self.Last else float('-inf')
-        r0 = [rec for rec in self.Recs if rec.Time < t0]
-        r1 = [rec for rec in self.Recs if rec.Time >= t0]
-        self.Recs = list()
-
+    def update_dynamic_Observations(self, model, flow, ti):
         for tr in self.ObsTr:
-            if tr.Name in self.Last:
-                self.Last[tr.Name] += sum(rec.Tr == tr for rec in r0)
-            else:
-                self.Last[tr.Name] = sum(rec.Tr == tr for rec in r0)
+            flow[tr.Name] = sum(rec.Tr == tr for rec in self.Recs)
 
-            if tr.Name in self.Current:
-                self.Current[tr.Name] += sum(rec.Tr == tr for rec in r1)
-            else:
-                self.Current[tr.Name] = sum(rec.Tr == tr for rec in r1)
+    def read_statics(self, model, tab, ti):
+        for st in self.ObsSt:
+            tab[st.Name] = model.Pop.count(st)
 
         for be in self.Bes:
-            model.Behaviours[be].fill(self.Current, model, ti)
+            model.Behaviours[be].fill(tab, model, ti)
 
     def record(self, ag, tr, ti):
         self.Recs.append(RecordABM(ag.Name, tr, ti))

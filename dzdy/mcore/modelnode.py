@@ -27,8 +27,8 @@ class AbsModel(metaclass=ABCMeta):
     def __getitem__(self, item):
         return self.Obs[item]
 
-    def output(self):
-        return self.Obs.observation
+    def output(self, mid=False):
+        return self.Obs.Observations
 
     def read_y0(self, y0, ti):
         pass
@@ -65,14 +65,17 @@ class AbsModel(metaclass=ABCMeta):
     def do_request(self, req):
         pass
 
-    def initialise_observation(self, ti):
-        self.Obs.initialise_observation(self, ti)
+    def initialise_observations(self, ti):
+        self.Obs.initialise_observations(self, ti)
 
-    def update_observation(self, ti):
-        self.Obs.update_observation(self, ti)
+    def update_observations(self, ti):
+        self.Obs.observe_routinely(self, ti)
 
-    def push_observation(self, ti):
-        self.Obs.push_observation(ti)
+    def captureMidTermObservations(self, ti):
+        self.Obs.update_at_mid_term(self, ti)
+
+    def push_observations(self, ti):
+        self.Obs.push_observations(ti)
 
     @abstractmethod
     def clone(self, **kwargs):

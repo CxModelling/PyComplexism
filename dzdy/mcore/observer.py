@@ -42,40 +42,40 @@ class Observer(metaclass=ABCMeta):
             self.Mid['Time'] = ti + self.ObservationalInterval
 
     @abstractmethod
-    def read_statics(self, mod, tab, ti):
+    def read_statics(self, model, tab, ti):
         """
 
-        :param mod: model to be observed
+        :param model: model to be observed
         :param tab: table to store static information
         :param ti: observation time
         """
         pass
 
     @abstractmethod
-    def update_dynamic_Observations(self, mod, flow, ti):
+    def update_dynamic_Observations(self, model, flow, ti):
         """
 
-        :param mod: model to be observed
+        :param model: model to be observed
         :param flow: table to store dynamic information
         :param ti: observation time
         """
         pass
 
-    def initialise_observations(self, mod, ti):
+    def initialise_observations(self, model, ti):
         self.renew()
-        self.Flow.clear()
-        self.read_statics(mod, self.Last, ti)
+        self.Last = OrderedDict()
+        self.Last['Time'] = ti
+        self.read_statics(model, self.Last, ti)
 
-    def observe_routinely(self, mod, ti):
-        self.read_statics(mod, self.Last, ti)
-        self.update_dynamic_Observations(mod, self.Flow, ti)
+    def observe_routinely(self, model, ti):
+        self.read_statics(model, self.Last, ti)
+        self.update_dynamic_Observations(model, self.Flow, ti)
 
-
-    def update_at_mid_term(self, mod, ti):
+    def update_at_mid_term(self, model, ti):
         if self.ExtMid:
-            self.read_statics(mod, self.Mid, ti)
+            self.read_statics(model, self.Mid, ti)
 
-    def push_observation(self, ti):
+    def push_observations(self, ti):
         self.Last.update(self.Flow)
         self.TimeSeries.append(self.Last)
         if self.ExtMid:
@@ -97,13 +97,13 @@ class Observer(metaclass=ABCMeta):
         return None
 
     @property
-    def Observation(self):
+    def Observations(self):
         dat = pd.DataFrame(self.TimeSeries)
         dat = dat.set_index('Time')
         return dat
 
     @property
-    def AdjustedObservation(self):
+    def AdjustedObservations(self):
         if not (self.ExtMid or len(self.TimeSeriesMid) is len(self.TimeSeries) - 1):
             self.TimeSeriesMid = list()
             for f, t in zip(self.TimeSeries[:-1], self.TimeSeries[1:]):
@@ -118,18 +118,18 @@ class Observer(metaclass=ABCMeta):
 
     def output_csv(self, file, mid=False):
         if mid:
-            self.AdjustedObservation.to_csv(file)
+            self.AdjustedObservations.to_csv(file)
         else:
-            self.Observation.to_csv(file)
+            self.Observations.to_csv(file)
 
     def output_json(self, file, mid=False):
         if mid:
-            self.AdjustedObservation.to_json(file, orient='records')
+            self.AdjustedObservations.to_json(file, orient='records')
         else:
-            self.Observation.to_json(file, orient='records')
+            self.Observations.to_json(file, orient='records')
 
     def print(self, mid=False):
         if mid:
-            print(self.AdjustedObservation)
+            print(self.AdjustedObservations)
         else:
-            print(self.Observation)
+            print(self.Observations)
