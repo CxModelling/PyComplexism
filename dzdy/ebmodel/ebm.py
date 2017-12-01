@@ -28,21 +28,15 @@ class ObsEBM(Observer):
     def add_obs_behaviour(self, be):
         self.ObsBe.append(be)
 
-    def initialise_observation(self, model, ti):
-        for st in self.ObsSt:
-            self.Current[st] = model.ODE.count_st(st)
+    def update_dynamic_Observations(self, model, flow, ti):
         for tr in self.ObsTr:
-            self.Current[tr] = model.ODE.count_tr(tr)
-        for be in self.ObsBe:
-            model.ODE.fill(be, self.Current, ti)
+            flow[tr] = model.ODE.count_tr(tr)
 
-    def update_observation(self, model, ti):
+    def read_statics(self, model, tab, ti):
         for st in self.ObsSt:
-            self.Current[st] = model.ODE.count_st(st)
-        for tr in self.ObsTr:
-            self.Current[tr] = model.ODE.count_tr(tr)
+            tab[st] = model.ODE.count_st(st)
         for be in self.ObsBe:
-            model.ODE.fill(be, self.Current, ti)
+            model.ODE.fill(be, tab, ti)
 
 
 class ODEModel(LeafModel):

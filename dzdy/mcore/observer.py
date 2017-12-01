@@ -104,7 +104,7 @@ class Observer(metaclass=ABCMeta):
 
     @property
     def AdjustedObservations(self):
-        if not (self.ExtMid or len(self.TimeSeriesMid) is len(self.TimeSeries) - 1):
+        if not (self.ExtMid or len(self.TimeSeriesMid) is len(self.TimeSeries)):
             self.TimeSeriesMid = list()
             for f, t in zip(self.TimeSeries[:-1], self.TimeSeries[1:]):
                 ent = OrderedDict()

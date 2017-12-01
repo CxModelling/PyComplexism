@@ -2,10 +2,10 @@ __author__ = 'TimeWz667'
 
 
 class Clock:
-    def __init__(self, ini=0, last=0, by=1):
+    def __init__(self, ini=0, last=0, dt=1):
         self.Initial = ini
         self.Last = last
-        self.By = by
+        self.By = dt
 
     def initialise(self, ti, t0=None):
         if t0:
@@ -19,6 +19,13 @@ class Clock:
     def update(self, now):
         while now > self.Last:
             self.Last = self.get_next()
+
+    def to_json(self):
+        return {
+            "Name": "Clock",
+            "Type": "TimeTicker",
+            'Args': {'dt': self.By}
+        }
 
     def __repr__(self):
         return 'Clock(T0={}, Now={}, Tick={})'.format(self.Initial, self.Last, self.By)

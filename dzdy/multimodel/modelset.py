@@ -1,7 +1,7 @@
 from dzdy.mcore import *
 from .summariser import *
-from collections import OrderedDict
 from dzdy.multimodel import RelationEntry
+import pandas as pd
 
 __author__ = 'TimeWz667'
 __all__ = ['ObsModelSet', 'ModelSet']
@@ -10,69 +10,52 @@ __all__ = ['ObsModelSet', 'ModelSet']
 class ObsModelSet(Observer):
     def __init__(self):
         Observer.__init__(self)
-        self.ObsModels = dict()
-        self.FullObs = set()
-        self.All = False
+        self.Observed = list()
 
-    def initialise_observation(self, model, ti):
-        for m in model.Models.values():
-            m.initialise_observation(ti)
-        model.Summariser.read_obs(model)
-        model.cross_impulse(ti)
-        self.update_observation(model, ti)
+    def add_obs_sel(self, sel):
+        self.Observed.append(sel)
 
-    def update_observation(self, model, ti):
-        for m in model.Models.values():
-            m.update_observation(ti)
-        model.Summariser.read_obs(model)
-        self.Current.update(model.Summariser.Summary)
+    def update_dynamic_Observations(self, model, flow, ti):
+        pass
 
-    def add_obs_model(self, mod):
-        self.FullObs.add(mod)
+    def read_statics(self, model, tab, ti):
+        s = model.Summariser
+        try:
+            tab.update(s.Impulses)
+            if tab is self.Last:
+                for sel in self.Observed:
+                    sub = [m.Obs.Last for m in model.select_all(sel).values()]
+                    self.fill_table(sel, tab, sub)
+            elif self.ExtMid:
+                for sel in self.Observed:
+                    sub = [m.Obs.Mid for m in model.select_all(sel).values()]
+                    self.fill_table(sel, tab, sub)
 
-    @property
-    def observation(self):
-        ts = [OrderedDict(v) for v in self.TimeSeries]
-        for m in self.FullObs:
-            ob = self.ObsModels[m]
-            for a, b in zip(ts, ob.TimeSeries):
-                for k, v in b.items():
-                    if k != 'Time':
-                        a['{}@{}'.format(m, k)] = v
+        except AttributeError:
+            return
 
-        if self.All:
-            obs = [ob.TimeSeries for ob in self.ObsModels.values()]
-            obs = [OrderedDict(pd.DataFrame(list(k)).sum()) for k in zip(*obs)]
-
-            for a, b in zip(ts, obs):
-                for k, v in b.items():
-                    if k != 'Time':
-                        a[k] = v
-
-        dat = pd.DataFrame(ts)
-        dat = dat.set_index('Time')
-        return dat
+    @staticmethod
+    def fill_table(sel, tab, sub):
+        dat = pd.DataFrame(sub)
+        tab.update({"{}@{}".format(sel, k): v for k, v in dat.sum().items() if k != 'Time'})
 
 
 class ModelSet(BranchModel):
-    def __init__(self, name, odt=0.5):
-        BranchModel.__init__(self, name, ObsModelSet())
+    def __init__(self, name, odt=0.5, meta=None):
+        BranchModel.__init__(self, name, ObsModelSet(), meta=meta)
         self.Network = dict()
         self.Network[name] = set()
         self.Summariser = Summariser(name, dt=odt)
+        self.Summariser.Employer = self
 
     def __getitem__(self, item):
         return self.Obs[item]
 
     def add_obs_model(self, mod):
-        if mod in self.Models:
-            self.Obs.add_obs_model(mod)
-        elif mod == '*':
-            self.Obs.All = True
+        self.Obs.add_obs_sel(mod)
 
     def append(self, model):
         self.Models[model.Name] = model
-        self.Obs.ObsModels[model.Name] = model.Obs
 
     def read_y0(self, y0, ti):
         for k, v in y0.items():
@@ -87,16 +70,14 @@ class ModelSet(BranchModel):
         for k, model in self.Models.items():
             self.Requests.add([evt.up(k) for evt in model.next])
         self.Summariser.find_next()
-        self.Requests.append_src('Summary', '', self.Summariser.Requests.Time)
+        self.Requests.append_src('Summary', '', self.Summariser.tte)
 
     def do_request(self, req):
         if req.Node == 'Summary':
             ti = req.Time
-            self.update_observation(ti)
             self.cross_impulse(ti)
-            self.update_observation(ti)
-            self.Summariser.Requests.clear()
             self.Summariser.do_request(req)
+            self.Summariser.drop_next()
 
     def link(self, src, tar):
         src = src if isinstance(src, RelationEntry) else RelationEntry(src)
@@ -153,10 +134,25 @@ class ModelSet(BranchModel):
                 mt = self.Models[v]
                 mt.impulse_foreign(ms, ti)
 
-    def push_observation(self, ti):
+    def initialise_observations(self, ti):
         for m in self.Models.values():
-            m.push_observation(ti)
-        BranchModel.push_observation(self, ti)
+            m.initialise_observations(ti)
+        BranchModel.initialise_observations(self, ti)
+
+    def update_observations(self, ti):
+        for m in self.Models.values():
+            m.update_observations(ti)
+        BranchModel.update_observations(self, ti)
+
+    def captureMidTermObservations(self, ti):
+        for m in self.Models.values():
+            m.captureMidTermObservations(ti)
+        BranchModel.captureMidTermObservations(self, ti)
+
+    def push_observations(self, ti):
+        for m in self.Models.values():
+            m.push_observations(ti)
+        BranchModel.push_observations(self, ti)
 
     def to_json(self):
         # todo

@@ -1,5 +1,7 @@
 import re
 import numpy as np
+import pandas as pd
+
 __author__ = 'TimeWz667'
 __all__ = ['ModelSelector']
 
@@ -42,6 +44,9 @@ class ModelSelector:
         for v in self.Models.values():
             return v
 
+    def sum(self, par):
+        return sum([m[par] for m in self.Models.values()])
+
     def sum_up(self, sel, par):
         ss, sp = ModelSelector.parse_selector(sel)
         if not ss:
@@ -59,6 +64,10 @@ class ModelSelector:
         par = par if sp is '*' else '{}({})'.format(par, sp)
 
         return par, np.array(vs).sum()
+
+    def summarise(self):
+        sel = [mod.Obs.Last for mod in self.Models.values()]
+        return pd.DataFrame(sel).sum()
 
     def foreach(self, fn):
         for mod in self.Models.values():
