@@ -28,7 +28,10 @@ class AbsModel(metaclass=ABCMeta):
         return self.Obs[item]
 
     def output(self, mid=False):
-        return self.Obs.Observations
+        if mid:
+            return self.Obs.AdjustedObservations
+        else:
+            return self.Obs.Observations
 
     def read_y0(self, y0, ti):
         pass

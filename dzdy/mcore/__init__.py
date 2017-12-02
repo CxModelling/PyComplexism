@@ -1,6 +1,6 @@
 from .request import *
 from .observer import *
-from .timer import *
+from .ticker import *
 from .selector import *
 from .modelnode import *
 from .simulator import *

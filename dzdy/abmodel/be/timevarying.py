@@ -1,5 +1,5 @@
 from dzdy.abmodel import TimeModBe, GloRateModifier, Event
-from dzdy.mcore import ClockStep, Clock
+from dzdy.mcore import StepTicker, Clock
 from dzdy import StepFn
 import numpy as np
 from scipy import interpolate
@@ -12,7 +12,7 @@ __all__ = ['TimeVarying', 'TimeVaryingInterp', 'TimeStep']
 class TimeVaryingInterp(TimeModBe):
     def __init__(self, name, ts, y, t_tar, dt):
         mod = GloRateModifier(name, t_tar)
-        TimeModBe.__init__(self, name, Clock(by=dt), mod)
+        TimeModBe.__init__(self, name, Clock(dt=dt), mod)
         self.Ts = ts
         self.Y = y
         self.Func = interpolate.interp1d(ts, y, bounds_error=False, fill_value=(y[0], y[-1]))
@@ -62,7 +62,7 @@ class TimeVaryingInterp(TimeModBe):
 class TimeVarying(TimeModBe):
     def __init__(self, name, func, t_tar, dt):
         mod = GloRateModifier(name, t_tar)
-        TimeModBe.__init__(self, name, Clock(by=dt), mod)
+        TimeModBe.__init__(self, name, Clock(dt=dt), mod)
         self.Func = func
         self.Transition = t_tar
         self.Val = 0
@@ -103,7 +103,7 @@ class TimeVarying(TimeModBe):
 class TimeStep(TimeModBe):
     def __init__(self, name, ts, ys, t_tar):
         mod = GloRateModifier(name, t_tar)
-        TimeModBe.__init__(self, name, ClockStep(ts), mod)
+        TimeModBe.__init__(self, name, StepTicker('t', ts), mod)
         self.Step = StepFn(ts, ys)
         self.Transition = t_tar
         self.Val = 0

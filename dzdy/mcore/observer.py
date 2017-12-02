@@ -106,13 +106,14 @@ class Observer(metaclass=ABCMeta):
     def AdjustedObservations(self):
         if not (self.ExtMid or len(self.TimeSeriesMid) is len(self.TimeSeries)):
             self.TimeSeriesMid = list()
+            self.TimeSeriesMid.append(None)
             for f, t in zip(self.TimeSeries[:-1], self.TimeSeries[1:]):
                 ent = OrderedDict()
                 for k in f.keys():
                     ent[k] = (f[k] + t[k])/2
                 self.TimeSeriesMid.append(ent)
 
-        dat = pd.DataFrame(self.TimeSeriesMid)
+        dat = pd.DataFrame(self.TimeSeriesMid[1:])
         dat = dat.set_index('Time')
         return dat
 

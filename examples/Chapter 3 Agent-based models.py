@@ -5,11 +5,11 @@ import dzdy.abmodel as ab
 __author__ = 'TimeWz667'
 
 ctrl = DirectorDCPC()
-ctrl.load_pc('scripts/pSIR.txt')
+ctrl.load_pc('scripts/pSIR_net.txt')
 ctrl.load_dc('scripts/SIR_BN.txt')
 
 
-pc = ctrl.get_pc('pSIR').sample_core()
+pc = ctrl.get_pc('pSIR_net').sample_core()
 dc = ctrl.get_dc('SIR_BN').generate_model(pc)
 
 
@@ -22,7 +22,7 @@ abm.add_obs_state('Inf')
 abm.add_obs_state('Sus')
 abm.add_obs_transition('Infect')
 simulate(abm, {'Sus': 50, 'Inf': 50}, fr=0, to=10)
-print(abm.output())
+print(abm.output(mid=True))
 
 
 ctrl = DirectorDCPC()
@@ -40,10 +40,10 @@ print(abm)
 demo = DemographySimplified('../data/Life_All.csv')
 
 
-install_behaviour(abm, 'BD', 'DemoDynamic', s_birth='Young', s_death='Dead', t_death='Die', demo=demo)
-abm.add_obs_behaviour('BD')
-abm.add_obs_state('Alive')
-abm.add_obs_state('Death')
-abm.add_obs_transition('Die')
-simulate(abm, {'Young': 1000}, fr=0, to=10)
-print(abm.output())
+# install_behaviour(abm, 'BD', 'DemoDynamic', s_birth='Young', s_death='Dead', t_death='Die', demo=demo)
+# abm.add_obs_behaviour('BD')
+# abm.add_obs_state('Alive')
+# abm.add_obs_state('Death')
+# abm.add_obs_transition('Die')
+# simulate(abm, {'Young': 1000}, fr=0, to=10)
+# print(abm.output())

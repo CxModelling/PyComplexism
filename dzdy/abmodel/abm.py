@@ -29,7 +29,8 @@ class ObsABM(Observer):
 
     def update_dynamic_Observations(self, model, flow, ti):
         for tr in self.ObsTr:
-            flow[tr.Name] = sum(rec.Tr == tr for rec in self.Recs)
+            flow[tr.Name] = sum([rec.Tr is tr for rec in self.Recs])
+        self.Recs.clear()
 
     def read_statics(self, model, tab, ti):
         for st in self.ObsSt:

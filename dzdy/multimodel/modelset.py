@@ -58,6 +58,8 @@ class ModelSet(BranchModel):
         self.Models[model.Name] = model
 
     def read_y0(self, y0, ti):
+        if not y0:
+            return
         for k, v in y0.items():
             self.Models[k].read_y0(y0=v, ti=ti)
 
