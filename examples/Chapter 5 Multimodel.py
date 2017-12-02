@@ -48,7 +48,7 @@ lyo.set_observations(['*'])
 
 #flu.link(RelationEntry('B@Inf'), RelationEntry('A@Out'))
 
-mod, out = da.simulate('Flu', fr=0, to=5, fixed=['transmission_rate'])
+mod, out = da.simulate('Flu', fr=0, to=5, fixed=[])
 print(out)
 
 for m in mod.Models.values():

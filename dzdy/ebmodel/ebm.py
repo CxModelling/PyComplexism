@@ -46,7 +46,7 @@ class ODEModel(LeafModel):
         self.PCore = pc
         self.ODE = core
         self.UpdateEnd = 0
-        self.Clock = Clock(by=dt)
+        self.Clock = Clock(dt=dt)
         self.ForeignLinks = list()
         self.Fdt = min(dt, fdt) if fdt else dt
 
@@ -64,7 +64,7 @@ class ODEModel(LeafModel):
         #self.Y = self.ODE.form_ys(self.ODE.Ys)
 
     def reset(self, ti):
-        self.Clock.initialise(ti, ti)
+        self.Clock.initialise(ti)
         self.UpdateEnd = self.TimeEnd = ti
         self.ODE.update(self.Y, ti)
 
@@ -82,7 +82,7 @@ class ODEModel(LeafModel):
             self.go_to(req.Time)
 
     def find_next(self):
-        self.Requests.append(Request(None, self.Clock.get_next()))
+        self.Requests.append(Request(None, self.Clock.Next))
 
     def listen(self, mod_src, par_src, tar, par_tar=None):
         tar = (tar, par_tar) if par_tar else tar

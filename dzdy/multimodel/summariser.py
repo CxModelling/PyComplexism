@@ -17,7 +17,7 @@ class Summariser(LeafModel):
         self.Impulses = OrderedDict()
 
     def find_next(self):
-        self.Requests.append(Request('Summary', self.Clock.get_next()))
+        self.Requests.append(Request('Summary', self.Clock.Next))
 
     def __getitem__(self, item):
         try:
@@ -33,7 +33,7 @@ class Summariser(LeafModel):
         return s
 
     def reset(self, ti):
-        self.Clock.initialise(ti, ti)
+        self.Clock.initialise(ti)
         self.Impulses = OrderedDict()
 
     def read_tasks(self):
