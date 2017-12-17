@@ -173,7 +173,7 @@ class LifeS(TimeBe):
 class LifeLeeCarter(TimeModBe):
     def __init__(self, name, demo, s_birth, s_death, t_death):
         mod = DirectModifier(name, t_death)
-        TimeModBe.__init__(self, name, Clock(by=1), mod, StateTrigger(s_death))
+        TimeModBe.__init__(self, name, Clock(dt=1), mod, StateTrigger(s_death))
         self.Demography = demo
         self.S_death = s_death.Name
         self.S_birth = s_birth
@@ -246,7 +246,7 @@ class LifeLeeCarter(TimeModBe):
 class TimeSeriesLife(TimeModBe):
     def __init__(self, name, demo, s_birth, s_death, t_death):
         mod = GloRateModifier(name, t_death)
-        TimeModBe.__init__(self, name, Clock(by=0.5), mod, StateTrigger(s_death))
+        TimeModBe.__init__(self, name, Clock(dt=0.5), mod, StateTrigger(s_death))
         self.Demography = demo
         self.S_death = s_death.Name
         self.S_birth = s_birth.Name

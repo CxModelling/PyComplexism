@@ -39,8 +39,7 @@ print(evt_test)
 print(state_test.next_transitions())
 print(state_test.next_events())
 while evt_test.Time < 200:
-    print(evt_test.Time)
     state_test = state_test.exec(evt_test.Transition)
     evt_test = state_test.next_event(evt_test.Time)
-    print(state_test)
-    print(evt_test)
+
+    print('State ', state_test, ', Event:', evt_test)

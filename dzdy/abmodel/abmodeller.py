@@ -209,4 +209,3 @@ def install_network(abm, net_name, net_type, logger=None, **kwargs):
         net = ws.create(js, logger=logger)
         abm.add_network(net)
     ws.clear_resources()
-

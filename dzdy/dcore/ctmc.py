@@ -14,6 +14,7 @@ class ModelCTMC(AbsDynamicModel):
         return self.States
 
     def get_reachable(self, sts):
+        # todo
         return self.States
 
     def get_transitions(self, fr):

@@ -14,7 +14,7 @@ class DirectorDCPC:
 
     def __add_pc(self, pc):
         if pc in self.PCores:
-            log.info('Parameter core {} overrided'.format(pc))
+            log.info('Parameter core {} have already existed'.format(pc))
         else:
             log.info('Parameter core {} added'.format(pc))
         self.PCores[pc.Name] = pc
