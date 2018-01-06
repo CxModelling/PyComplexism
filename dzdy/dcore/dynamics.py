@@ -175,11 +175,6 @@ class AbsBlueprint(metaclass=ABCMeta):
     def Name(self):
         return self.__Name
 
-    @staticmethod
-    @abstractstaticmethod
-    def from_json(js):
-        pass
-
     @abstractmethod
     def generate_model(self, pc, name):
         """

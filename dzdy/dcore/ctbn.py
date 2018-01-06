@@ -104,30 +104,8 @@ class ModelCTBN(AbsDynamicModel):
     def exec(self, st, tr):
         return self.Links[st][tr.State]
 
-    def __deepcopy__(self):
-        return BluePrintCTBN.from_json(self.to_json())
-
 
 class BlueprintCTBN(AbsBlueprint):
-    @staticmethod
-    def from_json(js):
-        if isinstance(js, str):
-            js = json.loads(js)
-        bp = BlueprintCTBN(js['ModelName'])
-        if 'Order' in js:
-            for ms in js['Order']:
-                bp.add_microstate(ms, js['Microstates'][ms])
-        for ms, vs in js['Microstates'].items():
-            bp.add_microstate(ms, vs)
-        for st, std in js['States'].items():
-            bp.add_state(st, **std)
-        for tr, trd in js['Transitions'].items():
-            bp.add_transition(tr, trd['To'], trd['Dist'])
-        for fr, trs in js['Targets'].items():
-            for tr in trs:
-                bp.link_state_transition(fr, tr)
-        return bp
-
     def __init__(self, name):
         AbsBlueprint.__init__(self, name)
         self.Microstates = OrderedDict()  # Name -> array of states

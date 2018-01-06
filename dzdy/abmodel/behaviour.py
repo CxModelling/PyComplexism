@@ -1,7 +1,7 @@
 from abc import ABCMeta, abstractmethod, abstractstaticmethod
 from dzdy.abmodel.trigger import *
 from dzdy.dcore import Event
-from dzdy.mcore import Clock
+from dzdy.mcore import AbsTicker
 
 __author__ = 'TimeWz667'
 
@@ -61,7 +61,7 @@ class AbsBehaviour:
 
 
 class TimeDepBe:
-    def __init__(self, clock: Clock):
+    def __init__(self, clock: AbsTicker):
         self.Clock = clock
         self.Nxt = Event.NullEvent
 
@@ -79,7 +79,7 @@ class TimeDepBe:
         return self.Nxt.Time
 
     def find_next(self):
-        ti = self.Clock.get_next()
+        ti = self.Clock.Next
         self.Nxt = self.compose_event(ti)
 
     def assign(self, evt):
@@ -141,7 +141,7 @@ class TimeModBe(TimeDepBe, AbsBehaviour, metaclass=ABCMeta):
 
 
 class TimeBe(TimeDepBe, AbsBehaviour, metaclass=ABCMeta):
-    def __init__(self, name, clock: Clock, tri=Trigger.NullTrigger):
+    def __init__(self, name, clock: AbsTicker, tri=Trigger.NullTrigger):
         TimeDepBe.__init__(self, clock)
         AbsBehaviour.__init__(self, name, tri)
 

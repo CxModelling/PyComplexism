@@ -1,6 +1,6 @@
 from epidag import DirectedAcyclicGraph
 import json
-from dzdy.dcore import build_from_script, build_from_json, BlueprintCTBN, BlueprintCTMC
+from dzdy.dcore import restore_dcore_from_script, restore_dcore_from_json, BlueprintCTBN, BlueprintCTMC
 from dzdy.abmodel import BlueprintABM
 from dzdy.ebmodel import BlueprintCoreODE
 from dzdy.multimodel import ModelLayout
@@ -85,7 +85,7 @@ def read_dc(script):
     :param script: script of dc
     :return: a blueprint of dynamic core
     """
-    return build_from_script(script)
+    return restore_dcore_from_script(script)
 
 
 def load_dc(js):
@@ -94,7 +94,7 @@ def load_dc(js):
     :param js: dc in json
     :return: a blueprint of dynamic core
     """
-    return build_from_json(js)
+    return restore_dcore_from_json(js)
 
 
 def save_dc(dc, path):
