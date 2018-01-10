@@ -3,6 +3,8 @@ from dzdy.abmodel import ModifierSet
 
 __author__ = 'TimeWz667'
 
+__all__ = ['Agent']
+
 
 class Agent:
     def __init__(self, i, st):

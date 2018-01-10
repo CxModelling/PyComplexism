@@ -20,6 +20,7 @@ class Trigger:
     def check_foreign(self, model):
         return False
 
+
 Trigger.NullTrigger = Trigger()
 
 

@@ -139,6 +139,7 @@ class BlueprintCTBN(AbsBlueprint):
         if mst in self.Microstates:
             return False
         self.Microstates[mst] = arr
+        return True
 
     def add_state(self, state, **kwargs):
         if state in self.States:
