@@ -1,8 +1,8 @@
 from dzdy.abmodel.network import *
 from dzdy.abmodel.traits import *
 from dzdy.abmodel.be import *
-from factory.manager import getWorkshop
-import factory.arguments as vld
+from epidag.factory import get_workshop
+import epidag.factory.arguments as vld
 import logging
 
 __author__ = 'TimeWz667'
@@ -12,21 +12,21 @@ __all__ = []
 logger = logging.getLogger(__name__)
 
 # Network library
-NetworkLibrary = getWorkshop('Networks')
+NetworkLibrary = get_workshop('Networks')
 NetworkLibrary.register('BA', NetworkBA, [vld.PositiveInteger('m')])
 NetworkLibrary.register('GNP', NetworkGNP, [vld.Prob('p')])
 NetworkLibrary.register('Category', NetworkProb, [vld.Prob('p')])
 logger.info('Network library (Networks) loaded')
 
 # Trait library
-TraitLibrary = getWorkshop('Traits')
+TraitLibrary = get_workshop('Traits')
 TraitLibrary.register('Binary', TraitBinary, [vld.Prob('prob'), vld.List('tf', 2)])
 TraitLibrary.register('Distribution', TraitDistribution, [vld.RegExp('dist', r'\w+\(')])
 TraitLibrary.register('Category', TraitCategory, [vld.ProbTab('kv')])
 logger.info('Trait library (Traits) loaded')
 
 # Behaviour library
-BehaviourLibrary = getWorkshop('ABM_BE')
+BehaviourLibrary = get_workshop('ABM_BE')
 
 BehaviourLibrary.register('Cohort', Cohort, [vld.Options('s_death', 'states')])
 BehaviourLibrary.register('Reincarnation', Reincarnation,

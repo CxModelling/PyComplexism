@@ -1,4 +1,3 @@
-import json
 from itertools import product
 from collections import OrderedDict
 from dzdy.dcore.dynamics import *
@@ -240,7 +239,7 @@ class BlueprintCTBN(AbsBlueprint):
 
         trs = dict()
         for name, tr in self.Transitions.items():
-            trs[name] = Transition(name, sts[tr['To']], pc.get_distribution(tr['Dist']))
+            trs[name] = Transition(name, sts[tr['To']], pc.get_sampler(tr['Dist']))
 
         tars = {sts[wd]: list() for wd in wds}
         for fr, ts in self.Targets.items():

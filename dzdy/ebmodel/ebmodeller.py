@@ -1,7 +1,7 @@
 from dzdy.ebmodel import *
 from dzdy.mcore import AbsBlueprintMCore
 from copy import deepcopy
-from factory import getWorkshop
+from epidag.factory import get_workshop
 from collections import namedtuple
 
 __author__ = 'TimeWz667'
@@ -36,7 +36,7 @@ class BlueprintCoreODE(AbsBlueprintMCore):
         mc = CoreODE(dc)
         mod = ODEModel(name, mc, pc=pc, meta=meta, **self.Arguments)
 
-        ws = getWorkshop('EBM_BE')
+        ws = get_workshop('EBM_BE')
         resources = {
             'states': list(dc.States.keys()),
             'transitions': list(dc.Transitions.keys())

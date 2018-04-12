@@ -1,6 +1,6 @@
 from abc import ABCMeta, abstractmethod
-from factory.manager import getWorkshop
-import factory.arguments as vld
+from epidag.factory import get_workshop
+import epidag.factory.arguments as vld
 
 __author__ = 'TimeWz667'
 __all__ = ['Clock', 'AbsTicker', 'ClockTicker', 'StepTicker', 'AppointmentTicker']
@@ -116,7 +116,7 @@ class AppointmentTicker(AbsTicker):
         return float('inf')
 
 
-TickerLibrary = getWorkshop('Ticker')
+TickerLibrary = get_workshop('Ticker')
 TickerLibrary.register('Clock', ClockTicker, [vld.Prob('dt')])
 TickerLibrary.register('Step', StepTicker, [vld.List('ts')])
 TickerLibrary.register('Appointment', AppointmentTicker, [vld.List('queue')])

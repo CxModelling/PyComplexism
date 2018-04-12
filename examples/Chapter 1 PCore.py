@@ -1,4 +1,4 @@
-from epidag import DirectedAcyclicGraph
+import epidag as dag
 
 __author__ = 'TimeWz667'
 
@@ -13,19 +13,24 @@ PCore ABC{
 }
 """
 
-pc = DirectedAcyclicGraph(script).get_simulation_model()
+bn = dag.bn_from_script(script)
 print('Blueprint of the parameter core')
-print(pc)
+print(bn)
 
 
 # Implement a parameter core
-pc1 = pc.sample_core()
+res = dag.sample(bn)
 print('PC based on the blueprint')
-print(pc1)
 
-tr = pc1['TrAB']
-print('Get distribution of TrAB from the PC')
-print(tr)
+for k, v in res.items():
+    print(k, ': ', v)
+
+print()
+
+sc = dag.as_simulation_core(bn)
+
+pc = sc.generate('pc')
 
 print('Sample a value from TrAB')
-print(tr.sample())
+tr = pc.get_sampler('TrAB')
+print(tr())

@@ -1,7 +1,7 @@
 from dzdy.ebmodel.eqbehaviour import *
 import logging
-from factory import getWorkshop
-import factory.arguments as vld
+from epidag.factory import get_workshop
+import epidag.factory.arguments as vld
 
 __author__ = 'TimeWz667'
 __all__ = []
@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 
 # Behaviour library
-EBMBehaviourLibrary = getWorkshop('EBM_BE')
+EBMBehaviourLibrary = get_workshop('EBM_BE')
 
 EBMBehaviourLibrary.register('Multiplier', Multiplier, [vld.Options('t_tar', 'transitions')])
 

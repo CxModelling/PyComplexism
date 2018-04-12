@@ -1,7 +1,7 @@
 from dzdy.abmodel import AgentBasedModel, MetaABM
 from dzdy.mcore import AbsBlueprintMCore
 from copy import deepcopy
-from factory import getWorkshop
+from epidag.factory import get_workshop
 import logging
 
 
@@ -64,21 +64,21 @@ class BlueprintABM(AbsBlueprintMCore):
         resources.update(pc.Locus)
         # lock
 
-        ws = getWorkshop('ABM_BE')
+        ws = get_workshop('ABM_BE')
         ws.renew_resources(resources)
         for be in self.Behaviours:
             be = ws.create(be, logger=logger)
             mod.add_behaviour(be)
         ws.clear_resources()
 
-        ws = getWorkshop('Traits')
+        ws = get_workshop('Traits')
         ws.renew_resources(resources)
         for trt in self.Traits:
             trt = ws.create(trt, logger=logger)
             mod.add_trait(trt)
         ws.clear_resources()
 
-        ws = getWorkshop('Networks')
+        ws = get_workshop('Networks')
         ws.renew_resources(resources)
         for net in self.Networks:
             net = ws.create(net, logger=logger)
@@ -181,31 +181,31 @@ def form_resources(abm):
     return resources
 
 
-def install_behaviour(abm, be_name, be_type, logger=None, **kwargs):
+def install_behaviour(abm, be_name, be_type, log=None, **kwargs):
     js = {'Name': be_name, 'Type': be_type, 'Args': dict(kwargs)}
-    ws = getWorkshop('ABM_BE')
+    ws = get_workshop('ABM_BE')
     ws.renew_resources(form_resources(abm))
-    if ws.validate(js, logger=logger):
-        be = ws.create(js, logger=logger)
+    if ws.validate(js, logger=log):
+        be = ws.create(js, logger=log)
         abm.add_behaviour(be)
     ws.clear_resources()
 
 
-def install_trait(abm, trt_name, trt_type, logger=None, **kwargs):
+def install_trait(abm, trt_name, trt_type, log=None, **kwargs):
     js = {'Name': trt_name, 'Type': trt_type, 'Args': dict(kwargs)}
-    ws = getWorkshop('Traits')
+    ws = get_workshop('Traits')
     ws.renew_resources(form_resources(abm))
-    if ws.validate(js, logger=logger):
-        trt = ws.create(js, logger=logger)
+    if ws.validate(js, logger=log):
+        trt = ws.create(js, logger=log)
         abm.add_trait(trt)
     ws.clear_resources()
 
 
-def install_network(abm, net_name, net_type, logger=None, **kwargs):
+def install_network(abm, net_name, net_type, log=None, **kwargs):
     js = {'Name': net_name, 'Type': net_type, 'Args': dict(kwargs)}
-    ws = getWorkshop('Networks')
+    ws = get_workshop('Networks')
     ws.renew_resources(form_resources(abm))
-    if ws.validate(js, logger=logger):
-        net = ws.create(js, logger=logger)
+    if ws.validate(js, logger=log):
+        net = ws.create(js, logger=log)
         abm.add_network(net)
     ws.clear_resources()

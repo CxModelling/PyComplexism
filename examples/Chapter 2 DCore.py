@@ -1,10 +1,10 @@
-from dzdy.dcore import *
-from epidag import DirectedAcyclicGraph
+import dzdy as dy
+import epidag as dag
 
 __author__ = 'TimeWz667'
 
 
-bp = BlueprintCTMC('Test')
+bp = dy.BlueprintCTMC('Test')
 print(bp.to_json())
 
 bp.add_state('A')
@@ -33,10 +33,11 @@ PCore ABC{
 """
 
 # Get blueprint of simulation core
-sm = DirectedAcyclicGraph(script).get_simulation_model()
+bn = dag.bn_from_script(script)
+sm = dag.as_simulation_core(bn)
 
 # Sample root nodes
-pc = sm.sample_core()
+pc = sm.generate('pc')
 
 # Use pc to generate a dynamic core
 dc = bp.generate_model(pc, 'Test1')

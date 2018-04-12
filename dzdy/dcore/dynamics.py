@@ -1,4 +1,4 @@
-from abc import abstractmethod, abstractstaticmethod, ABCMeta
+from abc import abstractmethod, ABCMeta
 
 
 class Event:
@@ -41,12 +41,13 @@ class Transition:
         self.Dist = dist
         self.State = st
 
-    def rand(self):
+    def rand(self, parents=None):
         """
         Randomly sample a time to event
+        :param: dict; parent nodes
         :return: float: time to event
         """
-        return self.Dist.sample()
+        return self.Dist(parents)
 
     def __repr__(self):
         return 'Tr(Name: {}, To: {}, By: {})'.format(self.Name, self.State, str(self.Dist))

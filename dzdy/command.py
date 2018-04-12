@@ -1,4 +1,4 @@
-from epidag import DirectedAcyclicGraph
+import epidag as dag
 import json
 from dzdy.dcore import restore_dcore_from_script, restore_dcore_from_json, BlueprintCTBN, BlueprintCTMC
 from dzdy.abmodel import BlueprintABM
@@ -58,7 +58,7 @@ def read_pc(script):
     :param script: script of pc
     :return: a blueprint of parameter core
     """
-    return DirectedAcyclicGraph(script).get_simulation_model()
+    return dag.bn_from_script(script)
 
 
 def load_pc(js):
@@ -67,7 +67,7 @@ def load_pc(js):
     :param js: json object
     :return: a blueprint of parameter core
     """
-    return DirectedAcyclicGraph.from_json(js).get_simulation_model()
+    return dag.bn_from_json(js)
 
 
 def save_pc(pc, path):

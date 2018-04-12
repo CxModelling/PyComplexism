@@ -114,7 +114,7 @@ class BlueprintCTMC(AbsBlueprint):
         sts = {k: State(k) for k in self.States}
         trs = dict()
         for name, tr in self.Transitions.items():
-            trs[name] = Transition(name, sts[tr['To']], pc.get_distribution(tr['Dist']))
+            trs[name] = Transition(name, sts[tr['To']], pc.get_sampler(tr['Dist']))
 
         tars = {stv: [trs[tar] for tar in self.Targets[stk]] for stk, stv in sts.items()}
 
