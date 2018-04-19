@@ -1,5 +1,5 @@
 import unittest
-from dzdy import *
+from complexism import *
 
 
 class ConstantObs(Observer):
