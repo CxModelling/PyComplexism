@@ -1,9 +1,10 @@
 from setuptools import setup
 
 
-setup(name='Kamanian',
+setup(name='PyComplexism',
       version='2.0.0',
       packages=['complexism',
+                'complexism.misc',
                 'complexism.dcore',
                 'complexism.mcore',
                 'complexism.abmodel',

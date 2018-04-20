@@ -1,5 +1,5 @@
 import epidag as dag
-import json
+from complexism.misc.IO import *
 from complexism.dcore import restore_dcore_from_script, restore_dcore_from_json, BlueprintCTBN, BlueprintCTMC
 from complexism.abmodel import BlueprintABM
 from complexism.ebmodel import BlueprintCoreODE
@@ -9,8 +9,7 @@ from complexism.mcore import Simulator
 __author__ = 'TimeWz667'
 
 
-__all__ = ['load_txt', 'load_json', 'save_json',
-           'read_pc', 'load_pc', 'save_pc',
+__all__ = ['read_pc', 'load_pc', 'save_pc',
            'read_dc', 'load_dc', 'save_dc', 'new_dc',
            'generate_pc', 'generate_dc', 'generate_pc_dc',
            'load_mc', 'save_mc', 'new_mc', 'generate_model', 'copy_model',
@@ -20,36 +19,6 @@ __all__ = ['load_txt', 'load_json', 'save_json',
            'add_core_ode_behaviour',
            'load_layout', 'save_layout', 'new_layout', 'add_layout_entry', 'generate_multimodel',
            'simulate', 'update']
-
-
-def load_txt(path):
-    """
-    Load txt file given path
-    :param path: path of a txt file
-    :return: string of the txt file
-    """
-    with open(path, 'r') as f:
-        return str(f.read())
-
-
-def load_json(path):
-    """
-    Load json file given path
-    :param path: path of a json file
-    :return: json of the json file
-    """
-    with open(path, 'r') as f:
-        return json.load(f)
-
-
-def save_json(js, path):
-    """
-    Save a dictionary into a json file
-    :param js: json-formatted object
-    :param path: file path
-    """
-    with open(path, 'w') as f:
-        json.dump(js, f)
 
 
 def read_pc(script):
