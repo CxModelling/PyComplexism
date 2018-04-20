@@ -46,6 +46,9 @@ class Request:
     def __le__(self, ot):
         return self.Time <= ot.Time
 
+    def __eq__(self, ot):
+        return self.Time == ot.Time
+
 
 Request.NullRequest = Request('', float('inf'))
 
