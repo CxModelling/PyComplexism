@@ -1,5 +1,6 @@
 import unittest
 from complexism.element import *
+from epidag.factory import get_workshop
 
 
 class EventTestCase(unittest.TestCase):
@@ -123,6 +124,49 @@ class RequestSetTestCase(unittest.TestCase):
 
         self.assertEqual(len(rsu), 1)
         self.assertEqual(rsu.Requests[0], self.Req5)
+
+
+class TickerTestCase(unittest.TestCase):
+    def setUp(self):
+        self.TickerLib = get_workshop('Ticker')
+
+    def test_step(self):
+        tk = self.TickerLib.from_json({'Name': '', 'Type': 'Step', 'Args': {'dt': 0.5}})
+        tk.initialise(0)
+        ti = tk.Next
+        self.assertEqual(ti, 0.5)
+        tk.update(ti)
+        ti = tk.Next
+        self.assertEqual(ti, 1)
+
+    def test_schedule(self):
+        tk = self.TickerLib.from_json({'Name': '', 'Type': 'Schedule',
+                                      'Args': {'ts': [0.4, 0.6]}})
+        tk.initialise(0)
+        ti = tk.Next
+        self.assertEqual(ti, 0.4)
+        tk.update(ti)
+        ti = tk.Next
+        self.assertEqual(ti, 0.6)
+
+    def test_appointment(self):
+        tk = self.TickerLib.from_json({'Name': '', 'Type': 'Appointment',
+                                       'Args': {'queue': [-5, 0.4, 0.6]}})
+        tk.initialise(0)
+        ti = tk.Next
+        self.assertEqual(ti, 0.4)
+        tk.update(ti)
+        ti = tk.Next
+        self.assertEqual(ti, 0.6)
+
+        tk.make_an_appointment(0.5)
+        ti = tk.Next
+        self.assertEqual(ti, 0.5)
+
+        tk.update(ti)
+        tk.make_an_appointment(0.45)
+        ti = tk.Next
+        self.assertEqual(ti, 0.6)
 
 
 if __name__ == '__main__':

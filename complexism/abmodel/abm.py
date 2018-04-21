@@ -1,4 +1,5 @@
-from complexism.mcore import Observer, LeafModel, Request
+from complexism.mcore import Observer, LeafModel
+from complexism.element import Request
 from complexism.abmodel import Population, ForeignShock, ForeignAddShock
 from collections import namedtuple, OrderedDict
 

@@ -1,5 +1,5 @@
 from complexism.abmodel import RealTimeBehaviour, StateInTrigger, StateTrigger, TimeBe, TimeModBe, DirectModifier, GloRateModifier
-from complexism.mcore import Clock
+from complexism.element import Clock
 from complexism.dcore import Event
 from complexism.util import DemographySimplified
 import numpy as np

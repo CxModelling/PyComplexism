@@ -1,4 +1,5 @@
-from complexism.mcore import Observer, LeafModel, Clock, Request
+from complexism.mcore import Observer, LeafModel
+from complexism.element import Clock, Request
 from scipy.integrate import odeint
 import numpy as np
 from copy import deepcopy

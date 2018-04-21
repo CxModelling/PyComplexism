@@ -1,4 +1,5 @@
-from complexism import Request, Clock, LeafModel
+from complexism import LeafModel
+from complexism.element import Request, Clock
 from collections import OrderedDict, namedtuple
 
 __author__ = 'TimeWz667'
