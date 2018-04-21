@@ -10,6 +10,6 @@ setup(name='PyComplexism',
                 'complexism.abmodel',
                 'complexism.ebmodel',
                 'complexism.multimodel'],
-      install_requires=['pandas', 'numpy', 'scipy', 'matplotlib',
+      install_requires=['pandas', 'nuympy', 'scipy', 'matplotlib',
                         'networkx', 'PyEpiDAG'],
       )

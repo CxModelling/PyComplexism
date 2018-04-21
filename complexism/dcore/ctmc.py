@@ -1,10 +1,11 @@
 import json
-from complexism.dcore.dynamics import *
+from .statespace import State, Transition, AbsStateSpaceModel
+from .dynamics import AbsBlueprint
 
 
-class ModelCTMC(AbsDynamicModel):
+class ModelCTMC(AbsStateSpaceModel):
     def __init__(self, name, sts, trs, tars, js):
-        AbsDynamicModel.__init__(self, name, js)
+        AbsStateSpaceModel.__init__(self, name, js)
         self.States = sts
         self.Transitions = trs
         self.Targets = tars
@@ -35,10 +36,10 @@ class ModelCTMC(AbsDynamicModel):
     def __getitem__(self, item):
         return self.States[item]
 
-    def exec(self, st, evt):
-        return evt.State
+    def execute(self, st, evt):
+        return evt.Todo.State
 
-    def __deepcopy__(self):
+    def clone(self, *args, **kwargs):
         return BlueprintCTMC.from_json(self.to_json())
 
 
@@ -104,25 +105,20 @@ class BlueprintCTMC(AbsBlueprint):
         js['Targets'] = self.Targets
         return js
 
-    def __repr__(self):
-        return str(self.to_json())
-
-    def __str__(self):
-        return str(self.to_json())
-
-    def generate_model(self, pc, mn=None):
+    def generate_model(self, name=None, *args, **kwargs):
+        pc = kwargs['PC']
         sts = {k: State(k) for k in self.States}
         trs = dict()
-        for name, tr in self.Transitions.items():
-            trs[name] = Transition(name, sts[tr['To']], pc.get_sampler(tr['Dist']))
+        for k, tr in self.Transitions.items():
+            trs[k] = Transition(k, sts[tr['To']], pc.get_sampler(tr['Dist']))
 
         tars = {stv: [trs[tar] for tar in self.Targets[stk]] for stk, stv in sts.items()}
 
-        mn = mn if mn else self.Name
+        name = name if name else self.Name
 
         js = self.to_json()
 
-        mod = ModelCTMC(mn, sts, trs, tars, js)
+        mod = ModelCTMC(name, sts, trs, tars, js)
         for val in sts.values():
             val.Model = mod
         return mod

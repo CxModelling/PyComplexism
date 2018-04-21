@@ -1,7 +1,7 @@
 from itertools import product
 from collections import OrderedDict
-from complexism.dcore.dynamics import *
-
+from .dynamics import AbsBlueprint
+from .statespace import State, Transition, AbsStateSpaceModel
 __author__ = 'TimeWz667'
 
 
@@ -54,9 +54,9 @@ class MicroNode:
         return iter(self.MicroStates)
 
 
-class ModelCTBN(AbsDynamicModel):
+class ModelCTBN(AbsStateSpaceModel):
     def __init__(self, name, mss, sts, wds, subs, ls, trs, tars, js):
-        AbsDynamicModel.__init__(self, name, js)
+        AbsStateSpaceModel.__init__(self, name, js)
         self.Microstates = mss
         self.States = sts
         self.WellDefinedStates = wds
@@ -100,11 +100,18 @@ class ModelCTBN(AbsDynamicModel):
     def __getitem__(self, item):
         return self.States[item]
 
-    def exec(self, st, tr):
-        return self.Links[st][tr.State]
+    def execute(self, st, evt):
+        return self.Links[st][evt.Todo.State]
+
+    def clone(self, *args, **kwargs):
+        return BlueprintCTBN.from_json(self.to_json())
 
 
 class BlueprintCTBN(AbsBlueprint):
+    @staticmethod
+    def from_json(js):
+        pass
+
     def __init__(self, name):
         AbsBlueprint.__init__(self, name)
         self.Microstates = OrderedDict()  # Name -> array of states
@@ -202,7 +209,9 @@ class BlueprintCTBN(AbsBlueprint):
     def __repr__(self):
         return str(self.to_json())
 
-    def generate_model(self, pc, mn=None):
+    def generate_model(self, name=None, *args, **kwargs):
+        pc = kwargs['PC']
+        mn = name if name else self.Name
         mss = {k: MicroNode(k, v) for k, v in self.Microstates.items()}
 
         def align_sts(det):
@@ -247,8 +256,6 @@ class BlueprintCTBN(AbsBlueprint):
             for k, v in tars.items():
                 if fr in subs[k]:
                     v += [trs[tr] for tr in ts]
-
-        mn = mn if mn else self.Name
 
         js = self.to_json()
 

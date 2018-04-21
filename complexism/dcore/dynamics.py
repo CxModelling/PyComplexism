@@ -1,108 +1,43 @@
 from abc import abstractmethod, ABCMeta
+from complexism.element import Event
 
 
-class Event:
-    NullEvent = None
-
-    def __init__(self, tr, ti):
-        """
-        Transition with specific event time
-        :param tr:
-        :param ti:
-        """
-        self.Time = ti
-        self.Transition = tr
-
-    def __gt__(self, ot):
-        return self.Time > ot.Time
-
-    def __le__(self, ot):
-        return self.Time <= ot.Time
-
-    def __repr__(self):
-        return 'Event(Transition: {}, Time: {})'.format(self.Transition, self.Time)
-
-    def __str__(self):
-        return '{}: {}'.format(self.Transition, self.Time)
+__author__ = 'TimeWz667'
+__all__ = ['Stock', 'AbsDynamicModel', 'AbsBlueprint']
 
 
-Event.NullEvent = Event(None, float('inf'))
-
-
-class Transition:
-    def __init__(self, name, st, dist):
-        """
-        Transition
-        :param name: Name
-        :param st: State after transition happening
-        :param dist: probability object with function rvs -> random time
-        """
-        self.Name = name
-        self.Dist = dist
-        self.State = st
-
-    def rand(self, parents=None):
-        """
-        Randomly sample a time to event
-        :param: dict; parent nodes
-        :return: float: time to event
-        """
-        return self.Dist(parents)
-
-    def __repr__(self):
-        return 'Tr(Name: {}, To: {}, By: {})'.format(self.Name, self.State, str(self.Dist))
-
-    def __str__(self):
-        return 'Tr(Name: {}, To: {}, By: {})'.format(self.Name, self.State, str(self.Dist))
-
-
-class State:
+class Stock(metaclass=ABCMeta):
     def __init__(self, name, mod=None):
+        """
+        A static valuable of current status
+        :param name: name of the stock value
+        :type name: str
+        :param mod: source model of this stock value
+        """
         self.Name = name
         self.Model = mod
 
-    def next_transition(self, to):
+    @abstractmethod
+    def next_event(self, ti=0, attr=None):
         """
-        :param to: target transition
-        :return: tuple(transition, time), time = inf if 'to' impossible to be reached
+        Find the next event
+        :param ti: current time
+        :type ti: float, int
+        :param attr: external attributes for querying next events
+        :type attr: dict
+        :return: the nearest events
+        :rtype: Event
         """
-        return self.Model.get_transition(self, to)
+        return
 
-    def next_transitions(self):
-        """
-        :return: list(transition)
-        """
-        return self.Model.get_transitions(self)
-
-    def next_events(self, ti=0):
-        trs = self.next_transitions()
-        return [Event(tr, tr.rand()+ti) for tr in trs]
-
-    def next_event(self, ti=0):
-        es = self.next_events(ti)
-        if es:
-            return min(es)
-        else:
-            return Event.NullEvent
-
-    def exec(self, tr):
+    def execute(self, evt):
         """
         Find the state after transition
-        :param tr: event waited for execution
+        :param evt: event waited for execution
+        :type evt: Event
         :return: next state
         """
-        return self.Model.exec(self, tr)
-
-    def isa(self, sub):
-        """
-        Check whether the sub is the sub-state or not
-        :param sub: state,
-        :return: bool, true if sub is a part of self
-        """
-        return self.Model.isa(self, sub)
-
-    def __contains__(self, sub):
-        return self.Model.isa(self, sub)
+        return self.Model.execute(self, evt)
 
     def __repr__(self):
         return str(self.Name)
@@ -125,50 +60,55 @@ class AbsDynamicModel(metaclass=ABCMeta):
 
     @abstractmethod
     def __getitem__(self, item):
+        """
+
+        :param item:
+        :return:
+        """
+        return self.compose_stock(key=item)
+
+    @abstractmethod
+    def compose_stock(self, key):
+        """
+        Compose a stock value with a given key
+        :param key:
+        :return: a stock value
+        :rtype: Stock
+        """
         pass
 
     @abstractmethod
-    def get_reachable(self, sts):
-        pass
-
-    @abstractmethod
-    def get_transition_space(self):
-        pass
-
-    @abstractmethod
-    def get_state_space(self):
-        pass
-
-    @abstractmethod
-    def get_transition(self, fr, to):
-        pass
-
-    @abstractmethod
-    def get_transitions(self, fr):
-        pass
-
-    @abstractmethod
-    def exec(self, st, tr):
+    def execute(self, st, evt):
         """
         Execute event based on state
-        :param st: state
-        :param tr: transition
-        :return: next state
+        :param st: stock
+        :type st: Stock
+        :param evt: an event to be executes
+        :type evt: Event
+        :return: next stock value
+        :rtype: Stock
         """
-        pass
-
-    @abstractmethod
-    def isa(self, s0, s1):
         pass
 
     def to_json(self):
+        """
+        Convert the model to json format
+        :return: JSON form
+        """
         return self.__JSON
+
+    @abstractmethod
+    def clone(self, *args, **kwargs):
+        pass
 
     def __repr__(self):
         return str(self.to_json())
 
 
 class AbsBlueprint(metaclass=ABCMeta):
+    """
+    A blueprint of model structure without declaring all parameters
+    """
     def __init__(self, name):
         self.__Name = name
 
@@ -177,17 +117,20 @@ class AbsBlueprint(metaclass=ABCMeta):
         return self.__Name
 
     @abstractmethod
-    def generate_model(self, pc, name):
+    def generate_model(self, name=Name, *args, **kwargs):
         """
         use a parameter core to generate a dynamic model
-        :param name: name of dynamic core
-        :param pc: parameter core with all transition pdf
+        :param name: name of dynamic model
         :return: a dynamic core
         """
         pass
 
     @abstractmethod
     def to_json(self):
+        """
+        Convert the model structure to json format
+        :return: JSON form
+        """
         pass
 
     def __repr__(self):
