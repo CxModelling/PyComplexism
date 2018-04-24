@@ -1,4 +1,5 @@
 import json
+import epidag as dag
 from .statespace import State, Transition, AbsStateSpaceModel
 from .dynamics import AbsBlueprint
 
@@ -85,6 +86,9 @@ class BlueprintCTMC(AbsBlueprint):
         if not dist:
             dist = tr
 
+        if tr in self.Transitions:
+            return False
+
         self.Transitions[tr] = {'To': to, 'Dist': dist}
         return True
 
@@ -96,6 +100,9 @@ class BlueprintCTMC(AbsBlueprint):
         self.Targets[state].append(tr)
         return True
 
+    def find_required_distributions(self):
+        return [k for k, v in self.Transitions.items() if v['Dist'].find('(') < 0]
+
     def to_json(self):
         js = dict()
         js['ModelType'] = 'CTMC'
@@ -106,11 +113,26 @@ class BlueprintCTMC(AbsBlueprint):
         return js
 
     def generate_model(self, name=None, *args, **kwargs):
-        pc = kwargs['PC']
+        try:
+            dis = {di: kwargs[di] for di in self.find_required_distributions()}
+        except KeyError as e:
+            raise e
+
         sts = {k: State(k) for k in self.States}
         trs = dict()
         for k, tr in self.Transitions.items():
-            trs[k] = Transition(k, sts[tr['To']], pc.get_sampler(tr['Dist']))
+            di = tr['Dist']
+            try:
+                di = dis[di]
+            except KeyError:
+                try:
+                    di = dag.parse_distribution(di)
+                except KeyError:
+                    raise TypeError('Unknown distribution')
+                except TypeError:
+                    raise TypeError('Unmatched parameters')
+
+            trs[k] = Transition(k, sts[tr['To']], di)
 
         tars = {stv: [trs[tar] for tar in self.Targets[stk]] for stk, stv in sts.items()}
 

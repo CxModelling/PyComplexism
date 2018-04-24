@@ -28,7 +28,7 @@ class Transition:
         :return: time to event
         :rtype: float
         """
-        return self.Dist(attr)
+        return self.Dist.sample(attr)
 
     def __repr__(self):
         return 'Tr(Name: {}, To: {}, By: {})'.format(self.Name, self.State, str(self.Dist))
@@ -62,7 +62,7 @@ class State(Stock):
         Find possible events to occur
         :param ti: current time
         :type ti: float, int
-        :param attr: extenal attributes for querying next events
+        :param attr: external attributes for querying next events
         :type attr: dict
         :return: list of candidate events
         :rtype: list
@@ -100,7 +100,7 @@ class State(Stock):
         return self.Model.isa(self, sub)
 
 
-class AbsStateSpaceModel(metaclass=ABCMeta, AbsDynamicModel):
+class AbsStateSpaceModel(AbsDynamicModel, metaclass=ABCMeta):
     """
     Abstract class of dynamic model. This class and its offspring would never expose to agent
     """

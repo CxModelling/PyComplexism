@@ -11,7 +11,10 @@ class TestCTMC(unittest.TestCase):
                 TrCA ~ k(100)
             }
             """
-        self.BP = BluePrintCTMC('Test', psc)
+        self.BP = cx.BluePrintCTMC('Test', psc)
+
+
+
 
     def test_write_bp(self):
         self.BP.add_state('A')

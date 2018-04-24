@@ -1,4 +1,4 @@
-from complexism.dcore import Event
+from complexism.element import Event
 from complexism.abmodel import ModifierSet
 
 __author__ = 'TimeWz667'

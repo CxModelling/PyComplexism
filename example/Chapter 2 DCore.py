@@ -1,10 +1,10 @@
-import dzdy as dy
+import complexism as cx
 import epidag as dag
 
 __author__ = 'TimeWz667'
 
 
-bp = dy.BlueprintCTMC('Test')
+bp = cx.BlueprintCTMC('Test')
 print(bp.to_json())
 
 bp.add_state('A')
@@ -38,9 +38,9 @@ sm = dag.as_simulation_core(bn)
 
 # Sample root nodes
 pc = sm.generate('pc')
-
+print(pc.Actors.keys())
 # Use pc to generate a dynamic core
-dc = bp.generate_model(pc, 'Test1')
+dc = bp.generate_model('Test1', **pc.Actors)
 
 print(dc)
 

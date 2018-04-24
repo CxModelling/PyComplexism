@@ -1,7 +1,6 @@
 from abc import ABCMeta, abstractmethod, abstractstaticmethod
 from complexism.abmodel.trigger import *
-from complexism.dcore import Event
-from complexism.element import AbsTicker
+from complexism.element import AbsTicker, Event
 
 __author__ = 'TimeWz667'
 
