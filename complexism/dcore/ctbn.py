@@ -217,8 +217,12 @@ class BlueprintCTBN(AbsBlueprint):
         return str(self.to_json())
 
     def generate_model(self, name=None, *args, **kwargs):
-        pc = kwargs['PC']
-        mn = name if name else self.Name
+        try:
+            dis = {di: kwargs[di] for di in self.find_required_distributions()}
+        except KeyError as e:
+            raise e
+
+        name = name if name else self.Name
         mss = {k: MicroNode(k, v) for k, v in self.Microstates.items()}
 
         def align_sts(det):
@@ -231,10 +235,10 @@ class BlueprintCTBN(AbsBlueprint):
             arr = [(k, v) for k, v in zip(self.Microstates.keys(), st) if v]
             od = OrderedDict(arr)
             try:
-                name = nat[str(od)]
+                st_name = nat[str(od)]
             except KeyError:
-                name = '[{}]'.format(', '.join('{}={}'.format(*v) for v in arr))
-                nat[str(od)] = name
+                st_name = '[{}]'.format(', '.join('{}={}'.format(*v) for v in arr))
+                nat[str(od)] = st_name
             ad = [mss[k][v] for k, v in od.items()]
             iat[name] = ad, od
 
@@ -254,8 +258,19 @@ class BlueprintCTBN(AbsBlueprint):
             ls[sts[fr]] = lif
 
         trs = dict()
-        for name, tr in self.Transitions.items():
-            trs[name] = Transition(name, sts[tr['To']], pc.get_sampler(tr['Dist']))
+        for k, tr in self.Transitions.items():
+            di = tr['Dist']
+            try:
+                di = dis[di]
+            except KeyError:
+                try:
+                    di = dag.parse_distribution(di)
+                except KeyError:
+                    raise TypeError('Unknown distribution')
+                except TypeError:
+                    raise TypeError('Unmatched parameters')
+
+            trs[k] = Transition(k, sts[tr['To']], di)
 
         tars = {sts[wd]: list() for wd in wds}
         for fr, ts in self.Targets.items():
@@ -266,7 +281,7 @@ class BlueprintCTBN(AbsBlueprint):
 
         js = self.to_json()
 
-        mod = ModelCTBN(mn, mss, sts, wds, subs, ls, trs, tars, js)
+        mod = ModelCTBN(name, mss, sts, wds, subs, ls, trs, tars, js)
         for val in sts.values():
             val.Model = mod
         return mod
