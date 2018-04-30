@@ -161,6 +161,10 @@ class BlueprintCTBN(AbsBlueprint):
         self.add_state(to)
         if not dist:
             dist = tr
+
+        if tr in self.Transitions:
+            return False
+
         self.Transitions[tr] = {'To': to, 'Dist': dist}
         return True
 
@@ -194,6 +198,9 @@ class BlueprintCTBN(AbsBlueprint):
             raise e
         else:
             return True
+
+    def find_required_distributions(self):
+        return [k for k, v in self.Transitions.items() if v['Dist'].find('(') < 0]
 
     def to_json(self):
         js = dict()
