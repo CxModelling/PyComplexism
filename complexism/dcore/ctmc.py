@@ -47,9 +47,6 @@ class ModelCTMC(AbsStateSpaceModel):
 class BlueprintCTMC(AbsBlueprint):
     @staticmethod
     def from_json(js):
-        if isinstance(js, str):
-            js = json.loads(js)
-
         bp = BlueprintCTMC(js['ModelName'])
         for st in js['States']:
             bp.add_state(st)

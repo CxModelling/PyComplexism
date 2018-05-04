@@ -1,3 +1,4 @@
+import epidag as dag
 from itertools import product
 from collections import OrderedDict
 from .dynamics import AbsBlueprint
@@ -110,7 +111,20 @@ class ModelCTBN(AbsStateSpaceModel):
 class BlueprintCTBN(AbsBlueprint):
     @staticmethod
     def from_json(js):
-        pass
+        bp = BlueprintCTBN(js['ModelName'])
+        if 'Order' in js:
+            for ms in js['Order']:
+                bp.add_microstate(ms, js['Microstates'][ms])
+        for ms, vs in js['Microstates'].items():
+            bp.add_microstate(ms, vs)
+        for st, std in js['States'].items():
+            bp.add_state(st, **std)
+        for tr, trd in js['Transitions'].items():
+            bp.add_transition(tr, trd['To'], trd['Dist'])
+        for fr, trs in js['Targets'].items():
+            for tr in trs:
+                bp.link_state_transition(fr, tr)
+        return bp
 
     def __init__(self, name):
         AbsBlueprint.__init__(self, name)
@@ -120,16 +134,33 @@ class BlueprintCTBN(AbsBlueprint):
         self.Targets = dict()  # StateName -> TransitionNames
 
     def add_microstate(self, mst, arr):
+        """
+        Add a group of microstates
+        :param mst: the name of the microstates group
+        :type mst: str
+        :param arr: an array of microstates
+        :type arr: list
+        :return:
+        """
         if mst in self.Microstates:
             return False
         self.Microstates[mst] = arr
+        return True
 
     def add_state(self, state, **kwargs):
+        """
+        Add a state which is a composition of microstate
+        :param state: name of the state
+        :type state: str
+        :param kwargs: a dictionary of microstates with keys of micro group and values of microstate
+        :return:
+        """
         if state in self.States:
             return False
 
         if not kwargs:
             return False
+
         mss = dict()
         for k in self.Microstates.keys():
             if k not in kwargs:
@@ -139,8 +170,7 @@ class BlueprintCTBN(AbsBlueprint):
                 if v in self.Microstates[k]:
                     mss[k] = v
                 else:
-                    raise KeyError('Microstate does not exist')
-
+                    raise KeyError('Microstate {} does not exist'.format(v))
             else:
                 try:
                     mss[k] = self.Microstates[k][v]
@@ -158,12 +188,12 @@ class BlueprintCTBN(AbsBlueprint):
         :param dist: name of distribution, need to be in the parameter core
         :return: true if succeed
         """
+        if tr in self.Transitions:
+            return False
+
         self.add_state(to)
         if not dist:
             dist = tr
-
-        if tr in self.Transitions:
-            return False
 
         self.Transitions[tr] = {'To': to, 'Dist': dist}
         return True
@@ -238,9 +268,9 @@ class BlueprintCTBN(AbsBlueprint):
                 st_name = nat[str(od)]
             except KeyError:
                 st_name = '[{}]'.format(', '.join('{}={}'.format(*v) for v in arr))
-                nat[str(od)] = st_name
+            nat[str(od)] = st_name
             ad = [mss[k][v] for k, v in od.items()]
-            iat[name] = ad, od
+            iat[st_name] = ad, od
 
         sts = {k: State(k) for k in iat.keys()}
         wds = [k for k, v in iat.items() if len(v[1]) == len(mss)]

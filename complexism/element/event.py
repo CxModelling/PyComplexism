@@ -14,6 +14,9 @@ class Event:
         self.Time = ti
         self.Todo = todo
 
+    def __call__(self, *args, **kwargs):
+        return self.Todo
+
     def __gt__(self, ot):
         return self.Time > ot.Time
 

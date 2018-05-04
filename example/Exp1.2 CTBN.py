@@ -1,19 +1,21 @@
-from dzdy.dcore import *
-import pcore
+import epidag as dag
+import complexism as cx
 
 __author__ = 'TimeWz667'
 
 psc = """
-    {
+    PCore SIR {
         Infect ~ exp(0.4)
         Recov ~ exp(0.2)
         Die ~ exp(0.02)
     }
     """
 
-pc = pcore.DirectedAcyclicGraph(psc).get_simulation_model().sample_core()
+bn = dag.bn_from_script(psc)
+sm = dag.as_simulation_core(bn)
+pc = sm.generate()
 
-bp_test = BluePrintCTBN('SIR')
+bp_test = cx.BlueprintCTBN('SIR')
 bp_test.add_microstate('sir', ['S', 'I', 'R'])
 bp_test.add_microstate('life', ['Alive', 'Dead'])
 
@@ -29,7 +31,7 @@ bp_test.link_state_transition('Sus', 'Infect')
 bp_test.link_state_transition('Inf', 'Recov')
 bp_test.link_state_transition('Alive', 'Die')
 
-md_test = bp_test.generate_model(pc)
+md_test = bp_test.generate_model(**pc.Actors)
 print(md_test)
 
 state_test = md_test['Sus']
@@ -41,7 +43,7 @@ print(state_test.next_events())
 
 while evt_test.Time < 200:
     print(evt_test.Time)
-    state_test = state_test.exec(evt_test.Transition)
+    state_test = state_test.execute(evt_test)
     evt_test = state_test.next_event(evt_test.Time)
     print(state_test)
     print(evt_test)

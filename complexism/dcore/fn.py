@@ -1,5 +1,6 @@
 import re
-from complexism.dcore import BlueprintCTBN, BlueprintCTMC
+from .ctbn import BlueprintCTBN
+from .ctmc import BlueprintCTMC
 
 __author__ = 'TimeWz667'
 __all__ = ['restore_dcore_from_json', 'restore_dcore_from_script']
@@ -61,35 +62,6 @@ def script_to_json(scr):
     return js
 
 
-def restore_CTBN_from_json(js):
-    bp = BlueprintCTBN(js['ModelName'])
-    if 'Order' in js:
-        for ms in js['Order']:
-            bp.add_microstate(ms, js['Microstates'][ms])
-    for ms, vs in js['Microstates'].items():
-        bp.add_microstate(ms, vs)
-    for st, std in js['States'].items():
-        bp.add_state(st, **std)
-    for tr, trd in js['Transitions'].items():
-        bp.add_transition(tr, trd['To'], trd['Dist'])
-    for fr, trs in js['Targets'].items():
-        for tr in trs:
-            bp.link_state_transition(fr, tr)
-    return bp
-
-
-def restore_CTMC_from_json(js):
-    bp = BlueprintCTMC(js['ModelName'])
-    for st in js['States']:
-        bp.add_state(st)
-    for tr, trd in js['Transitions'].items():
-        bp.add_transition(tr, trd['To'], trd['Dist'])
-    for fr, trs in js['Targets'].items():
-        for tr in trs:
-            bp.link_state_transition(fr, tr)
-    return bp
-
-
 def restore_dcore_from_json(js):
     try:
         m = js['ModelType']
@@ -97,10 +69,9 @@ def restore_dcore_from_json(js):
         raise KeyError('Model type is not identifiable')
 
     if m == 'CTBN':
-        return restore_CTBN_from_json(js)
+        return BlueprintCTBN.from_json(js)
     elif m == 'CTMC':
-        return restore_CTMC_from_json(js)
-
+        return BlueprintCTMC.from_json(js)
     raise KeyError('Model type does not exist')
 
 
