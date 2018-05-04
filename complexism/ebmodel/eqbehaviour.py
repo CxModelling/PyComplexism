@@ -1,5 +1,5 @@
 from abc import ABCMeta, abstractmethod, abstractstaticmethod
-from complexism import StepFn
+
 
 __author__ = 'TimeWz667'
 

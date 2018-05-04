@@ -1,6 +1,7 @@
 import epidag as dag
-from complexism.misc.IO import *
-from complexism.dcore import restore_dcore_from_script, restore_dcore_from_json, BlueprintCTBN, BlueprintCTMC
+from complexism.misc import *
+from .dcore.fn import *
+from .dcore import BlueprintCTMC, BlueprintCTBN
 from complexism.abmodel import BlueprintABM
 from complexism.ebmodel import BlueprintCoreODE
 from complexism.multimodel import ModelLayout
@@ -9,7 +10,8 @@ from complexism.mcore import Simulator
 __author__ = 'TimeWz667'
 
 
-__all__ = ['read_pc', 'load_pc', 'save_pc',
+__all__ = ['load_txt', 'load_json',
+           'read_pc', 'load_pc', 'save_pc',
            'read_dc', 'load_dc', 'save_dc', 'new_dc',
            'generate_pc', 'generate_dc', 'generate_pc_dc',
            'load_mc', 'save_mc', 'new_mc', 'generate_model', 'copy_model',

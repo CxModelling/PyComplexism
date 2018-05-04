@@ -1,4 +1,5 @@
 import complexism as cx
+import complexism.misc as misc
 import epidag as dag
 
 __author__ = 'TimeWz667'
@@ -50,3 +51,7 @@ state_a = dc['A']
 print(state_a)
 
 print(state_a.next_transitions())
+
+dc = cx.read_dc(misc.load_txt('scripts/BAD.txt'))
+
+print(dc)

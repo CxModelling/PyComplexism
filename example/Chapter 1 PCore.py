@@ -1,4 +1,5 @@
 import epidag as dag
+import complexism as cx
 
 __author__ = 'TimeWz667'
 
@@ -34,3 +35,8 @@ pc = sc.generate('pc')
 print('Sample a value from TrAB')
 tr = pc.get_sampler('TrAB')
 print(tr())
+
+
+dc = cx.read_dc(cx.load_txt('scripts/BAD.txt'))
+
+print(dc)

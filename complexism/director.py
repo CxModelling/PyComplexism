@@ -1,4 +1,4 @@
-from complexism.command import *
+from complexism.fn import *
 from json import JSONDecodeError
 import logging
 
