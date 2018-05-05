@@ -1,15 +1,118 @@
+from complexism.element import Event, RequestSet
 from complexism.mcore import *
 from abc import ABCMeta, abstractmethod
 
 __author__ = 'TimeWz667'
 
 
-__all__ = ['LeafModel', 'BranchModel']
+__all__ = ['ModelAtom', 'LeafModel', 'BranchModel']
+
+
+class ModelAtom(metaclass=ABCMeta):
+    def __init__(self, name, pars=None):
+        self.Name = name
+        self.Parameters = pars
+        self.Attributes = dict()
+        self.__next = Event.NullEvent
+
+    def __getitem__(self, item):
+        try:
+            return self.Parameters[item]
+        except (KeyError, AttributeError):
+            pass
+
+        try:
+            return self.Attributes[item]
+        except KeyError as e:
+            raise e
+
+    def __setitem__(self, key, value):
+        self.Attributes[key] = value
+
+    @property
+    @abstractmethod
+    def Next(self):
+        if self.__next is Event.NullEvent:
+            self.__next = self.find_next()
+        return self.__next
+
+    @property
+    def TTE(self):
+        """
+        Time to the next event
+        :return: time to the next event
+        :rtype: float
+        """
+        return self.__next.Time
+
+    @abstractmethod
+    def find_next(self):
+        """
+        Find the next event and assign it to self.__next
+        :return: next event
+        :rtype: Event
+        """
+        pass
+
+    def drop_next(self):
+        """
+        Drop the next event and reset it to the null event
+        """
+        self.__next = Event.NullEvent
+
+    def fetch_event(self, evt):
+        """
+        Assign an event to the particle
+        :param evt: event to be executed
+        :type evt: Event
+        """
+        self.__next = evt
+
+    @abstractmethod
+    def execute_event(self):
+        """
+        Let the next event happen
+        """
+        pass
+
+    @abstractmethod
+    def initialise(self, *args, **kwargs):
+        pass
+
+    @abstractmethod
+    def reset(self, *args, **kwargs):
+        pass
+
+    @abstractmethod
+    def shock(self, source, target, value, time):
+        pass
+
+    def is_matched(self, **kwargs):
+        for k, v in kwargs.items():
+            if self.Attributes[k] != v:
+                return False
+        return True
+
+    @abstractmethod
+    def detail(self, *args, **kwargs):
+        pass
+
+    def to_json(self):
+        js = dict()
+        js['Name'] = self.Name
+        js['Attributes'] = dict(self.Attributes)
+        return js
+
+    def to_snapshot(self):
+        return self.to_json()
+
+    @abstractmethod
+    def clone(self, *args, **kwargs):
+        pass
 
 
 class AbsModel(metaclass=ABCMeta):
-    def __init__(self, name, obs: Observer, meta=None):
-        self.Meta = meta
+    def __init__(self, name, obs: Observer):
         self.Name = name
         self.Obs = obs
         self.Requests = RequestSet()
@@ -36,17 +139,17 @@ class AbsModel(metaclass=ABCMeta):
     def read_y0(self, y0, ti):
         pass
 
-    def listen(self, src_model, src_value, par_target):
+    def listen(self, source, target, value):
         pass
 
     @property
-    def next(self):
+    def Next(self):
         if self.Requests.is_empty():
             self.find_next()
         return self.Requests.Requests
 
     @property
-    def tte(self):
+    def TTE(self):
         return self.Requests.Time
 
     def drop_next(self):
@@ -57,11 +160,11 @@ class AbsModel(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def fetch(self, rs):
+    def fetch_requests(self, rs):
         pass
 
     @abstractmethod
-    def exec(self):
+    def execute_requests(self):
         pass
 
     @abstractmethod
@@ -86,22 +189,22 @@ class AbsModel(metaclass=ABCMeta):
 
 
 class LeafModel(AbsModel, metaclass=ABCMeta):
-    def __init__(self, name, obs, meta=None):
-        AbsModel.__init__(self, name, obs, meta)
+    def __init__(self, name, obs):
+        AbsModel.__init__(self, name, obs)
 
-    def fetch(self, rs):
+    def fetch_requests(self, rs):
         self.Requests.clear()
-        self.Requests.add(rs)
+        self.Requests.append_request(rs)
 
-    def exec(self):
+    def execute_requests(self):
         for req in self.Requests:
             self.do_request(req)
         self.drop_next()
 
 
 class BranchModel(AbsModel, metaclass=ABCMeta):
-    def __init__(self, name, obs, meta=None):
-        AbsModel.__init__(self, name, obs, meta)
+    def __init__(self, name, obs):
+        AbsModel.__init__(self, name, obs)
         self.Models = dict()
 
     def select(self, mod):
@@ -110,9 +213,9 @@ class BranchModel(AbsModel, metaclass=ABCMeta):
     def select_all(self, sel):
         return ModelSelector(self.Models).select_all(sel)
 
-    def fetch(self, res):
+    def fetch_requests(self, res):
         self.Requests.clear()
-        self.Requests.add(res)
+        self.Requests.append_requests(res)
         self.pass_down()
 
     def pass_down(self):
@@ -128,13 +231,13 @@ class BranchModel(AbsModel, metaclass=ABCMeta):
         for k, v in nest.items():
             self.select(k).fetch(v)
 
-    def exec(self):
+    def execute_requests(self):
         for req in self.Requests:
             self.do_request(req)
 
         for v in self.Models.values():
-            if v.tte == self.tte:
-                v.exec()
+            if v.TTE == self.TTE:
+                v.execute_requests()
         self.drop_next()
 
     @abstractmethod

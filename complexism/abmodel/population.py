@@ -1,4 +1,4 @@
-from complexism.abmodel import Agent, NetworkSet, TraitSet
+from complexism.abmodel import GenericAgent, NetworkSet, TraitSet
 import pandas as pd
 from collections import OrderedDict
 

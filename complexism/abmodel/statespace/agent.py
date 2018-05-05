@@ -1,13 +1,44 @@
-from complexism.mcore import ModelAtom
 from complexism.element import Event
-from abc import abstractmethod, ABCMeta
+from complexism.abmodel import ModifierSet
 
 __author__ = 'TimeWz667'
 
 
-class GenericAgent(ModelAtom, metaclass=ABCMeta):
-    def __init__(self, name, pars=None):
-        ModelAtom.__init__(self, name, pars)
+class Agent:
+    def __init__(self, i, st):
+        self.Name = i
+        self.Info = dict()
+        self.State = st
+        self.Trans = dict()  # Transition -> time
+        self.Mods = ModifierSet()
+        self.Next = Event.NullEvent
+
+    def __getitem__(self, item):
+        try:
+            return self.Info[item]
+        except KeyError:
+            if item == 'State':
+                return self.State
+            else:
+                raise KeyError('No this attribute')
+
+    def __setitem__(self, key, value):
+        self.Info[key] = value
+
+    def update_info(self, info, force=True):
+        for k, v in info.items():
+            if k not in self.Info or force:
+                self.Info[k] = v
+
+    @property
+    def next(self):
+        if self.Next is Event.NullEvent:
+            self.Next = self.find_next()
+        return self.Next
+
+    @property
+    def tte(self):
+        return self.next.Time
 
     def find_next(self):
         if self.Trans:
@@ -15,9 +46,34 @@ class GenericAgent(ModelAtom, metaclass=ABCMeta):
         else:
             return Event.NullEvent
 
+    def drop_next(self):
+        self.Next = Event.NullEvent
+
+    def add_mod(self, mod):
+        self.Mods[mod.Name] = mod
+
     def initialise(self, ti):
         self.Trans.clear()
         self.update(ti)
+
+    def assign(self, evt):
+        """
+        Assign an event which is ready to be executed
+        Args:
+            evt: event
+
+        """
+        self.Next = evt
+
+    def exec(self, evt):
+        """
+        Execute an event directly
+        Args:
+            evt: event
+
+        """
+        if evt is not Event.NullEvent:
+            self.State = self.State.exec(evt.Transition)
 
     def update(self, ti):
         """
