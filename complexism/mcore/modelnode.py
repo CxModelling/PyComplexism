@@ -18,7 +18,7 @@ class ModelAtom(metaclass=ABCMeta):
     def __getitem__(self, item):
         try:
             return self.Parameters[item]
-        except (KeyError, AttributeError):
+        except (KeyError, AttributeError, TypeError):
             pass
 
         try:
@@ -30,7 +30,6 @@ class ModelAtom(metaclass=ABCMeta):
         self.Attributes[key] = value
 
     @property
-    @abstractmethod
     def Next(self):
         if self.__next is Event.NullEvent:
             self.__next = self.find_next()
@@ -76,26 +75,24 @@ class ModelAtom(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def initialise(self, *args, **kwargs):
+    def initialise(self, time, *args, **kwargs):
         pass
 
     @abstractmethod
-    def reset(self, *args, **kwargs):
+    def reset(self, time, *args, **kwargs):
         pass
 
-    @abstractmethod
-    def shock(self, source, target, value, time):
+    def shock(self, time, source, target, value):
         pass
 
-    def is_matched(self, **kwargs):
+    def is_compatible(self, **kwargs):
         for k, v in kwargs.items():
             if self.Attributes[k] != v:
                 return False
         return True
 
-    @abstractmethod
     def detail(self, *args, **kwargs):
-        pass
+        print(self.to_json())
 
     def to_json(self):
         js = dict()
