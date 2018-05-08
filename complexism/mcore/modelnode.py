@@ -91,9 +91,6 @@ class ModelAtom(metaclass=ABCMeta):
                 return False
         return True
 
-    def detail(self, *args, **kwargs):
-        print(self.to_json())
-
     def to_json(self):
         js = dict()
         js['Name'] = self.Name

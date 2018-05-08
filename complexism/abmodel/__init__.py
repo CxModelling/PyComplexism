@@ -1,5 +1,6 @@
 from complexism.abmodel.modifier import *
 from complexism.abmodel.agent import *
+from complexism.abmodel.statespace import *
 from complexism.abmodel.traits import *
 from complexism.abmodel.network import *
 from complexism.abmodel.population import *
