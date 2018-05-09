@@ -1,6 +1,6 @@
 from complexism.abmodel.behaviour import *
 from complexism.abmodel.trigger import *
-from complexism.abmodel.modifier import *
+from abmodel.statespace.modifier import *
 import numpy.random as rd
 
 __author__ = 'TimeWz667'

@@ -1,6 +1,6 @@
 from complexism.mcore import Observer, LeafModel
 from complexism.element import Request
-from complexism.abmodel import ForeignShock, ForeignAddShock, GenericAgent
+from complexism.abmodel import GenericAgent
 from collections import namedtuple, OrderedDict, Counter
 
 

@@ -37,10 +37,9 @@ sm = dag.as_simulation_core(bn,
                                  'agent': ['Recov', 'Die', 'Infect']})
 
 dc = cx.read_dc(dsc)
-
 Gene = sm.generate()
-proto = Gene.breed('proto_agent_M1', 'agent')
-SIR = dc.generate_model('M1', **Gene.get_child_actors('agent'))
+proto = Gene.get_prototype('agent')
+SIR = dc.generate_model('M1', **proto.get_samplers())
 
 
 def step(agent):
@@ -60,5 +59,4 @@ if __name__ == '__main__':
     while ti < 100:
         ti = step(ag)
         print('Time:', ti)
-
         print('Agent is a {}'.format(ag.State))

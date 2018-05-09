@@ -1,5 +1,5 @@
 from complexism.abmodel.network import *
-from complexism.abmodel.traits import *
+# from complexism.abmodel.traits import *
 from complexism.abmodel.be import *
 from epidag.factory import get_workshop
 import epidag.factory.arguments as vld
@@ -19,11 +19,11 @@ NetworkLibrary.register('Category', NetworkProb, [vld.Prob('p')])
 logger.info('Network library (Networks) loaded')
 
 # Trait library
-TraitLibrary = get_workshop('Traits')
-TraitLibrary.register('Binary', TraitBinary, [vld.Prob('prob'), vld.List('tf', 2)])
-TraitLibrary.register('Distribution', TraitDistribution, [vld.RegExp('dist', r'\w+\(')])
-TraitLibrary.register('Category', TraitCategory, [vld.ProbTab('kv')])
-logger.info('Trait library (Traits) loaded')
+# TraitLibrary = get_workshop('Traits')
+# TraitLibrary.register('Binary', TraitBinary, [vld.Prob('prob'), vld.List('tf', 2)])
+# TraitLibrary.register('Distribution', TraitDistribution, [vld.RegExp('dist', r'\w+\(')])
+# TraitLibrary.register('Category', TraitCategory, [vld.ProbTab('kv')])
+# logger.info('Trait library (Traits) loaded')
 
 # Behaviour library
 BehaviourLibrary = get_workshop('ABM_BE')

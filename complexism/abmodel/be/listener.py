@@ -1,5 +1,5 @@
 from complexism.abmodel.behaviour import *
-from complexism.abmodel.modifier import *
+from abmodel.statespace.modifier import *
 __author__ = 'TimeWz667'
 
 

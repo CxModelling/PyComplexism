@@ -100,6 +100,7 @@ class Observer(metaclass=ABCMeta):
     def Observations(self):
         dat = pd.DataFrame(self.TimeSeries)
         dat = dat.set_index('Time')
+        dat = dat.fillna(0)
         return dat
 
     @property
@@ -115,6 +116,7 @@ class Observer(metaclass=ABCMeta):
 
         dat = pd.DataFrame(self.TimeSeriesMid[1:])
         dat = dat.set_index('Time')
+        dat = dat.fillna(0)
         return dat
 
     def output_csv(self, file, mid=False):

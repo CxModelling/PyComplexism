@@ -1,7 +1,9 @@
+from complexism.misc import NameGenerator
 from complexism.mcore import ModelAtom
 from abc import ABCMeta, abstractmethod
 
 __author__ = 'TimeWz667'
+__all__ = ['GenericAgent', 'GenericBreeder']
 
 
 class GenericAgent(ModelAtom, metaclass=ABCMeta):
@@ -20,4 +22,46 @@ class GenericAgent(ModelAtom, metaclass=ABCMeta):
         :param time: current time
         :type time: float
         """
+        pass
+
+
+class GenericBreeder(metaclass=ABCMeta):
+    def __init__(self, name, group, pc_parent, **kwargs):
+        self.Name = name
+        self.Group = group
+        self.GenName = NameGenerator(name, 1, 1)
+        self.PCore = pc_parent.get_prototype(group)
+        self.Exo = kwargs
+
+    def breed(self, n=1, **kwargs):
+        """
+        Breed new agents
+        :param n: population size to breed
+        :param kwargs: attributes to be attached
+        :return: a list of new agents
+        :rtype: list
+        """
+        sts, ats = self._filter_attributes(kwargs)
+
+        ags = list()
+        for i in range(int(n)):
+            name = self.GenName.get_next()
+            pars = self.PCore.get_sibling(name, self.Exo)
+            ag = self._new_agent(name, pars, **sts)
+            ag.Attributes.update(ats)
+            ags.append(ag)
+        return ags
+
+    @abstractmethod
+    def _filter_attributes(self, kw):
+        """
+        Separate status from attributes
+        :param kw: keyword arguments
+        :return: status, attributes
+        :rtype: (dict, dict)
+        """
+        pass
+
+    @abstractmethod
+    def _new_agent(self, name, pars, **kwargs):
         pass
