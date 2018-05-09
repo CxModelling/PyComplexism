@@ -42,8 +42,7 @@ pc = sm.generate()
 dc = cx.read_dc(dsc)
 
 Name = 'M1'
-Gene = pc
-proto = pc.breed('proto_agent_{}'.format('M1'), 'agent')
+proto = pc.breed('proto_agent_{}'.format(Name), 'agent')
 
 
 class StateSpaceAgentTestCase(unittest.TestCase):
@@ -62,7 +61,7 @@ class StateSpaceAgentTestCase(unittest.TestCase):
 
     def test_transition(self):
         self.Agent.State = self.DC['Sus']
-        self.Agent.initialise(time= 100)
+        self.Agent.initialise(time=100)
         nxt = self.Agent.Next
         nxt.Todo = self.DC.Transitions['Infect']
 

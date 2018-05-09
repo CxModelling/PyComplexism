@@ -3,14 +3,14 @@ import epidag as dag
 
 
 psc = """
-    PCore pSIR {
-        beta = 0.4
-        gamma = 0.5
-        Infect ~ exp(beta)
-        Recov ~ exp(0.5)
-        Die ~ exp(0.02)
-    }
-    """
+PCore pSIR {
+    beta = 0.4
+    gamma = 0.5
+    Infect ~ exp(beta)
+    Recov ~ exp(0.5)
+    Die ~ exp(0.02)
+}
+"""
 
 dsc = """
 CTBN SIR {
@@ -36,14 +36,11 @@ sm = dag.as_simulation_core(bn,
                             hie={'city': ['agent'],
                                  'agent': ['Recov', 'Die', 'Infect']})
 
-pc = sm.generate()
-
 dc = cx.read_dc(dsc)
 
-Name = 'M1'
-Gene = pc
-proto = pc.breed('proto_agent_{}'.format('M1'), 'agent')
-SIR = dc.generate_model(Name, **pc.get_child_actors('agent'))
+Gene = sm.generate()
+proto = Gene.breed('proto_agent_M1', 'agent')
+SIR = dc.generate_model('M1', **Gene.get_child_actors('agent'))
 
 
 def step(agent):
