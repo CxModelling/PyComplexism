@@ -6,8 +6,8 @@ __all__ = ['StSpAgent']
 
 
 class StSpAgent(GenericAgent):
-    def __init__(self, name, st):
-        GenericAgent.__init__(self, name)
+    def __init__(self, name, st, pars=None):
+        GenericAgent.__init__(self, name, pars)
         self.State = st
         self.Transitions = dict()
         self.Modifiers = ModifierSet()
