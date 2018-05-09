@@ -1,4 +1,4 @@
-from complexism.mcore import *
+from complexism.element import RequestSet
 import numpy.random as rd
 import numpy as np
 
@@ -37,15 +37,15 @@ class Simulator:
         self.Model.drop_next()
         self.Receptor.clear()
         while tx < end:
-            self.Receptor.add(self.Model.next)
+            self.Receptor.append_requests(self.Model.Next)
 
             ti = self.Receptor.Time
             if ti > end:
                 break
             tx = ti
             rqs = self.Receptor.Requests
-            self.Model.fetch(rqs)
-            self.Model.exec()
+            self.Model.fetch_requests(rqs)
+            self.Model.execute_requests()
             self.Model.drop_next()
             self.Receptor.clear()
 

@@ -12,6 +12,15 @@ class StSpAgent(GenericAgent):
         self.Transitions = dict()
         self.Modifiers = ModifierSet()
 
+    def __getitem__(self, item):
+        try:
+            return GenericAgent.__getitem__(self, item)
+        except KeyError as e:
+            if item == 'State':
+                return self.State
+            else:
+                raise e
+
     def initialise(self, time=0, **kwargs):
         self.Transitions.clear()
         self.update_time(time)
@@ -90,10 +99,9 @@ class StSpAgent(GenericAgent):
 
     def clone(self, dc_new=None):
         if dc_new:
-            ag_new = Agent(self.Name, dc_new[self.State.Name])
+            ag_new = StSpAgent(self.Name, dc_new[self.State.Name])
             for tr, tte in self.Transitions.items():
-                ag_new.Trans[dc_new.Transitions[tr.Name]] = tte
-
+                ag_new.Transitions[dc_new.Transitions[tr.Name]] = tte
         else:
             ag_new = StSpAgent(self.Name, self.State)
 
@@ -112,8 +120,13 @@ class StSpAgent(GenericAgent):
         js['State'] = self.State.Name
         return js
 
+    def to_data(self):
+        dat = GenericAgent.to_data(self)
+        dat['State'] = self.State.Name
+        return dat
 
-class Agent:
+
+class AgentOld:
     def __init__(self, i, st):
         self.Name = i
         self.Info = dict()

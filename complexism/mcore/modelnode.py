@@ -100,6 +100,12 @@ class ModelAtom(metaclass=ABCMeta):
     def to_snapshot(self):
         return self.to_json()
 
+    def to_data(self):
+        dat = dict()
+        dat['Name'] = self.Name
+        dat.update(self.Attributes)
+        return dat
+
     @abstractmethod
     def clone(self, *args, **kwargs):
         pass
@@ -188,7 +194,7 @@ class LeafModel(AbsModel, metaclass=ABCMeta):
 
     def fetch_requests(self, rs):
         self.Requests.clear()
-        self.Requests.append_request(rs)
+        self.Requests.append_requests(rs)
 
     def execute_requests(self):
         for req in self.Requests:
