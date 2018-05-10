@@ -1,29 +1,10 @@
-from complexism.abmodel.network import *
-# from complexism.abmodel.traits import *
-from complexism.abmodel.be import *
+from complexism.agentbased.be import *
 from epidag.factory import get_workshop
 import epidag.factory.arguments as vld
-import logging
 
 __author__ = 'TimeWz667'
 __all__ = []
 
-
-logger = logging.getLogger(__name__)
-
-# Network library
-NetworkLibrary = get_workshop('Networks')
-NetworkLibrary.register('BA', NetworkBA, [vld.PositiveInteger('m')])
-NetworkLibrary.register('GNP', NetworkGNP, [vld.Prob('p')])
-NetworkLibrary.register('Category', NetworkProb, [vld.Prob('p')])
-logger.info('Network library (Networks) loaded')
-
-# Trait library
-# TraitLibrary = get_workshop('Traits')
-# TraitLibrary.register('Binary', TraitBinary, [vld.Prob('prob'), vld.List('tf', 2)])
-# TraitLibrary.register('Distribution', TraitDistribution, [vld.RegExp('dist', r'\w+\(')])
-# TraitLibrary.register('Category', TraitCategory, [vld.ProbTab('kv')])
-# logger.info('Trait library (Traits) loaded')
 
 # Behaviour library
 BehaviourLibrary = get_workshop('ABM_BE')
@@ -57,9 +38,13 @@ BehaviourLibrary.register('ComDDShockFast', ComDDShockFast,
                           [vld.Options('t_tar', 'transitions'), vld.Options('s_src', 'states'),
                            vld.PositiveFloat('dt', opt=True, default=0.5)])
 BehaviourLibrary.register('NerfDecision', NerfDecision,
-                          [vld.Options('t_tar', 'transitions'), vld.Options('s_src', 'states'), vld.Prob('prob')])
+                          [vld.Options('t_tar', 'transitions'),
+                           vld.Options('s_src', 'states'),
+                           vld.Prob('prob')])
 BehaviourLibrary.register('BuffDecision', BuffDecision,
-                          [vld.Options('t_tar', 'transitions'), vld.Options('s_src', 'states'), vld.Prob('prob')])
+                          [vld.Options('t_tar', 'transitions'),
+                           vld.Options('s_src', 'states'),
+                           vld.Prob('prob')])
 BehaviourLibrary.register('ComWeightSumShock', ComWeightSumShock,
                           [vld.Options('t_tar', 'transitions'), vld.Options('s_src', 'states'),
                            vld.ProbTab('weight'), vld.PositiveFloat('dt', opt=True, default=0.5)])
@@ -75,11 +60,6 @@ BehaviourLibrary.register('NetWeightShock', NetWeightShock,
 BehaviourLibrary.register('TimeStep', TimeStep,
                           [vld.Options('t_tar', 'transitions'), vld.List('ys'), vld.List('ts')])
 BehaviourLibrary.register('ForeignShock', ForeignShock,
-                          [vld.Options('t_tar', 'transitions'), vld.String('mod_src', opt=True), vld.String('mod_src', opt=True)])
-
-logger.info('ABM Behaviour library (ABM_BE) loaded')
-
-
-if __name__ == '__main__':
-    print(NetworkLibrary.get_form('BA'))
-    print(TraitLibrary.get_form('Binary'))
+                          [vld.Options('t_tar', 'transitions'),
+                           vld.String('mod_src', opt=True),
+                           vld.String('mod_src', opt=True)])

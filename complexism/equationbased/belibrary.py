@@ -1,4 +1,4 @@
-from complexism.ebmodel.eqbehaviour import *
+from .eqbehaviour import *
 import logging
 from epidag.factory import get_workshop
 import epidag.factory.arguments as vld

@@ -1,4 +1,4 @@
-from complexism.abmodel import AgentBasedModel, MetaABM
+from complexism.agentbased import AgentBasedModel, MetaABM
 from complexism.mcore import AbsBlueprintMCore
 from copy import deepcopy
 from epidag.factory import get_workshop

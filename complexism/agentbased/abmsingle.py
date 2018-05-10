@@ -1,6 +1,6 @@
 from complexism.mcore import Observer, LeafModel
 from complexism.element import Request
-from complexism.abmodel import GenericAgent
+from complexism.agentbased import GenericAgent
 from collections import namedtuple, OrderedDict, Counter
 
 
@@ -8,7 +8,7 @@ __author__ = 'TimeWz667'
 __all__ = ['SingleIndividualABM']
 
 
-RecordABM = namedtuple('RecordABM', ('Tr', 'Time'))
+Record = namedtuple('Record', ('Tr', 'Time'))
 
 
 class ObsSingleAgent(Observer):
@@ -32,7 +32,7 @@ class ObsSingleAgent(Observer):
             model.Behaviours[be].fill(tab, model, ti)
 
     def record(self, tr, ti):
-        self.Recs.append(RecordABM(tr.Name, ti))
+        self.Recs.append(Record(tr.Name, ti))
 
 
 class SingleIndividualABM(LeafModel):

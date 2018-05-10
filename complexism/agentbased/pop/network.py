@@ -1,5 +1,7 @@
 import networkx as nx
 from numpy.random import random, choice, shuffle
+from epidag.factory import get_workshop
+import epidag.factory.arguments as vld
 from abc import ABCMeta, abstractmethod
 
 __author__ = 'TimeWizard'
@@ -311,6 +313,12 @@ class NetworkSet:
 
     def __str__(self):
         return '[{}]'.format('\n'.join(['\t{}: {}'.format(*it) for it in self.Nets.items()]))
+
+
+NetworkLibrary = get_workshop('Networks')
+NetworkLibrary.register('BA', NetworkBA, [vld.PositiveInteger('m')])
+NetworkLibrary.register('GNP', NetworkGNP, [vld.Prob('p')])
+NetworkLibrary.register('Category', NetworkProb, [vld.Prob('p')])
 
 
 if __name__ == '__main__':

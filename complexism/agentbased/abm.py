@@ -1,14 +1,12 @@
 from complexism.mcore import Observer, LeafModel
 from complexism.element import Request
-from complexism.abmodel import Population, ForeignShock, ForeignAddShock
+from complexism.agentbased import Population
 from collections import namedtuple, OrderedDict
 
 __author__ = 'TimeWz667'
-__all__ = ['MetaABM', 'ObsABM', 'AgentBasedModel']
+__all__ = ['AgentBasedModel']
 
-
-RecordABM = namedtuple('RecordABM', ('Ag', 'Tr', 'Time'))
-MetaABM = namedtuple('MetaABM', ('PC', 'DC', 'Prototype'))
+Record = namedtuple('Record', ('Ag', 'Tr', 'Time'))
 
 
 class ObsABM(Observer):
@@ -41,7 +39,7 @@ class ObsABM(Observer):
             model.Behaviours[be].fill(tab, model, ti)
 
     def record(self, ag, tr, ti):
-        self.Recs.append(RecordABM(ag.Name, tr, ti))
+        self.Recs.append(Record(ag.Name, tr, ti))
 
 
 class AgentBasedModel(LeafModel):

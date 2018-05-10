@@ -1,9 +1,9 @@
-from complexism.abmodel.behaviour import *
-from abmodel.statespace.modifier import *
+from complexism.agentbased.behaviour import *
+
 __author__ = 'TimeWz667'
 
 
-class ForeignShock(ModBe):
+class ForeignListen(ModBe):
     def __init__(self, name, t_tar, mod_src=None, par_src=None):
         tri = ForeignTrigger(mod_src)
 

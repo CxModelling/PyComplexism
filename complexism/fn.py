@@ -3,7 +3,7 @@ from complexism.misc import *
 from .dcore.fn import *
 from .dcore import BlueprintCTMC, BlueprintCTBN
 # from complexism.abmodel import BlueprintABM
-from complexism.ebmodel import BlueprintCoreODE
+# from complexism.ebmodel import BlueprintCoreODE
 from complexism.multimodel import ModelLayout
 from complexism.mcore import Simulator
 

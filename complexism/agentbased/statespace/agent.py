@@ -1,5 +1,5 @@
 from complexism.element import Event
-from complexism.abmodel import GenericAgent, GenericBreeder
+from complexism.agentbased import GenericAgent, GenericBreeder
 from .modifier import ModifierSet
 
 
