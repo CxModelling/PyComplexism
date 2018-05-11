@@ -52,7 +52,7 @@ class Observer(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def update_dynamic_Observations(self, model, flow, ti):
+    def update_dynamic_observations(self, model, flow, ti):
         """
 
         :param model: model to be observed

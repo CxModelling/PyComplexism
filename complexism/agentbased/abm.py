@@ -1,6 +1,7 @@
 from complexism.mcore import Observer, LeafModel
 from complexism.element import Request
-from complexism.agentbased import Population
+from .be import ForeignListener, MultiForeignListener
+from abc import ABCMeta, abstractmethod
 from collections import namedtuple, OrderedDict
 
 __author__ = 'TimeWz667'
@@ -26,7 +27,7 @@ class ObsABM(Observer):
     def add_observing_function(self, func):
         self.Functions.append(func)
 
-    def update_dynamic_Observations(self, model, flow, ti):
+    def update_dynamic_observations(self, model, flow, ti):
         for todo in self.Events:
             flow[todo] = sum([rec.Todo == todo for rec in self.Records])
         self.Records.clear()
@@ -42,54 +43,40 @@ class ObsABM(Observer):
         self.Records.append(Record(ag.Name, evt.Todo, ti))
 
 
-class AgentBasedModel(LeafModel):
-    def __init__(self, name, dc, pc, meta=None, ag_prefix='Ag'):
-        LeafModel.__init__(self, name, ObsABM(), meta)
-        self.DCore = dc
+class GenericAgentBasedModel(LeafModel, metaclass=ABCMeta):
+    def __init__(self, name, pc, population, obs=ObsABM):
+        LeafModel.__init__(self, name, obs)
         self.PCore = pc
-        self.Pop = Population(dc, ag_prefix)
+        self.Population = population
         self.Behaviours = OrderedDict()
 
-    def add_obs_state(self, st):
-        if st in self.DCore.States:
-            self.Obs.add_obs_state(self.DCore.States[st])
+    @abstractmethod
+    def add_observing_event(self, *args, **kwargs):
+        pass
 
-    def add_obs_transition(self, tr):
-        if tr in self.DCore.Transitions:
-            self.Obs.add_obs_transition(self.DCore.Transitions[tr])
-
-    def add_obs_behaviour(self, be):
-        if be in self.Behaviours:
-            self.Obs.add_obs_behaviour(be)
-
-    def add_behaviour(self, be):
+    def add_observing_behaviour(self, be):
         if be.Name not in self.Behaviours:
             self.Behaviours[be.Name] = be
 
-    def add_trait(self, trt):
-        self.Pop.add_trait(trt)
+    def add_observing_function(self, func):
+        self.Obs.add_observing_function(func)
 
-    def add_network(self, net):
-        self.Pop.add_network(net)
-
-    def listen(self, mod_src, par_src, tar, par_tar=None):
+    def listen(self, mod_src, par_src, par_tar, **kwargs):
         try:
-            be = self.Behaviours[tar]
-            be.set_source(mod_src, par_src, par_tar)
+            be = self.Behaviours[par_tar]
+            be.set_source(mod_src, par_src)
         except KeyError:
-            ForeignShock.decorate('{}->{}'.format(par_src, tar), self,
-                                  par_src=par_src, mod_src=mod_src, t_tar=tar)
+            ForeignListener.decorate(par_tar, self, **kwargs)
 
-    def listen_multi(self, mod_src_all, par_src, tar, par_tar=None):
+    def listen_multi(self, mod_src_all, par_src, par_tar, **kwargs):
         try:
-            be = self.Behaviours[tar]
+            be = self.Behaviours[par_tar]
             for mod in mod_src_all:
-                be.set_source(mod, par_src, par_tar)
+                be.set_source(mod, par_src)
         except KeyError:
-            name = '{}->{}'.format(par_src, tar)
-            m = ForeignAddShock.decorate(name, self, t_tar=tar)
+            m = MultiForeignListener.decorate(par_tar, self, t_tar=par_tar)
             for mod in mod_src_all:
-                m.set_source(mod, par_src, par_tar)
+                m.set_source(mod, par_src)
 
     def read_y0(self, y0, ti):
         if y0:
@@ -99,11 +86,11 @@ class AgentBasedModel(LeafModel):
     def reset(self, ti):
         for be in self.Behaviours.values():
             be.initialise(self, ti)
-        for ag in self.Pop.Agents.values():
+        for ag in self.Population.Agents.values():
             ag.initialise(ti)
 
     def make_agent(self, atr, n, ti):
-        ags = self.Pop.add_agent(atr, n)
+        ags = self.Population.add_agent(atr, n)
         for ag in ags:
             for be in self.Behaviours.values():
                 be.register(ag, ti)

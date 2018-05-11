@@ -1,6 +1,7 @@
 from complexism.mcore import Observer, LeafModel
 from complexism.element import Request
 from complexism.agentbased import GenericAgent
+from .be import ForeignListener, MultiForeignListener
 from collections import namedtuple, OrderedDict, Counter
 
 
@@ -17,10 +18,10 @@ class ObsSingleAgent(Observer):
         self.Bes = list()
         self.Recs = list()
 
-    def add_obs_behaviour(self, beh):
+    def add_observing_behaviour(self, beh):
         self.Bes.append(beh)
 
-    def update_dynamic_Observations(self, model, flow, ti):
+    def update_dynamic_observations(self, model, flow, ti):
         trs = Counter([rec.Tr for rec in self.Recs])
         flow.update(trs)
         self.Recs.clear()
@@ -41,7 +42,7 @@ class SingleIndividualABM(LeafModel):
         self.Agent = agent
         self.Behaviours = OrderedDict()
 
-    def add_obs_behaviour(self, be):
+    def add_observing_behaviour(self, be):
         if be in self.Behaviours:
             self.Obs.add_obs_behaviour(be)
 
@@ -49,24 +50,22 @@ class SingleIndividualABM(LeafModel):
         if be.Name not in self.Behaviours:
             self.Behaviours[be.Name] = be
 
-    def listen(self, mod_src, par_src, tar, par_tar=None):
+    def listen(self, mod_src, par_src, par_tar, **kwargs):
         try:
-            be = self.Behaviours[tar]
-            be.set_source(mod_src, par_src, par_tar)
+            be = self.Behaviours[par_tar]
+            be.set_source(mod_src, par_src)
         except KeyError:
-            ForeignShock.decorate('{}->{}'.format(par_src, tar), self,
-                                  par_src=par_src, mod_src=mod_src, t_tar=tar)
+            ForeignListener.decorate(par_tar, self, **kwargs)
 
-    def listen_multi(self, mod_src_all, par_src, tar, par_tar=None):
+    def listen_multi(self, mod_src_all, par_src, par_tar, **kwargs):
         try:
-            be = self.Behaviours[tar]
+            be = self.Behaviours[par_tar]
             for mod in mod_src_all:
-                be.set_source(mod, par_src, par_tar)
+                be.set_source(mod, par_src)
         except KeyError:
-            name = '{}->{}'.format(par_src, tar)
-            m = ForeignAddShock.decorate(name, self, t_tar=tar)
+            m = MultiForeignListener.decorate(par_tar, self, t_tar=par_tar)
             for mod in mod_src_all:
-                m.set_source(mod, par_src, par_tar)
+                m.set_source(mod, par_src)
 
     def read_y0(self, y0, ti):
         self.Agent.initialise(ti)

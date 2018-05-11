@@ -1,4 +1,4 @@
-from complexism.agentbased.behaviour import *
+from agentbased.statespace.be.behaviour import *
 
 __author__ = 'TimeWz667'
 

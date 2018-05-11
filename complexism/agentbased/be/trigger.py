@@ -128,29 +128,29 @@ class ForeignTrigger(Trigger):
         self.Model = model
         self.Location = loc
 
-    def append(self, model, loc=None):
+    def append(self, model, loc):
         self.Model = model
         self.Location = loc
 
     def check_foreign(self, model, loc=None):
         if self.Model != model.Name:
             return False
-        if not self.Location:
+        if not loc:
             return True
         return loc == self.Location
 
 
 class ForeignSetTrigger(Trigger):
-    def __init__(self, ms=None):
-        self.Models = dict(ms) if ms else dict()
+    def __init__(self, mps=None):
+        self.Models = dict(mps) if isinstance(mps, dict) else dict()
 
-    def append(self, model, loc=None):
+    def append(self, model, loc):
         self.Models[model] = loc
 
     def check_foreign(self, model, loc=None):
         try:
             location = self.Models[model]
-            if not location:
+            if not loc:
                 return True
             return loc == location
         except KeyError:

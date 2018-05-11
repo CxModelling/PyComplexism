@@ -1,4 +1,4 @@
-from complexism.element import Event, RequestSet
+from complexism.element import Event
 from complexism.mcore import *
 from abc import ABCMeta, abstractmethod
 
@@ -139,7 +139,10 @@ class AbsModel(metaclass=ABCMeta):
     def read_y0(self, y0, ti):
         pass
 
-    def listen(self, source, target, value):
+    def listen(self, model_src, par_src, par_tar, **kwargs):
+        pass
+
+    def listen_multi(self, model_src_all, par_src, par_tar, **kwargs):
         pass
 
     @property

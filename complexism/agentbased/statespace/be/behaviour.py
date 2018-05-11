@@ -1,6 +1,5 @@
 from abc import ABCMeta, abstractmethod, abstractstaticmethod
-
-from agentbased.statespace.trigger import *
+from agentbased.be.trigger import *
 from complexism.element import AbsTicker, Event
 
 __author__ = 'TimeWz667'

@@ -1,134 +1,143 @@
-from complexism.agentbased.behaviour import *
+from .behaviour import TimeIndBehaviour
+from .trigger import ForeignSetTrigger, ForeignTrigger
 
 __author__ = 'TimeWz667'
+__all__ = ['ForeignListener', 'MultiForeignListener', 'Immigration']
 
 
-class ForeignListen(ModBe):
-    def __init__(self, name, t_tar, mod_src=None, par_src=None):
-        tri = ForeignTrigger(mod_src)
+class ForeignListener(TimeIndBehaviour):
+    def __init__(self, name, mod_src, par_src, par_tar, **kwargs):
+        tri = ForeignTrigger(model=mod_src, loc=par_src)
+        TimeIndBehaviour.__init__(self, name, tri)
+        self.Model = mod_src
+        self.Source = par_src
+        self.Target = par_tar
+        self.Default = kwargs['default'] if 'default' in kwargs else 0
+        self.Value = self.Default
 
-        mod = GloRateModifier(name, t_tar)
-        ModBe.__init__(self, name, mod, tri)
-        self.RefMod, self.RefPar = mod_src, par_src
-        self.Target = t_tar.Name
-        self.Val = 0
-
-    def set_source(self, mod_src, par_src, par_tar=None):
-        self.RefMod, self.RefPar = mod_src, par_src
-        self.Trigger.append(mod_src)
-
-    def initialise(self, model, ti):
-        self.shock(model, ti)
-
-    def impulse_foreign(self, model, fore, ti):
-        self.Val = fore[self.RefPar]
-        self.shock(model, ti)
-
-    def shock(self, model, ti):
-        self.ModPrototype.Val = self.Val
-        for ag in model.agents:
-            ag.modify(self.Name, ti)
-
-    def __repr__(self):
-        opt = self.Name, '{}@{}'.format(self.RefMod, self.RefPar), self.Target, self.Val
-        return 'Foreign({}, {} on {}, Value={})'.format(*opt)
-
-    @staticmethod
-    def decorate(name, model, **kwargs):
-        target = model.DCore.Transitions[kwargs['t_tar']]
-        mod_src = kwargs['mod_src'] if 'mod_src' in kwargs else None
-        par_src = kwargs['par_src'] if 'par_src' in kwargs else None
-        model.Behaviours[name] = ForeignShock(name, mod_src, par_src, target)
-
-    def fill(self, obs, model, ti):
-        obs[self.Name] = self.Val
-        return obs
-
-    def match(self, be_src, ags_src, ags_new, ti):
-        self.Val = be_src.Val
-        for ag_new, ag_src in zip(ags_new.values(), ags_src.values()):
-            self.register(ag_new, ti)
-            mod = ag_new.Mods[self.Name]
-            mod.Val = ag_src.Mods[self.Name].Val
-
-
-class ForeignAddShock(ModBe):
-    def __init__(self, name, t_tar):
-        tri = ForeignSetTrigger()
-        mod = GloRateModifier(name, t_tar)
-        ModBe.__init__(self, name, mod, tri)
-        self.Ref = dict()
-        self.Target = t_tar.Name
-        self.Values = dict()
-        self.Sum = 0
-
-    def set_source(self, mod_src, par_src, par_tar=None):
-        self.Ref[mod_src] = par_src
-        self.Values[mod_src] = 0
-        self.Trigger.append(mod_src)
+    def set_source(self, mod_src, par_src):
+        self.Trigger.append(mod_src, par_src)
 
     def initialise(self, model, ti):
-        self.shock(model, ti)
-
-    def impulse_foreign(self, model, fore, ti):
-        self.Values[fore.Name] = fore[self.Ref[fore.Name]]
-        self.shock(model, ti)
-
-    def shock(self, model, ti):
-        self.ModPrototype.Val = self.Sum =  sum(self.Values.values())
-        for ag in model.agents:
-            ag.modify(self.Name, ti)
-
-    def __repr__(self):
-        opt = self.Name, self.Target, self.Sum
-        return 'ForeignSet({} on {}, Value={})'.format(*opt)
-
-    @staticmethod
-    def decorate(name, model, **kwargs):
-        target = model.DCore.Transitions[kwargs['t_tar']]
-        m = ForeignAddShock(name, target)
-        model.Behaviours[name] = m
-        return m
-
-    def fill(self, obs, model, ti):
-        obs[self.Name] = self.Sum
-        return obs
-
-    def match(self, be_src, ags_src, ags_new, ti):
-        self.Sum = be_src.Sum
-        self.Values.update(be_src.Values)
-        for ag_new, ag_src in zip(ags_new.values(), ags_src.values()):
-            self.register(ag_new, ti)
-            ag_new.Mods[self.Name].Val = ag_src.Mods[self.Name].Val
-
-
-class BirthListener(RealTimeBehaviour):
-    def __init__(self, name, s_birth):
-        RealTimeBehaviour.__init__(self, name, ForeignTrigger())
-        self.S_birth = s_birth
-        self.N_birth = 0
-
-    def initialise(self, model, ti):
-        pass
+        self.Value = self.Default
+        model[self.Target] = self.Value
 
     def register(self, ag, ti):
         pass
 
-    def impulse_tr(self, model, ag, ti):
-        model.birth(self.S_birth, ti)
-        self.N_birth += 1
-
-    def __repr__(self):
-        opt = self.Name, self.S_birth.Name, self.N_birth
-        return 'Cohort({}, Birth:{}, NBir:{})'.format(*opt)
+    def impulse_foreign(self, model, fore, ti):
+        self.Value = fore[self.Source]
+        model[self.Target] = self.Value
 
     @staticmethod
     def decorate(name, model, **kwargs):
-        s_death = model.DCore.States[kwargs['s_death']]
-        model.Behaviours[name] = BirthListener(name, s_death)
+        if 'mod_src' not in kwargs:
+            kwargs['mod_src'] = None
+        if 'par_src' not in kwargs:
+            kwargs['par_src'] = None
 
-    def fill(self, obs, model, ti):
-        obs[self.Name] = self.N_birth
+        model.Behaviours[name] = ForeignListener(name, **kwargs)
 
     def match(self, be_src, ags_src, ags_new, ti):
-        self.N_birth = be_src.N_birth
+        self.Value = be_src.Value
+
+    def __repr__(self):
+        opt = self.Name, '{}@{}'.format(self.Model, self.Source), self.Target, self.Value
+        return 'Foreign({}, From ={}, To={}, Value={})'.format(*opt)
+
+    def fill(self, obs, model, ti):
+        obs[self.Name] = self.Value
+        return obs
+
+
+class MultiForeignListener(TimeIndBehaviour):
+    def __init__(self, name, mod_par_src, par_tar, **kwargs):
+        tri = ForeignSetTrigger(mps=mod_par_src)
+        TimeIndBehaviour.__init__(self, name, tri)
+        self.Models = dict(mod_par_src)
+        self.Target = par_tar
+        self.Default = kwargs['default'] if 'default' in kwargs else 0
+        self.Values = {k: self.Default for k in self.Models.keys()}
+
+    def set_source(self, mod_src, par_src):
+        self.Trigger.append(mod_src, par_src)
+        self.Models[mod_src] = par_src
+        self.Values[mod_src] = self.Default
+
+    def initialise(self, model, ti):
+        self.Values = {k: self.Default for k, v in self.Values.items()}
+        model[self.Target] = self.Values
+
+    def register(self, ag, ti):
+        pass
+
+    def impulse_foreign(self, model, fore, ti):
+        key = fore.Name
+        value = fore[self.Models[key]]
+        self.Values[key] = value
+        model[self.Target] = self.Values
+
+    @staticmethod
+    def decorate(name, model, **kwargs):
+        if 'mod_par_src' not in kwargs:
+            kwargs['mod_par_src'] = None
+
+        model.Behaviours[name] = MultiForeignListener(name, **kwargs)
+
+    def match(self, be_src, ags_src, ags_new, ti):
+        self.Models = dict(be_src.Models)
+        self.Values = dict(be_src.Value)
+
+    def __repr__(self):
+        opt = self.Name, self.Target, sum(self.Values.values())
+        return 'MultiForeign({}, To={}, Value={})'.format(*opt)
+
+    def fill(self, obs, model, ti):
+        obs[self.Name] = sum(self.Values.values())
+        return obs
+
+
+class Immigration(TimeIndBehaviour):
+    def __init__(self, name, mod_src=None, par_src=None, im_info=None):
+        trigger = ForeignTrigger(model=None, loc=None)
+        TimeIndBehaviour.__init__(self, name, trigger)
+        self.Model = mod_src
+        self.Source = par_src
+        self.ImInfo = dict(im_info) if im_info else dict()
+        self.ImN = 0
+
+    def set_source(self, mod_src, par_src):
+        self.Trigger.append(mod_src, par_src)
+
+    def initialise(self, model, ti):
+        self.ImN = 0
+
+    def register(self, ag, ti):
+        pass
+
+    def impulse_foreign(self, model, fore, ti):
+        self.ImN = fore[self.Source]
+        model.birth(self.ImInfo, ti)
+
+    @staticmethod
+    def decorate(name, model, **kwargs):
+        if 'mod_src' not in kwargs:
+            kwargs['mod_src'] = None
+        if 'par_src' not in kwargs:
+            kwargs['par_src'] = None
+        if 'im_info' not in kwargs:
+            kwargs['im_info'] = None
+
+        model.Behaviours[name] = Immigration(name, **kwargs)
+
+    def match(self, be_src, ags_src, ags_new, ti):
+        self.ImInfo = dict(be_src.ImInfo)
+        self.ImN = be_src.ImN
+
+    def __repr__(self):
+        opt = self.Name, '{}@{}'.format(self.Model, self.Source), self.ImN
+        return 'Immigration({}, From ={}, Value={})'.format(*opt)
+
+    def fill(self, obs, model, ti):
+        obs[self.Name] = self.ImN
+        return obs
