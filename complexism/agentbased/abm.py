@@ -6,40 +6,40 @@ from collections import namedtuple, OrderedDict
 __author__ = 'TimeWz667'
 __all__ = ['AgentBasedModel']
 
-Record = namedtuple('Record', ('Ag', 'Tr', 'Time'))
+Record = namedtuple('Record', ('Ag', 'Todo', 'Time'))
 
 
 class ObsABM(Observer):
     def __init__(self):
         Observer.__init__(self)
-        self.ObsSt = list()
-        self.ObsTr = list()
-        self.Bes = list()
-        self.Recs = list()
+        self.Events = list()
+        self.Behaviours = list()
+        self.Functions = list()
+        self.Records = list()
 
-    def add_obs_state(self, st):
-        self.ObsSt.append(st)
+    def add_observing_event(self, todo):
+        self.Events.append(todo)
 
-    def add_obs_transition(self, tr):
-        self.ObsTr.append(tr)
+    def add_observing_behaviour(self, beh):
+        self.Behaviours.append(beh)
 
-    def add_obs_behaviour(self, beh):
-        self.Bes.append(beh)
+    def add_observing_function(self, func):
+        self.Functions.append(func)
 
     def update_dynamic_Observations(self, model, flow, ti):
-        for tr in self.ObsTr:
-            flow[tr.Name] = sum([rec.Tr is tr for rec in self.Recs])
-        self.Recs.clear()
+        for todo in self.Events:
+            flow[todo] = sum([rec.Todo == todo for rec in self.Records])
+        self.Records.clear()
 
     def read_statics(self, model, tab, ti):
-        for st in self.ObsSt:
-            tab[st.Name] = model.Pop.count(st)
-
-        for be in self.Bes:
+        for be in self.Behaviours:
             model.Behaviours[be].fill(tab, model, ti)
 
-    def record(self, ag, tr, ti):
-        self.Recs.append(Record(ag.Name, tr, ti))
+        for func in self.Functions:
+            func(model, tab, ti)
+
+    def record(self, ag, evt, ti):
+        self.Records.append(Record(ag.Name, evt.Todo, ti))
 
 
 class AgentBasedModel(LeafModel):
