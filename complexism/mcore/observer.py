@@ -69,7 +69,7 @@ class Observer(metaclass=ABCMeta):
 
     def observe_routinely(self, model, ti):
         self.read_statics(model, self.Last, ti)
-        self.update_dynamic_Observations(model, self.Flow, ti)
+        self.update_dynamic_observations(model, self.Flow, ti)
 
     def update_at_mid_term(self, model, ti):
         if self.ExtMid:

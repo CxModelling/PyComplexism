@@ -1,5 +1,5 @@
-from complexism.element import Event
-from complexism.mcore import *
+from complexism.element import Event, RequestSet
+from complexism.mcore import Observer, ModelSelector
 from abc import ABCMeta, abstractmethod
 
 __author__ = 'TimeWz667'

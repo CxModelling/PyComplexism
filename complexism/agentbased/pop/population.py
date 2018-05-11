@@ -22,7 +22,7 @@ class Population:
         :return: count number
         :rtype: int
         """
-        self.Eve.count(self.Agents.values(), **kwargs)
+        return self.Eve.count(self.Agents.values(), **kwargs)
 
     def add_agent(self, n=1, **kwargs):
         """

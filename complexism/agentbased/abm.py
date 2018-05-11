@@ -1,11 +1,13 @@
+from abc import ABCMeta, abstractmethod
+from collections import namedtuple, OrderedDict
 from complexism.mcore import Observer, LeafModel
 from complexism.element import Request
 from .be import ForeignListener, MultiForeignListener
-from abc import ABCMeta, abstractmethod
-from collections import namedtuple, OrderedDict
+from .pop import Community
+
 
 __author__ = 'TimeWz667'
-__all__ = ['AgentBasedModel']
+__all__ = ['GenericAgentBasedModel', 'ObsABM', 'AgentBasedModel']
 
 Record = namedtuple('Record', ('Ag', 'Todo', 'Time'))
 
@@ -44,22 +46,28 @@ class ObsABM(Observer):
 
 
 class GenericAgentBasedModel(LeafModel, metaclass=ABCMeta):
-    def __init__(self, name, pc, population, obs=ObsABM):
+    def __init__(self, name, pc, population, obs=None):
+        obs = obs if obs else ObsABM()
         LeafModel.__init__(self, name, obs)
         self.PCore = pc
         self.Population = population
         self.Behaviours = OrderedDict()
 
-    @abstractmethod
-    def add_observing_event(self, *args, **kwargs):
-        pass
+    def add_observing_event(self, todo):
+        self.Obs.Events.append(todo)
 
     def add_observing_behaviour(self, be):
-        if be.Name not in self.Behaviours:
-            self.Behaviours[be.Name] = be
+        if be.Name in self.Behaviours:
+            self.Obs.Behaviours.append(be)
 
     def add_observing_function(self, func):
         self.Obs.add_observing_function(func)
+
+    def add_network(self, net):
+        if isinstance(self.Population, Community):
+            self.Population.add_network(net)
+        else:
+            raise AttributeError('The population is not network-based')
 
     def listen(self, mod_src, par_src, par_tar, **kwargs):
         try:
@@ -78,36 +86,52 @@ class GenericAgentBasedModel(LeafModel, metaclass=ABCMeta):
             for mod in mod_src_all:
                 m.set_source(mod, par_src)
 
-    def read_y0(self, y0, ti):
-        if y0:
-            for atr, num in y0.items():
-                self.make_agent(atr, num, ti)
+    @abstractmethod
+    def read_y0(self, y0, time):
+        pass
+
+    def _make_agent(self, n, time, **kwargs):
+        ags = self.Population.add_agent(n, **kwargs)
+        for ag in ags:
+            for be in self.Behaviours.values():
+                be.register(ag, time)
 
     def reset(self, ti):
         for be in self.Behaviours.values():
             be.initialise(self, ti)
         for ag in self.Population.Agents.values():
-            ag.initialise(ti)
+            ag.reset(ti)
 
-    def make_agent(self, atr, n, ti):
-        ags = self.Population.add_agent(atr, n)
-        for ag in ags:
-            for be in self.Behaviours.values():
-                be.register(ag, ti)
+    def check_enter(self, ag):
+        return (be for be in self.Behaviours.values() if be.check_enter(ag))
 
-    def check_in(self, ag):
-        return (be for be in self.Behaviours.values() if be.check_in(ag))
-
-    def impulse_in(self, bes, ag, ti):
+    def impulse_enter(self, bes, ag, ti):
         for be in bes:
-            be.impulse_in(self, ag, ti)
+            be.impulse_enter(self, ag, ti)
 
-    def check_out(self, ag):
-        return (be for be in self.Behaviours.values() if be.check_out(ag))
+    def check_exit(self, ag):
+        return (be for be in self.Behaviours.values() if be.check_exit(ag))
 
-    def impulse_out(self, bes, ag, ti):
+    def impulse_exit(self, bes, ag, ti):
         for be in bes:
-            be.impulse_out(self, ag, ti)
+            be.impulse_exit(self, ag, ti)
+
+    def check_pre_change(self, ag):
+        return (be for be in self.Behaviours.values() if be.check_pre_change(ag))
+
+    def check_post_change(self, ag):
+        return (be for be in self.Behaviours.values() if be.check_post_change(ag))
+
+    def check_change(self, pre, post):
+        bes = list()
+        for f, t, be in zip(pre, post, self.Behaviours.values()):
+            if be.check_change(pre, post):
+                bes.append(be)
+        return bes
+
+    def impulse_change(self, bes, ag, ti):
+        for be in bes:
+            be.impulse_change(self, ag, ti)
 
     def impulse_foreign(self, fore, ti):
         res = False
@@ -120,63 +144,69 @@ class GenericAgentBasedModel(LeafModel, metaclass=ABCMeta):
             self.drop_next()
         return res
 
-    def check_tr(self, ag, tr):
-        return [be for be in self.Behaviours.values() if be.check_tr(ag, tr)]
-
-    def impulse_tr(self, bes, ag, ti):
-        for be in bes:
-            be.impulse_tr(self, ag, ti)
-
-    def birth(self, atr, ti, n=1, info=None):
-        if info:
-            ags = self.Pop.add_agent(atr, n, info=info)
-        else:
-            ags = self.Pop.add_agent(atr, n)
+    def birth(self, n, time, **kwargs):
+        ags = self.Population.add_agent(n, **kwargs)
         for ag in ags:
             for be in self.Behaviours.values():
-                be.register(ag, ti)
-            bes = self.check_in(ag)
-            ag.initialise(ti)
-            self.impulse_in(bes, ag, ti)
+                be.register(ag, time)
+            bes = self.check_enter(ag)
+            ag.initialise(time)
+            self.impulse_enter(bes, ag, time)
+
         return ags
 
-    def kill(self, i, ti):
-        ag = self.Pop[i]
-        bes = self.check_out(ag)
-        self.Pop.remove_agent(i)
-        self.impulse_out(bes, ag, ti)
+    def kill(self, i, time):
+        ag = self.Population[i]
+        bes = self.check_exit(ag)
+        self.Population.remove_agent(i)
+        self.impulse_exit(bes, ag, time)
 
     def find_next(self):
         # to be parallel
         for k, be in self.Behaviours.items():
-            nxt = be.next
-            self.Requests.append_src(k, nxt, nxt.Time)
+            nxt = be.Next
+            self.Requests.append_event(nxt, k, self.Name)
 
-        for k, ag in self.Pop.Agents.items():
-            nxt = ag.next
-            self.Requests.append_src(k, nxt, nxt.Time)
+        for k, ag in self.Population.Agents.items():
+            nxt = ag.Next
+            self.Requests.append_event(nxt, k, self.Name)
 
     def do_request(self, req: Request):
-        nod, evt, time = req.Node, req.Event, req.Time
+        nod, evt, time = req.Who, req.Event, req.When
         if nod in self.Behaviours:
             be = self.Behaviours[nod]
-            be.exec(self, evt)
+            be.assign(evt)
+            be.operate(self)
         else:
-            ag = self.Pop[nod]
-            tr = evt.Transition
-            self.Obs.record(ag, tr, time)
-            bes = self.check_tr(ag, tr)
-            ag.exec(evt)
-            self.impulse_tr(bes, ag, time)
-            ag.update(time)
+            ag = self.Population[nod]
+            ag.fetch_event(evt)
+            pre = self.check_pre_change(ag)
+            self.Obs.record(ag, evt, time)
+            ag.execute_event()
+            ag.drop_next()
+            post = self.check_post_change(ag)
+
+            bes = self.check_change(pre, post)
+            self.impulse_change(bes, ag, time)
+
+            ag.update_time(time)
 
     def __len__(self):
-        return len(self.Pop.Agents)
+        return len(self.Population.Agents)
 
     @property
     def agents(self):
-        return self.Pop.Agents.values()
+        return self.Population.Agents.values()
+
+
+class AgentBasedModel(GenericAgentBasedModel):
+    def read_y0(self, y0, time):
+        for y in y0:
+            try:
+                atr = y['attributes']
+            except KeyError:
+                atr = dict()
+            self._make_agent(n=y['n'], time=time, **atr)
 
     def clone(self, **kwargs):
-        # todo
-        return
+        pass
