@@ -121,8 +121,11 @@ class AbsModel(metaclass=ABCMeta):
     def initialise(self, ti=None, y0=None):
         if y0:
             self.read_y0(y0, ti)
-        self.reset(ti)
+        self.preset(ti)
         self.drop_next()
+
+    def preset(self, ti):
+        pass
 
     def reset(self, ti):
         pass

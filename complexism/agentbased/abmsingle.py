@@ -68,9 +68,13 @@ class SingleIndividualABM(LeafModel):
                 m.set_source(mod, par_src)
 
     def read_y0(self, y0, ti):
-        self.Agent.initialise(ti)
         for be in self.Behaviours.values():
             be.register(self.Agent, ti)
+
+    def preset(self, ti):
+        self.Agent.initialise(ti)
+        for be in self.Behaviours.values():
+            be.initialise(self, ti)
 
     def reset(self, ti):
         self.Agent.reset(ti)

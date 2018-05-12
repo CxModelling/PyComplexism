@@ -90,6 +90,9 @@ class TimeDepBehaviour(AbsBehaviour, ModelAtom, metaclass=ABCMeta):
     def initialise(self, time, *args, **kwargs):
         self.Clock.initialise(time)
 
+    def reset(self, time, *args, **kwargs):
+        self.Clock.initialise(time)
+
     @abstractmethod
     def compose_event(self, time):
         """

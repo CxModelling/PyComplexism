@@ -29,7 +29,7 @@ class ObsEBM(Observer):
     def add_obs_behaviour(self, be):
         self.ObsBe.append(be)
 
-    def update_dynamic_Observations(self, model, flow, ti):
+    def update_dynamic_observations(self, model, flow, ti):
         for tr in self.ObsTr:
             flow[tr] = model.ODE.count_tr(tr)
 

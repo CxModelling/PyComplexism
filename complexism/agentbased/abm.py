@@ -96,9 +96,15 @@ class GenericAgentBasedModel(LeafModel, metaclass=ABCMeta):
             for be in self.Behaviours.values():
                 be.register(ag, time)
 
-    def reset(self, ti):
+    def preset(self, ti):
         for be in self.Behaviours.values():
             be.initialise(time=ti, model=self)
+        for ag in self.Population.Agents.values():
+            ag.initialise(time=ti, model=self)
+
+    def reset(self, ti):
+        for be in self.Behaviours.values():
+            be.reset(time=ti, model=self)
         for ag in self.Population.Agents.values():
             ag.reset(time=ti, model=self)
 
