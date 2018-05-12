@@ -1,12 +1,8 @@
 from .agent import *
-from .statespace import *
-from .diffeq import *
-from .pop import *
 from .be import *
+from .pop import *
 from .abm import *
 from .abmsingle import *
-from .abmstsp import *
-#from .markov import *
-#from .microsimulation import *
+from .statespace import StSpAgent, StSpAgentBasedModel, StSpBeLibrary
 from .summary import *
 # from .abmodeller import *

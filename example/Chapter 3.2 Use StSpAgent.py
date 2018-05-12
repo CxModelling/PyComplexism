@@ -1,4 +1,5 @@
 import complexism as cx
+import complexism.agentbased.statespace as ss
 import epidag as dag
 
 
@@ -51,7 +52,7 @@ def step(agent):
 
 
 if __name__ == '__main__':
-    ag = cx.StSpAgent('Helen', SIR['Sus'])
+    ag = ss.StSpAgent('Helen', SIR['Sus'])
     ag.initialise(0)
 
     print('Agent is a {}'.format(ag.State))

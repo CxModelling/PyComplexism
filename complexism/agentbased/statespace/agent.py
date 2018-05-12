@@ -23,13 +23,13 @@ class StSpAgent(GenericAgent):
             else:
                 raise e
 
-    def initialise(self, time=0, *args, **kwargs):
+    def initialise(self, ti=0, *args, **kwargs):
         self.Transitions.clear()
-        self.update_time(time)
+        self.update_time(ti)
 
     def reset(self, time=0, *args, **kwargs):
         self.Transitions.clear()
-        self.update_time(time)
+        self.update_time(ti)
 
     def find_next(self):
         if self.Transitions:
@@ -42,7 +42,7 @@ class StSpAgent(GenericAgent):
         if nxt is not Event.NullEvent:
             self.State = self.State.execute(nxt)
 
-    def update_time(self, time):
+    def update_time(self, ti):
         new_trs = self.State.next_transitions()
         ad = list(set(new_trs) - set(self.Transitions.keys()))
         self.Transitions = {k: v for k, v in self.Transitions.items() if k in new_trs}
@@ -50,7 +50,7 @@ class StSpAgent(GenericAgent):
             tte = tr.rand(self)
             for mo in self.Modifiers.on(tr):
                 tte = mo.modify(tte)
-            self.Transitions[tr] = tte + time
+            self.Transitions[tr] = tte + ti
         self.drop_next()
 
     def add_modifier(self, mod):
@@ -61,11 +61,11 @@ class StSpAgent(GenericAgent):
         """
         self.Modifiers[mod.Name] = mod
 
-    def shock(self, time, source, target, value):
+    def shock(self, ti, source, target, value):
         """
         Make an impulse on a modifier
-        :param time: time
-        :type time: float
+        :param ti: time
+        :type ti: float
         :param source: source of impulse, None for state space model
         :type source: str
         :param target: target modifier
@@ -74,15 +74,15 @@ class StSpAgent(GenericAgent):
         """
         mod = self.Modifiers[target]
         if mod.update(value):
-            self.modify(target, time)
+            self.modify(target, ti)
 
-    def modify(self, m, time):
+    def modify(self, m, ti):
         """
         Re-modify a transition via modifier m
         :param m: target modifier
         :type m: str
-        :param time: time
-        :type time: float
+        :param ti: time
+        :type ti: float
         """
         mod = self.Modifiers[m]
         if mod.Target in self.Transitions:
@@ -90,7 +90,7 @@ class StSpAgent(GenericAgent):
             tte = tr.rand()
             for mo in self.Modifiers.on(tr):
                 tte = mo.modify(tte)
-            self.Transitions[tr] = tte + time
+            self.Transitions[tr] = tte + ti
             self.drop_next()
 
     def isa(self, st):

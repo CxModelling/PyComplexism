@@ -111,7 +111,7 @@ class NerfModifier(AbsModifier):
             return False
 
     def clone(self):
-        return self
+        return NerfModifier(self.Name, self.Target, self.Value)
 
 
 class BuffModifier(AbsModifier):
@@ -133,7 +133,7 @@ class BuffModifier(AbsModifier):
             return False
 
     def clone(self):
-        return self
+        return BuffModifier(self.Name, self.Target, self.Value)
 
 
 class ModifierSet:

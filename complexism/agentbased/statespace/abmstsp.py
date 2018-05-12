@@ -1,6 +1,6 @@
 from complexism.dcore import Transition
 from complexism.mcore import Observer
-from .abm import GenericAgentBasedModel, ObsABM
+from agentbased.abm import GenericAgentBasedModel, ObsABM
 from collections import namedtuple, Counter
 
 __author__ = 'TimeWz667'
@@ -51,13 +51,13 @@ class StSpAgentBasedModel(GenericAgentBasedModel):
         GenericAgentBasedModel.__init__(self, name, pc, population, ObsStSpABM())
         self.DCore = population.Eve.DCore
 
-    def read_y0(self, y0, time):
+    def read_y0(self, y0, ti):
         for y in y0:
             try:
                 atr = y['attributes']
             except KeyError:
                 atr = dict()
-            self._make_agent(n=y['n'], time=time, **atr)
+            self._make_agent(n=y['n'], ti=ti, **atr)
 
     def add_observing_transition(self, tr):
         try:

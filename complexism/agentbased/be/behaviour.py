@@ -87,29 +87,29 @@ class TimeDepBehaviour(AbsBehaviour, ModelAtom, metaclass=ABCMeta):
         self.do_action(model, event.Todo, time)
         self.drop_next()
 
-    def initialise(self, time, *args, **kwargs):
-        self.Clock.initialise(time)
+    def initialise(self, ti, *args, **kwargs):
+        self.Clock.initialise(ti)
 
-    def reset(self, time, *args, **kwargs):
-        self.Clock.initialise(time)
+    def reset(self, ti, *args, **kwargs):
+        self.Clock.initialise(ti)
 
     @abstractmethod
-    def compose_event(self, time):
+    def compose_event(self, ti):
         """
         Compose the next event
-        :param time: current time
+        :param ti: current time
         :return:
         :rtype:
         """
         pass
 
     @abstractmethod
-    def do_action(self, model, todo, time):
+    def do_action(self, model, todo, ti):
         """
         Let an event occur
         :param model: source model
         :param todo: action to be done
-        :param time: time
+        :param ti: time
         :type: double
         :return:
         """

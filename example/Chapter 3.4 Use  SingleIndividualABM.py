@@ -1,4 +1,5 @@
 import complexism as cx
+import complexism.agentbased.statespace as ss
 import epidag as dag
 
 
@@ -43,6 +44,6 @@ SIR = dc.generate_model('M1', **proto.get_samplers())
 
 
 if __name__ == '__main__':
-    ag = cx.StSpAgent('Helen', SIR['Sus'])
+    ag = ss.StSpAgent('Helen', SIR['Sus'])
     model = cx.SingleIndividualABM('M1', ag)
     print(cx.simulate(model, None, 0, 10, 1))

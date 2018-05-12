@@ -1,10 +1,11 @@
 import complexism as cx
+import complexism.agentbased.statespace as ss
 import epidag as dag
 
 
 psc = """
 PCore pSIR {
-    beta = 1.4
+    beta = 0.4
     gamma = 0.5
     Infect ~ exp(beta)
     Recov ~ exp(0.5)
@@ -39,14 +40,12 @@ sm = dag.as_simulation_core(bn,
 model_name = 'M1'
 dc = cx.read_dc(dsc)
 Gene = sm.generate()
-eve = cx.StSpBreeder('Ag ', 'agent', Gene, dc)
+eve = ss.StSpBreeder('Ag ', 'agent', Gene, dc)
 pop = cx.Population(eve)
 
 
 if __name__ == '__main__':
     model = cx.StSpAgentBasedModel(model_name, Gene, pop)
-    ss = model.Population.Eve.DCore
-    cx.FDShockFast.decorate('FOI', model=model, s_src='Inf', t_tar='Infect')
 
     for tr in ['Infect', 'Recov', 'Die']:
         model.add_observing_transition(tr)
@@ -54,11 +53,9 @@ if __name__ == '__main__':
     for st in ['Sus', 'Inf', 'Rec', 'Alive', 'Dead']:
         model.add_observing_state(st)
 
-    model.add_observing_behaviour('FOI')
-
     y0 = [
-        {'n': 98, 'attributes': {'st': 'Sus'}},
-        {'n': 2, 'attributes': {'st': 'Inf'}},
+        {'n': 95, 'attributes': {'st': 'Sus'}},
+        {'n': 5, 'attributes': {'st': 'Inf'}},
     ]
 
     print(cx.simulate(model, y0, 0, 10, 1))

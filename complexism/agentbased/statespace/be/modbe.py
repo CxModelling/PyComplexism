@@ -16,9 +16,9 @@ class GlobalShock(TimeIndModBehaviour, metaclass=ABCMeta):
         self.T_tar = t_tar
         self.Value = 0
 
-    def initialise(self, time, model, *args, **kwargs):
+    def initialise(self, ti, model, *args, **kwargs):
         self.Value = self._evaluate(model)
-        self.__shock(model, time)
+        self.__shock(model, ti)
 
     def impulse_change(self, model, ag, ti):
         self.Value = self._evaluate(model)
@@ -62,24 +62,24 @@ class GlobalShockFast(TimeDepModBehaviour):
         self.T_tar = t_tar
         self.Value = 0
 
-    def initialise(self, time, *args, **kwargs):
-        TimeDepModBehaviour.initialise(self, time, *args, **kwargs)
+    def initialise(self, ti, *args, **kwargs):
+        TimeDepModBehaviour.initialise(self, ti, *args, **kwargs)
         model = kwargs['model']
         self.Value = self._evaluate(model)
-        self.__shock(model, time)
+        self.__shock(model, ti)
 
-    def reset(self, time, *args, **kwargs):
-        self.Clock.initialise(time)
+    def reset(self, ti, *args, **kwargs):
+        self.Clock.initialise(ti)
         model = kwargs['model']
         self.Value = self._evaluate(model)
-        self.__shock(model, time)
+        self.__shock(model, ti)
 
-    def compose_event(self, time):
-        return Event(self.Name, time)
+    def compose_event(self, ti):
+        return Event(self.Name, ti)
 
-    def do_action(self, model, todo, time):
+    def do_action(self, model, todo, ti):
         self.Value = self._evaluate(model)
-        self.__shock(model, time)
+        self.__shock(model, ti)
 
     def fill(self, obs, model, ti):
         obs[self.Name] = self.Value

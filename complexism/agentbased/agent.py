@@ -16,11 +16,11 @@ class GenericAgent(ModelAtom, metaclass=ABCMeta):
         return s
 
     @abstractmethod
-    def update_time(self, time):
+    def update_time(self, ti):
         """
         Update status to the current time
-        :param time: current time
-        :type time: float
+        :param ti: current time
+        :type ti: float
         """
         pass
 

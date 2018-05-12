@@ -1,4 +1,5 @@
 import complexism as cx
+import complexism.agentbased.statespace as ss
 import epidag as dag
 
 
@@ -39,7 +40,7 @@ sm = dag.as_simulation_core(bn,
 model_name = 'M1'
 dc = cx.read_dc(dsc)
 Gene = sm.generate()
-eve = cx.StSpBreeder('Ag ', 'agent', Gene, dc)
+eve = ss.StSpBreeder('Ag ', 'agent', Gene, dc)
 pop = cx.Population(eve)
 
 

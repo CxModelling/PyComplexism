@@ -87,26 +87,26 @@ class GenericAgentBasedModel(LeafModel, metaclass=ABCMeta):
                 m.set_source(mod, par_src)
 
     @abstractmethod
-    def read_y0(self, y0, time):
+    def read_y0(self, y0, ti):
         pass
 
-    def _make_agent(self, n, time, **kwargs):
+    def _make_agent(self, n, ti, **kwargs):
         ags = self.Population.add_agent(n, **kwargs)
         for ag in ags:
             for be in self.Behaviours.values():
-                be.register(ag, time)
+                be.register(ag, ti)
 
     def preset(self, ti):
         for be in self.Behaviours.values():
-            be.initialise(time=ti, model=self)
+            be.initialise(ti=ti, model=self)
         for ag in self.Population.Agents.values():
-            ag.initialise(time=ti, model=self)
+            ag.initialise(ti=ti, model=self)
 
     def reset(self, ti):
         for be in self.Behaviours.values():
-            be.reset(time=ti, model=self)
+            be.reset(ti=ti, model=self)
         for ag in self.Population.Agents.values():
-            ag.reset(time=ti, model=self)
+            ag.reset(ti=ti, model=self)
 
     def check_enter(self, ag):
         return (be for be in self.Behaviours.values() if be.check_enter(ag))
@@ -150,22 +150,22 @@ class GenericAgentBasedModel(LeafModel, metaclass=ABCMeta):
             self.drop_next()
         return res
 
-    def birth(self, n, time, **kwargs):
+    def birth(self, n, ti, **kwargs):
         ags = self.Population.add_agent(n, **kwargs)
         for ag in ags:
             for be in self.Behaviours.values():
-                be.register(ag, time)
+                be.register(ag, ti)
             bes = self.check_enter(ag)
-            ag.initialise(time)
-            self.impulse_enter(bes, ag, time)
+            ag.initialise(ti)
+            self.impulse_enter(bes, ag, ti)
 
         return ags
 
-    def kill(self, i, time):
+    def kill(self, i, ti):
         ag = self.Population[i]
         bes = self.check_exit(ag)
         self.Population.remove_agent(i)
-        self.impulse_exit(bes, ag, time)
+        self.impulse_exit(bes, ag, ti)
 
     def find_next(self):
         # to be parallel
@@ -206,13 +206,13 @@ class GenericAgentBasedModel(LeafModel, metaclass=ABCMeta):
 
 
 class AgentBasedModel(GenericAgentBasedModel):
-    def read_y0(self, y0, time):
+    def read_y0(self, y0, ti):
         for y in y0:
             try:
                 atr = y['attributes']
             except KeyError:
                 atr = dict()
-            self._make_agent(n=y['n'], time=time, **atr)
+            self._make_agent(n=y['n'], ti=ti, **atr)
 
     def clone(self, **kwargs):
         pass

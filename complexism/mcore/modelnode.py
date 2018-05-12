@@ -75,14 +75,14 @@ class ModelAtom(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def initialise(self, time, *args, **kwargs):
+    def initialise(self, ti, *args, **kwargs):
         pass
 
     @abstractmethod
-    def reset(self, time, *args, **kwargs):
+    def reset(self, ti, *args, **kwargs):
         pass
 
-    def shock(self, time, source, target, value):
+    def shock(self, ti, source, target, value):
         pass
 
     def is_compatible(self, **kwargs):
