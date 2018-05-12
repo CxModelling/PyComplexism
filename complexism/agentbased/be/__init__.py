@@ -1,3 +1,4 @@
+from .trigger import *
 from .behaviour import *
 # from .lifebe import *
 # from .timevarying import *

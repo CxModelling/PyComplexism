@@ -1,0 +1,31 @@
+from complexism.agentbased import GenericBreeder
+from .agent import StSpAgent
+
+__author__ = 'TimeWz667'
+
+
+class StSpBreeder(GenericBreeder):
+    def __init__(self, name, group, pc_parent, dc, **kwargs):
+        GenericBreeder.__init__(self, name=name, group=group, pc_parent=pc_parent, **kwargs)
+        self.DCore = dc.generate_model(name, **self.PCore.get_samplers())
+        self.WStates = {wd: self.DCore[wd] for wd in self.DCore.WellDefinedStates}
+
+    def _filter_attributes(self, kw):
+        sts = {'st': self.WStates[kw['st']]}
+        del kw['st']
+        return sts, kw
+
+    def _new_agent(self, name, pars, **kwargs):
+        return StSpAgent(name, kwargs['st'], pars=pars)
+
+    def count(self, ags, **kwargs):
+        try:
+            st = kwargs['st']
+        except KeyError:
+            return len(ags)
+
+        try:
+            st = self.DCore[st]
+            return sum(st in ag for ag in ags)
+        except KeyError:
+            return 0

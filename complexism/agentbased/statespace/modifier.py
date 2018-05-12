@@ -5,18 +5,14 @@ __author__ = 'TimeWz667'
 
 
 class AbsModifier(metaclass=ABCMeta):
-    def __init__(self, name, tar):
+    def __init__(self, name, tar, val=float('int')):
         self.Name = name
-        self.__Target = tar
+        self.__target = tar
+        self.Value = val
 
     @property
-    @abstractmethod
-    def value(self):
-        pass
-
-    @property
-    def target(self):
-        return self.__Target
+    def Target(self):
+        return self.__target
 
     @abstractmethod
     def modify(self, tte):
@@ -27,7 +23,7 @@ class AbsModifier(metaclass=ABCMeta):
         pass
 
     def __repr__(self):
-        return 'Mod {} on {}'.format(self.Name, self.__Target.Name)
+        return 'Mod {} on {}'.format(self.Name, self.__target.Name)
 
     @abstractmethod
     def clone(self):
@@ -35,77 +31,59 @@ class AbsModifier(metaclass=ABCMeta):
 
 
 class DirectModifier(AbsModifier):
-
-    def __init__(self, name, tar):
-        AbsModifier.__init__(self, name, tar)
-        self.Val = float('inf')
-
-    @property
-    def value(self):
-        return self.Val
+    def __init__(self, name, tar, val=float('inf')):
+        AbsModifier.__init__(self, name, tar, val)
 
     def modify(self, tte):
-        if self.Val <= 0:
+        if self.Value <= 0:
             return float('inf')
-
-        return self.Val
+        return self.Value
 
     def update(self, val):
-        if self.Val is not val:
-            self.Val = val
+        if self.Value is not val:
+            self.Value = val
             return True
         else:
             return False
 
     def clone(self):
-        return DirectModifier(self.Name, self.target)
+        return DirectModifier(self.Name, self.Target, self.Value)
 
 
 class LocRateModifier(AbsModifier):
-
-    def __init__(self, name, tar):
-        AbsModifier.__init__(self, name, tar)
-        self.Val = 0
-
-    @property
-    def value(self):
-        return self.Val
+    def __init__(self, name, tar, val=float('inf')):
+        AbsModifier.__init__(self, name, tar, val)
 
     def modify(self, tte):
-        if self.Val <= 0:
+        if self.Value <= 0:
             return float('inf')
 
-        return tte/self.Val
+        return tte/self.Value
 
     def update(self, val):
-        if self.Val is not val:
-            self.Val = val
+        if self.Value is not val:
+            self.Value = val
             return True
         else:
             return False
 
     def clone(self):
-        return LocRateModifier(self.Name, self.target)
+        return LocRateModifier(self.Name, self.Target, self.Value)
 
 
 class GloRateModifier(AbsModifier):
     def __init__(self, name, tar):
         AbsModifier.__init__(self, name, tar)
-        self.Val = 0
-
-    @property
-    def value(self):
-        return self.Val
 
     def modify(self, tte):
-        if self.Val <= 0:
+        if self.Value <= 0:
             return float('inf')
 
-        return tte/self.Val
+        return tte/self.Value
 
     def update(self, val):
-        if self.Val is not val:
-            self.Val = val
+        if self.Value is not val:
+            self.Value = val
             return True
         else:
             return False
@@ -115,23 +93,19 @@ class GloRateModifier(AbsModifier):
 
 
 class NerfModifier(AbsModifier):
-    def __init__(self, name, tar):
-        AbsModifier.__init__(self, name, tar)
-        self.Val = False
-
-    @property
-    def value(self):
-        return self.Val
+    def __init__(self, name, tar, val=False):
+        AbsModifier.__init__(self, name, tar, val)
 
     def modify(self, tte):
-        if self.Val:
+        if self.Value:
             return float('inf')
         else:
             return tte
 
     def update(self, val):
-        if self.Val is not val:
-            self.Val = val
+        val = bool(val)
+        if self.Value ^ val:
+            self.Value = val
             return True
         else:
             return False
@@ -141,23 +115,19 @@ class NerfModifier(AbsModifier):
 
 
 class BuffModifier(AbsModifier):
-    def __init__(self, name, tar):
-        AbsModifier.__init__(self, name, tar)
-        self.Val = False
-
-    @property
-    def value(self):
-        return self.Val
+    def __init__(self, name, tar, val=True):
+        AbsModifier.__init__(self, name, tar, val)
 
     def modify(self, tte):
-        if self.Val:
+        if self.Value:
             return 0
         else:
             return tte
 
     def update(self, val):
-        if self.Val is not val:
-            self.Val = bool(val)
+        val = bool(val)
+        if self.Value ^ val:
+            self.Value = val
             return True
         else:
             return False
@@ -180,10 +150,10 @@ class ModifierSet:
         return [mod for mod in self.Mods.values() if mod.target == tr]
 
     def __repr__(self):
-        return ', '.join(['{}={}'.format(k, v.value) for k, v in self.Mods.items()])
+        return ', '.join(['{}={}'.format(k, v.Value) for k, v in self.Mods.items()])
 
     def __str__(self):
-        return ', '.join([v.value for v in self.Mods.values()])
+        return ', '.join([v.Value for v in self.Mods.values()])
 
     def to_json(self):
-        return {k: v.value for k, v in self.Mods.items()}
+        return {k: v.Value for k, v in self.Mods.items()}
