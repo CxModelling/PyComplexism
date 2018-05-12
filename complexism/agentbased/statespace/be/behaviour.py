@@ -13,7 +13,7 @@ class TimeDepModBehaviour(TimeDepBehaviour, metaclass=ABCMeta):
         self.ProtoModifier = mod
 
     def register(self, ag, ti):
-        ag.add_mod(self.ProtoModifier.clone())
+        ag.add_modifier(self.ProtoModifier.clone())
 
 
 class TimeIndModBehaviour(TimeIndBehaviour, metaclass=ABCMeta):
@@ -22,4 +22,4 @@ class TimeIndModBehaviour(TimeIndBehaviour, metaclass=ABCMeta):
         self.ProtoModifier = mod
 
     def register(self, ag, ti):
-        ag.add_mod(self.ProtoModifier.clone())
+        ag.add_modifier(self.ProtoModifier.clone())

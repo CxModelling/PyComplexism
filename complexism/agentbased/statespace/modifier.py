@@ -5,7 +5,7 @@ __author__ = 'TimeWz667'
 
 
 class AbsModifier(metaclass=ABCMeta):
-    def __init__(self, name, tar, val=float('int')):
+    def __init__(self, name, tar, val=float('inf')):
         self.Name = name
         self.__target = tar
         self.Value = val
@@ -147,7 +147,7 @@ class ModifierSet:
         return self.Mods[name]
 
     def on(self, tr):
-        return [mod for mod in self.Mods.values() if mod.target == tr]
+        return [mod for mod in self.Mods.values() if mod.Target == tr]
 
     def __repr__(self):
         return ', '.join(['{}={}'.format(k, v.Value) for k, v in self.Mods.items()])

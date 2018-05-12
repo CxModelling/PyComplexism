@@ -57,7 +57,7 @@ class GenericAgentBasedModel(LeafModel, metaclass=ABCMeta):
         self.Obs.Events.append(todo)
 
     def add_observing_behaviour(self, be):
-        if be.Name in self.Behaviours:
+        if be in self.Behaviours:
             self.Obs.Behaviours.append(be)
 
     def add_observing_function(self, func):
@@ -98,9 +98,9 @@ class GenericAgentBasedModel(LeafModel, metaclass=ABCMeta):
 
     def reset(self, ti):
         for be in self.Behaviours.values():
-            be.initialise(self, ti)
+            be.initialise(time=ti, model=self)
         for ag in self.Population.Agents.values():
-            ag.reset(ti)
+            ag.reset(time=ti, model=self)
 
     def check_enter(self, ag):
         return (be for be in self.Behaviours.values() if be.check_enter(ag))
@@ -117,15 +117,15 @@ class GenericAgentBasedModel(LeafModel, metaclass=ABCMeta):
             be.impulse_exit(self, ag, ti)
 
     def check_pre_change(self, ag):
-        return (be for be in self.Behaviours.values() if be.check_pre_change(ag))
+        return [be.check_pre_change(ag) for be in self.Behaviours.values()]
 
     def check_post_change(self, ag):
-        return (be for be in self.Behaviours.values() if be.check_post_change(ag))
+        return [be.check_post_change(ag) for be in self.Behaviours.values()]
 
     def check_change(self, pre, post):
         bes = list()
         for f, t, be in zip(pre, post, self.Behaviours.values()):
-            if be.check_change(pre, post):
+            if be.check_change(f, t):
                 bes.append(be)
         return bes
 
@@ -175,7 +175,7 @@ class GenericAgentBasedModel(LeafModel, metaclass=ABCMeta):
         nod, evt, time = req.Who, req.Event, req.When
         if nod in self.Behaviours:
             be = self.Behaviours[nod]
-            be.assign(evt)
+            be.fetch_event(evt)
             be.operate(self)
         else:
             ag = self.Population[nod]

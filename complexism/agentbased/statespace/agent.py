@@ -23,7 +23,7 @@ class StSpAgent(GenericAgent):
             else:
                 raise e
 
-    def initialise(self, time=0, **kwargs):
+    def initialise(self, time=0, *args, **kwargs):
         self.Transitions.clear()
         self.update_time(time)
 
@@ -85,8 +85,8 @@ class StSpAgent(GenericAgent):
         :type time: float
         """
         mod = self.Modifiers[m]
-        if mod.target in self.Transitions:
-            tr = mod.target
+        if mod.Target in self.Transitions:
+            tr = mod.Target
             tte = tr.rand()
             for mo in self.Modifiers.on(tr):
                 tte = mo.modify(tte)

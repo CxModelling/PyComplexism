@@ -84,7 +84,7 @@ class TimeDepBehaviour(AbsBehaviour, ModelAtom, metaclass=ABCMeta):
         event = self.Next
         time = event.Time
         self.Clock.update(time)
-        self.do_action(model, event.Todo, event.time)
+        self.do_action(model, event.Todo, time)
         self.drop_next()
 
     def initialise(self, time, *args, **kwargs):

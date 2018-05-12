@@ -25,7 +25,7 @@ class StSpBreeder(GenericBreeder):
             return len(ags)
 
         try:
-            st = self.DCore[st]
+            st = self.DCore[st] if isinstance(st, str) else st
             return sum(st in ag for ag in ags)
         except KeyError:
             return 0
