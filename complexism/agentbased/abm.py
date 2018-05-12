@@ -74,7 +74,7 @@ class GenericAgentBasedModel(LeafModel, metaclass=ABCMeta):
             be = self.Behaviours[par_tar]
             be.set_source(mod_src, par_src)
         except KeyError:
-            ForeignListener.decorate(par_tar, self, **kwargs)
+            ForeignListener.decorate(par_tar, self, mod_src=mod_src, par_src=par_src, **kwargs)
 
     def listen_multi(self, mod_src_all, par_src, par_tar, **kwargs):
         try:
@@ -82,7 +82,8 @@ class GenericAgentBasedModel(LeafModel, metaclass=ABCMeta):
             for mod in mod_src_all:
                 be.set_source(mod, par_src)
         except KeyError:
-            m = MultiForeignListener.decorate(par_tar, self, t_tar=par_tar)
+            MultiForeignListener.decorate(par_tar, self, **kwargs)
+            m = self.Behaviours[par_tar]
             for mod in mod_src_all:
                 m.set_source(mod, par_src)
 

@@ -1,46 +1,66 @@
-from dzdy import *
-from epidag import DirectedAcyclicGraph
+import complexism as cx
+import complexism.agentbased.statespace as ss
+import epidag as dag
 
-__author__ = 'TimeWz667'
 
-
-# generate a blueprint of PCore
-pc_script = """
-PCore pAB {
-    rB ~ exp(0.1)
-    rA0 ~ exp(0.01)
-    rA1 ~ exp(0.5)
-}
-"""
-pc_bp = read_pc(pc_script)
-
-# generate a blueprint of DCore
-dc_script = """
-CTMC AB_mc {
-    N
-    B
-    A
-    AB
-    N -- toA0(rA0) -> A
-    B -- toA1(rA1) -> AB
-    N -- toB(rB) -> B
-    A -- toB(rB)
+psc = """
+PCore pSIR {
+    beta = 0.4
+    gamma = 0.5
+    Infect ~ exp(beta)
+    Recov ~ exp(0.5)
+    Die ~ exp(0.02)
 }
 """
 
-dc_bp = read_dc(dc_script)
+dsc = """
+CTBN SIR {
+    life[Alive | Dead]
+    sir[S | I | R]
+
+    Alive{life:Alive}
+    Dead{life:Dead}
+    Inf{life:Alive, sir:I}
+    Rec{life:Alive, sir:R}
+    Sus{life:Alive, sir:S}
+
+    Die -> Dead # from transition Die to state Dead by distribution Die
+    Sus -- Infect -> Inf
+    Inf -- Recov -> Rec
+
+    Alive -- Die # from state Alive to transition Die
+}
+"""
+
+bn = cx.read_pc(psc)
+sm = dag.as_simulation_core(bn,
+                            hie={'city': ['agent'],
+                                 'agent': ['Recov', 'Die', 'Infect']})
+
+model_name = 'M1'
+dc = cx.read_dc(dsc)
+Gene = sm.generate()
+eve = ss.StSpBreeder('Ag ', 'agent', Gene, dc)
+pop = cx.Population(eve)
 
 
-# generate a blueprint of MCore
-mc_bp = BlueprintABM('AB_abm', 'pAB', 'AB_mc')
-mc_bp.set_observations(states=['N', 'A', 'B', 'AB'])
+if __name__ == '__main__':
+    model = cx.AgentBasedModel(model_name, Gene, pop)
+    model.add_observing_event(pop.Eve.DCore.Transitions['Infect'])
+
+    def f(m, tab, ti):
+        tab['Sus'] = m.Population.count(st='Sus')
+        tab['Inf'] = m.Population.count(st='Inf')
+        tab['Rec'] = m.Population.count(st='Rec')
+        tab['Alive'] = m.Population.count(st='Alive')
+        tab['Dead'] = m.Population.count(st='Dead')
 
 
-# generate a model from the blueprints
-pc = pc_bp.sample_core()
-dc = dc_bp.generate_model(pc=pc)
-model = mc_bp.generate('A', pc=pc, dc=dc)
+    model.add_observing_function(f)
 
-# simulation
-out = simulate(model, y0={'N': 500}, fr=0, to=10)
-print(model.output(mid=False))
+    y0 = [
+        {'n': 995, 'attributes': {'st': 'Sus'}},
+        {'n': 5, 'attributes': {'st': 'Inf'}},
+    ]
+
+    print(cx.simulate(model, y0, 0, 10, 1))

@@ -5,13 +5,16 @@ from .trigger import *
 from .behaviour import *
 from .modbe import *
 from .lifebe import *
-# from .listener import *
+from .listener import *
 
 __author__ = 'TimeWz667'
 __all__ = ['TimeIndModBehaviour', 'TimeDepModBehaviour',
            'TransitionTrigger', 'StateTrigger', 'StateEnterTrigger', 'StateExitTrigger',
            'FDShock', 'FDShockFast', 'DDShock', 'DDShockFast',
+           'WeightSumShock', 'WeightAvgShock', 'NetShock', 'NetWeightShock',
+           'SwitchOn', 'SwitchOff',
            'Reincarnation', 'Cohort', 'LifeRate', 'LifeS',
+           'ForeignShock', 'ForeignSumShock', 'Immigration',
            'StSpBeLibrary']
 
 
@@ -38,5 +41,39 @@ StSpBeLibrary.register('DDShock', DDShock,
 StSpBeLibrary.register('DDShockFast', DDShockFast,
                        [vld.Options('t_tar', 'transitions'), vld.Options('s_src', 'states'),
                         vld.PositiveFloat('dt', opt=True, default=0.5)])
+StSpBeLibrary.register('SwitchOff', SwitchOff,
+                       [vld.Options('t_tar', 'transitions'),
+                        vld.Options('s_src', 'states'),
+                        vld.Prob('prob')])
+StSpBeLibrary.register('SwitchOn', SwitchOn,
+                       [vld.Options('t_tar', 'transitions'),
+                        vld.Options('s_src', 'states'),
+                        vld.Prob('prob')])
+StSpBeLibrary.register('WeightSumShock', WeightSumShock,
+                       [vld.Options('t_tar', 'transitions'), vld.Options('s_src', 'states'),
+                        vld.ProbTab('weight'), vld.PositiveFloat('dt', opt=True, default=0.5)])
+StSpBeLibrary.register('WeightAvgShock', WeightAvgShock,
+                       [vld.Options('t_tar', 'transitions'), vld.Options('s_src', 'states'),
+                        vld.ProbTab('weight'), vld.PositiveFloat('dt', opt=True, default=0.5)])
+StSpBeLibrary.register('NetShock', NetShock,
+                       [vld.Options('t_tar', 'transitions'), vld.Options('s_src', 'states'),
+                        vld.Options('net', 'networks')])
+StSpBeLibrary.register('NetWeightShock', NetWeightShock,
+                       [vld.Options('t_tar', 'transitions'), vld.Options('s_src', 'states'),
+                        vld.Options('net', 'networks'), vld.ProbTab('weight')])
 
+StSpBeLibrary.register('ForeignShock', ForeignShock,
+                       [vld.Options('t_tar', 'transitions'),
+                        vld.String('mod_src', opt=True),
+                        vld.String('par_src', opt=True),
+                        vld.PositiveFloat('default', default=1, opt=True)])
 
+StSpBeLibrary.register('ForeignSumShock', ForeignSumShock,
+                       [vld.Options('t_tar', 'transitions'),
+                        vld.NotNull('mod_par_src', opt=True),
+                        vld.PositiveFloat('default', default=1, opt=True)])
+
+StSpBeLibrary.register('Immigration', Immigration,
+                       [vld.Options('s_immigrant', 'state'),
+                        vld.String('mod_src', opt=True),
+                        vld.String('par_src', opt=True)])

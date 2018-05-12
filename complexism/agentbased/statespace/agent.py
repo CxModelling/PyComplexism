@@ -76,6 +76,13 @@ class StSpAgent(GenericAgent):
         if mod.update(value):
             self.modify(target, ti)
 
+    def get_mod_value(self, m):
+        return self.Modifiers[m].Value
+
+    def set_mod_value(self, m, value):
+        mod = self.Modifiers[m]
+        mod.Value = value
+
     def modify(self, m, ti):
         """
         Re-modify a transition via modifier m

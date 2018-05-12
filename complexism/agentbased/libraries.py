@@ -27,39 +27,12 @@ BehaviourLibrary.register('LifeLeeCarter', LifeLeeCarter,
                            vld.Options('t_death', 'transitions'), vld.PositiveInteger('yr'),
                            vld.Path('path_lct'), vld.Path('path_lcx'), vld.Path('path_nb'), vld.Path('path_agestr'),
                            vld.PositiveFloat('rmf', default=1.07)])
-BehaviourLibrary.register('ComFDShock', ComFDShock,
-                          [vld.Options('t_tar', 'transitions'), vld.Options('s_src', 'states')])
-BehaviourLibrary.register('ComFDShockFast', ComFDShockFast,
-                          [vld.Options('t_tar', 'transitions'), vld.Options('s_src', 'states'),
-                           vld.PositiveFloat('dt', opt=True, default=0.5)])
-BehaviourLibrary.register('ComDDShock', ComDDShock,
-                          [vld.Options('t_tar', 'transitions'), vld.Options('s_src', 'states')])
-BehaviourLibrary.register('ComDDShockFast', ComDDShockFast,
-                          [vld.Options('t_tar', 'transitions'), vld.Options('s_src', 'states'),
-                           vld.PositiveFloat('dt', opt=True, default=0.5)])
-BehaviourLibrary.register('NerfDecision', NerfDecision,
-                          [vld.Options('t_tar', 'transitions'),
-                           vld.Options('s_src', 'states'),
-                           vld.Prob('prob')])
-BehaviourLibrary.register('BuffDecision', BuffDecision,
-                          [vld.Options('t_tar', 'transitions'),
-                           vld.Options('s_src', 'states'),
-                           vld.Prob('prob')])
-BehaviourLibrary.register('ComWeightSumShock', ComWeightSumShock,
-                          [vld.Options('t_tar', 'transitions'), vld.Options('s_src', 'states'),
-                           vld.ProbTab('weight'), vld.PositiveFloat('dt', opt=True, default=0.5)])
-BehaviourLibrary.register('ComWeightAvgShock', ComWeightAvgShock,
-                          [vld.Options('t_tar', 'transitions'), vld.Options('s_src', 'states'),
-                           vld.ProbTab('weight'), vld.PositiveFloat('dt', opt=True, default=0.5)])
-BehaviourLibrary.register('NetShock', NetShock,
-                          [vld.Options('t_tar', 'transitions'), vld.Options('s_src', 'states'),
-                           vld.Options('net', 'networks')])
-BehaviourLibrary.register('NetWeightShock', NetWeightShock,
-                          [vld.Options('t_tar', 'transitions'), vld.Options('s_src', 'states'),
-                           vld.Options('net', 'networks'), vld.ProbTab('weight')])
+
+
 BehaviourLibrary.register('TimeStep', TimeStep,
                           [vld.Options('t_tar', 'transitions'), vld.List('ys'), vld.List('ts')])
 BehaviourLibrary.register('ForeignShock', ForeignShock,
                           [vld.Options('t_tar', 'transitions'),
                            vld.String('mod_src', opt=True),
-                           vld.String('mod_src', opt=True)])
+                           vld.String('par_src', opt=True)])
+

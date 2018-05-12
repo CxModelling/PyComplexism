@@ -117,7 +117,7 @@ class Immigration(TimeIndBehaviour):
 
     def impulse_foreign(self, model, fore, ti):
         self.ImN = fore[self.Source]
-        model.birth(self.ImInfo, ti)
+        model.birth(n=self.ImN, ti=ti, **self.ImInfo)
 
     @staticmethod
     def decorate(name, model, **kwargs):
