@@ -1,4 +1,4 @@
-from epidag import DirectedAcyclicGraph
+import epidag as dag
 
 __author__ = 'TimeWz667'
 
@@ -14,16 +14,10 @@ PCore ABC{
 
 # Generate a simulation model
 print('Read script')
-sm = DirectedAcyclicGraph(script).get_simulation_model()
-print(sm)
-print()
-
-# Instantiate a parameter core
-print('Fix upstream parameters')
-pc = sm.sample_core()
+pc = dag.quick_build_parameter_core(script, )
 print(pc)
-print()
+
 # Extract a leaf distribution
 print('Draw five random values from "TrAB"')
-trAB = pc['TrAB']
+trAB = pc.get_sampler('TrAB')
 print(trAB.sample(5))

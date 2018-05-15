@@ -1,43 +1,183 @@
-from complexism.mcore import Observer, LeafModel
-from complexism.element import Clock, Request
-from scipy.integrate import odeint
 import numpy as np
 from copy import deepcopy
 from collections import namedtuple
+from scipy.integrate import odeint
+from abc import ABCMeta, abstractmethod
+from complexism.mcore import Observer, LeafModel
+from complexism.element import Clock, Request
 
 
 __author__ = 'TimeWz667'
-__all__ = ['ObsEBM', 'ODEModel']
+__all__ = ['AbsEquations', 'OrdinaryDifferentialEquations',
+           'ObsEBM', 'GenericEquationBasedModel']
 
 
-Links = namedtuple('Links', ('mod_src', 'par_src', 'tar', 'par_tar'))
+Links = namedtuple('Links', ('mod_src', 'par_src', 'par_tar', 'kwargs'))
+
+
+class AbsEquations(metaclass=ABCMeta):
+    @abstractmethod
+    def set_ys(self, y):
+        pass
+
+    @abstractmethod
+    def get_ys_dict(self):
+        pass
+
+    @abstractmethod
+    def update(self, t0, t1, pars):
+        pass
+
+    @abstractmethod
+    def impulse(self, k, v):
+        pass
+
+
+class OrdinaryDifferentialEquations(AbsEquations):
+    def __init__(self, fn, y_names, dt, x=None):
+        self.Dt = dt
+        self.Y = np.zeros(len(y_names))
+        self.X = x if x else dict()
+        self.NamesY = y_names
+        self.IndicesY = {v: i for i, v in enumerate(y_names)}
+        self.Func = fn
+
+    def __getitem__(self, item):
+        return self.X[item]
+
+    def set_ys(self, ys):
+        n = len(self.NamesY)
+        if len(ys) is not n:
+            raise AttributeError
+
+        if isinstance(ys, list):
+            self.Y = np.array(ys)
+        else:
+            self.Y = np.zeros(n)
+            for k, i in self.IndicesY.items():
+                self.Y[i] = ys[k]
+
+    def get_ys_dict(self):
+        return {v: self.Y[i] for v, i in self.IndicesY}
+
+    def update(self, t0, t1, pars):
+        num = int((t1 - t0) / self.Dt) + 1
+        ts = np.linspace(t0, t1, num)
+        self.Y = odeint(self.Func, self.Y, ts)[-1]
+        return self.get_ys_dict()
+
+    def impulse(self, k, v):
+        self.X[k] = v
 
 
 class ObsEBM(Observer):
     def __init__(self):
         Observer.__init__(self)
-        self.ObsSt = list()
-        self.ObsTr = list()
-        self.ObsBe = list()
+        self.Stocks = list()
+        self.StockFunctions = list()
+        self.FlowFunctions = list()
 
-    def add_obs_state(self, st):
-        self.ObsSt.append(st)
+    def add_observing_stock(self, stock):
+        self.Stocks.append(stock)
 
-    def add_obs_transition(self, tr):
-        self.ObsTr.append(tr)
+    def add_observing_stock_function(self, func):
+        self.StockFunctions.append(func)
 
-    def add_obs_behaviour(self, be):
-        self.ObsBe.append(be)
+    def add_observing_flow_function(self, func):
+        self.FlowFunctions.append(func)
 
     def update_dynamic_observations(self, model, flow, ti):
-        for tr in self.ObsTr:
-            flow[tr] = model.ODE.count_tr(tr)
+        model.go_to(ti)
+        for func in self.FlowFunctions:
+            func(model, flow, ti)
 
     def read_statics(self, model, tab, ti):
-        for st in self.ObsSt:
-            tab[st] = model.ODE.count_st(st)
-        for be in self.ObsBe:
-            model.ODE.fill(be, tab, ti)
+        model.go_to(ti)
+        for st in self.Stocks:
+            tab[st] = model.Ys
+
+        for func in self.StockFunctions:
+            func(model, tab, ti)
+
+
+class GenericEquationBasedModel(LeafModel):
+    def __init__(self, name, pc, eqs, dt, obs=None):
+        obs = obs if obs else ObsEBM()
+        LeafModel.__init__(self, name, obs)
+        self.PCore = pc
+        self.Clock = Clock(dt=dt)
+        self.Ys = None
+        self.Equations = eqs
+        self.UpdateEnd = 0
+        self.ForeignLinks = list()
+
+    def add_observing_stock(self, stock):
+        self.Obs.add_observing_stock(stock)
+
+    def add_observing_stock_function(self, func):
+        self.Obs.add_observing_stock_function(func)
+
+    def add_observing_flow_function(self, func):
+        self.Obs.add_observing_flow_function(func)
+
+    def read_y0(self, y0, ti):
+        self.Equations.set_ys(y0)
+
+    def preset(self, ti):
+        self.Clock.initialise(ti)
+        self.UpdateEnd = self.TimeEnd = ti
+        self.Equations.set_ys(self.Ys)
+
+    def reset(self, ti):
+        self.Clock.initialise(ti)
+        self.UpdateEnd = self.TimeEnd = ti
+        self.Equations.set_ys(self.Ys)
+
+    def go_to(self, ti):
+        f, t = self.UpdateEnd, ti
+        if f is t:
+            return
+        self.Ys = self.Equations.update(t0=f, t1=t, pars=self.PCore)
+        self.UpdateEnd = ti
+        self.Clock.update(ti)
+
+    def do_request(self, req):
+        if req.Time > self.TimeEnd:
+            self.go_to(req.Time)
+
+    def find_next(self):
+        self.Requests.append(Request('Update Forward', self.Clock.Next))
+
+    def listen(self, mod_src, par_src, par_tar, **kwargs):
+        self.ForeignLinks.append(Links(mod_src, par_src, par_tar, kwargs))
+
+    def listen_multi(self, mod_src_all, par_src, par_tar, **kwargs):
+        self.ForeignLinks.append(Links(mod_src_all, par_src, par_tar, kwargs))
+
+    def impulse_foreign(self, fore, ti):
+        lks = [fl for fl in self.ForeignLinks if fl.mod_src == fore.Name]
+        for _, par_src, par_tar in lks:
+            val = fore[par_src]
+            self.Equations.shock(par_tar, val)
+
+    def to_json(self):
+        # todo
+        pass
+
+    def clone(self, **kwargs):
+        core = self.Equations.clone(**kwargs)
+        pc = kwargs['pc'] if 'pc' in kwargs else self.PCore
+        co = ODEModel(self.Name, core, pc, dt=self.Clock.By)
+        co.Clock.Initial = self.Clock.Initial
+        co.Clock.Last = self.Clock.Last
+        co.TimeEnd = self.TimeEnd
+        co.UpdateEnd = self.UpdateEnd
+        co.Obs.TimeSeries = deepcopy(self.Obs.TimeSeries)
+        co.Obs.Last = dict(self.Obs.Last.items())
+        co.Y = deepcopy(self.Y)
+        core.initialise(co, self.TimeEnd)
+        return co
+
 
 
 class ODEModel(LeafModel):
@@ -103,6 +243,7 @@ class ODEModel(LeafModel):
                 self.ODE[tar, par_tar] = val
 
     def to_json(self):
+        # todo
         pass
 
     def clone(self, **kwargs):
