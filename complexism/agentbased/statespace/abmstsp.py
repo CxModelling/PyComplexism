@@ -1,6 +1,6 @@
 from complexism.dcore import Transition
 from complexism.mcore import Observer
-from agentbased.abm import GenericAgentBasedModel, ObsABM
+from complexism.agentbased.abm import GenericAgentBasedModel, ObsABM
 from collections import namedtuple, Counter
 
 __author__ = 'TimeWz667'

@@ -4,7 +4,7 @@ from collections import namedtuple
 from scipy.integrate import odeint
 from abc import ABCMeta, abstractmethod
 from complexism.mcore import Observer, LeafModel
-from complexism.element import Clock, Request
+from complexism.element import Clock, Request, Event
 
 
 __author__ = 'TimeWz667'
@@ -17,11 +17,11 @@ Links = namedtuple('Links', ('mod_src', 'par_src', 'par_tar', 'kwargs'))
 
 class AbsEquations(metaclass=ABCMeta):
     @abstractmethod
-    def set_ys(self, y):
+    def set_y(self, y):
         pass
 
     @abstractmethod
-    def get_ys_dict(self):
+    def get_y_dict(self):
         pass
 
     @abstractmethod
@@ -45,26 +45,26 @@ class OrdinaryDifferentialEquations(AbsEquations):
     def __getitem__(self, item):
         return self.X[item]
 
-    def set_ys(self, ys):
+    def set_y(self, y):
         n = len(self.NamesY)
-        if len(ys) is not n:
+        if len(y) is not n:
             raise AttributeError
 
-        if isinstance(ys, list):
-            self.Y = np.array(ys)
+        if isinstance(y, list):
+            self.Y = np.array(y)
         else:
             self.Y = np.zeros(n)
             for k, i in self.IndicesY.items():
-                self.Y[i] = ys[k]
+                self.Y[i] = y[k]
 
-    def get_ys_dict(self):
-        return {v: self.Y[i] for v, i in self.IndicesY}
+    def get_y_dict(self):
+        return {v: self.Y[i] for v, i in self.IndicesY.items()}
 
     def update(self, t0, t1, pars):
         num = int((t1 - t0) / self.Dt) + 1
         ts = np.linspace(t0, t1, num)
-        self.Y = odeint(self.Func, self.Y, ts)[-1]
-        return self.get_ys_dict()
+        self.Y = odeint(self.Func, self.Y, ts, args=(pars, self.X))[-1]
+        return self.get_y_dict()
 
     def impulse(self, k, v):
         self.X[k] = v
@@ -94,7 +94,7 @@ class ObsEBM(Observer):
     def read_statics(self, model, tab, ti):
         model.go_to(ti)
         for st in self.Stocks:
-            tab[st] = model.Ys
+            tab[st] = model.Y[st]
 
         for func in self.StockFunctions:
             func(model, tab, ti)
@@ -106,7 +106,7 @@ class GenericEquationBasedModel(LeafModel):
         LeafModel.__init__(self, name, obs)
         self.PCore = pc
         self.Clock = Clock(dt=dt)
-        self.Ys = None
+        self.Y = None
         self.Equations = eqs
         self.UpdateEnd = 0
         self.ForeignLinks = list()
@@ -121,23 +121,24 @@ class GenericEquationBasedModel(LeafModel):
         self.Obs.add_observing_flow_function(func)
 
     def read_y0(self, y0, ti):
-        self.Equations.set_ys(y0)
+        self.Equations.set_y(y0)
+        self.Y = self.Equations.get_y_dict()
 
     def preset(self, ti):
         self.Clock.initialise(ti)
         self.UpdateEnd = self.TimeEnd = ti
-        self.Equations.set_ys(self.Ys)
+        self.Equations.set_y(self.Y)
 
     def reset(self, ti):
         self.Clock.initialise(ti)
         self.UpdateEnd = self.TimeEnd = ti
-        self.Equations.set_ys(self.Ys)
+        self.Equations.set_y(self.Y)
 
     def go_to(self, ti):
         f, t = self.UpdateEnd, ti
         if f is t:
             return
-        self.Ys = self.Equations.update(t0=f, t1=t, pars=self.PCore)
+        self.Y = self.Equations.update(t0=f, t1=t, pars=self.PCore)
         self.UpdateEnd = ti
         self.Clock.update(ti)
 
@@ -146,7 +147,8 @@ class GenericEquationBasedModel(LeafModel):
             self.go_to(req.Time)
 
     def find_next(self):
-        self.Requests.append(Request('Update Forward', self.Clock.Next))
+        evt = Event('Update Forward', self.Clock.Next)
+        self.Requests.append_event(evt, 'Equation', self.Name)
 
     def listen(self, mod_src, par_src, par_tar, **kwargs):
         self.ForeignLinks.append(Links(mod_src, par_src, par_tar, kwargs))

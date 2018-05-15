@@ -1,6 +1,6 @@
-from equationbased.statespace.belibrary import *
-from equationbased.statespace.eqbehaviour import *
-from equationbased.statespace.odecore import *
+# from .statespace.belibrary import *
+# from .statespace.eqbehaviour import *
+# from .statespace.odecore import *
 from .ebm import *
 from .ebmodeller import *
 from .odefn import *
