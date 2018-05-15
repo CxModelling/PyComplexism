@@ -30,16 +30,6 @@ class BlueprintABM(AbsBlueprintMCore):
     def add_network_json(self, js):
         self.Networks.append(js)
 
-    def add_trait(self, trt_name, trt_type, **kwargs):
-        self.Traits.append({
-            'Name': trt_name,
-            'Type': trt_type,
-            'Args': dict(kwargs)
-        })
-
-    def add_trait_json(self, js):
-        self.Traits.append(js)
-
     def add_behaviour(self, be_name, be_type, **kwargs):
         self.Behaviours.append({"Name": be_name, 'Type': be_type, 'Args': dict(kwargs)})
 

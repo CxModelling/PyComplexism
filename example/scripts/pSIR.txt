@@ -1,7 +1,7 @@
 PCore pSIR {
-    transmission_rate = 1.5
-    rec_rate ~ triangle(0.1, 0.2, 0.3)
-    beta ~ exp(transmission_rate)
-    gamma ~ exp(rec_rate)
+    beta = 1.5
+    gamma ~ triangle(0.1, 0.2, 0.3)
+    Infect ~ exp(beta)
+    Recov ~ exp(0.5)
     Die ~ exp(0.02)
 }

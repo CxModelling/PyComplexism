@@ -1,4 +1,4 @@
-CTBN SIR_BN {
+CTBN SIR {
     life[Alive | Dead]
     sir[S | I | R]
 
@@ -9,8 +9,9 @@ CTBN SIR_BN {
     Sus{life:Alive, sir:S}
 
     Die -> Dead # from transition Die to state Dead by distribution Die
-    Sus -- Infect(beta) -> Inf
-    Inf -- Recov(gamma) -> Rec
+    Sus -- Infect -> Inf
+    Inf -- Recov -> Rec
 
     Alive -- Die # from state Alive to transition Die
 }
+"""

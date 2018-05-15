@@ -18,7 +18,7 @@ __all__ = ['TimeIndModBehaviour', 'TimeDepModBehaviour',
            'StSpBeLibrary']
 
 
-StSpBeLibrary = get_workshop('ABM_BE')
+StSpBeLibrary = get_workshop('StSpABM_BE')
 
 StSpBeLibrary.register('Cohort', Cohort, [vld.Options('s_death', 'states')])
 StSpBeLibrary.register('Reincarnation', Reincarnation,
