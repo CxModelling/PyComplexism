@@ -1,6 +1,6 @@
 PCore pSIR {
     beta = 1.5
-    gamma ~ triangle(0.1, 0.2, 0.3)
+    gamma = 0.2
     Infect ~ exp(beta)
     Recov ~ exp(0.5)
     Die ~ exp(0.02)

@@ -4,5 +4,7 @@
 from .ebm import *
 from .ebmodeller import *
 from .odefn import *
+from .blueprint import *
+from .fn import *
 
 __author__ = 'TimeWz667'

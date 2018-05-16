@@ -5,7 +5,7 @@ from .breeder import StSpBreeder
 from .blueprint import StSpAgentBasedModel
 
 __author__ = 'TimeWz667'
-__all__ = ['prepare_pc_dc', 'generate_plain_model',
+__all__ = ['prepare_pc', 'generate_plain_model',
            'install_behaviour', 'install_network',
            'set_observations']
 
@@ -22,7 +22,7 @@ def form_resources(model):
     return resources
 
 
-def prepare_pc_dc(model_name, ag_group, dbp, **kwargs):
+def prepare_pc(model_name, ag_group, dbp, **kwargs):
     if 'pc' in kwargs:
         pc = kwargs['pc']
     elif 'sm' in kwargs:
@@ -43,7 +43,7 @@ def prepare_pc_dc(model_name, ag_group, dbp, **kwargs):
         pc = sm.generate(model_name, exo=kwargs['exo'] if 'exo' in kwargs else None)
     else:
         raise KeyError('Parameter core not found')
-    return dbp, pc
+    return pc
 
 
 def generate_plain_model(model_name, dbp, pc, prefix='Ag', group=None, have_network=False):

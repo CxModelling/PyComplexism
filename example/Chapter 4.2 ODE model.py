@@ -1,18 +1,9 @@
 import complexism as cx
-import epidag as dag
+import complexism.equationbased as ebm
 import matplotlib.pyplot as plt
 
 
-psc = """
-PCore pSIR {
-    beta = 1.5
-    gamma = 0.2
-}
-"""
-
-bn = cx.read_pc(psc)
-sm = dag.as_simulation_core(bn, hie={'city': []})
-pc = sm.generate('Taipei')
+bn = cx.read_pc(cx.load_txt('scripts/pSIR.txt'))
 
 
 def SIR_ODE(y, t, p, x):
@@ -24,16 +15,16 @@ def SIR_ODE(y, t, p, x):
     return [-inf, inf-rec, rec]
 
 
-eqs = cx.OrdinaryDifferentialEquations(SIR_ODE, ['S', 'I', 'R'], dt=.1, x={'dis': 0.5})
+bp = ebm.BlueprintODE('EBM ODE')
+bp.set_ode(SIR_ODE)
+bp.set_y_names(['S', 'I', 'R'])
+bp.set_x({'dis': 0.5})
 
 
-model_name = 'M1'
+bp.set_observations(stocks=['S', 'I', 'R'])
 
-model = cx.GenericEquationBasedModel(model_name, pc, eqs, dt=.5)
 
-model.add_observing_stock('S')
-model.add_observing_stock('I')
-model.add_observing_stock('R')
+model = bp.generate('SIR', bn=bn, dt=0.5, fdt=0.1)
 
 y0 = {
     'S': 999,
@@ -41,17 +32,6 @@ y0 = {
     'R': 0
 }
 
-out = cx.simulate(model, y0, 0, 10, 1)
-out.plot()
-plt.show()
-
-model.Equations.impulse('dis', 0.1)
-out = cx.update(model, to=20, dt=1)
-out.plot()
-plt.show()
-
-
-pc.impulse({'beta': 10.0})
-out = cx.update(model, to=30, dt=1)
+out = cx.simulate(model, y0, 0, 30, 1)
 out.plot()
 plt.show()

@@ -41,16 +41,15 @@ class BlueprintStSpABM(AbsBlueprintMCore):
     def add_behaviour(self, be_name, be_type, **kwargs):
         self.Behaviours.append({"Name": be_name, 'Type': be_type, 'Args': dict(kwargs)})
 
-    def set_observations(self, states=None, transitions=None, behaviours=None):
+    def set_observations(self, states=None, transitions=None, behaviours=None, functions=None):
         if states:
             self.ObsStates = list(states)
         if transitions:
             self.ObsTransitions = list(transitions)
         if behaviours:
             self.ObsBehaviours = list(behaviours)
-
-    def add_observation_function(self, fn):
-        self.ObsFunctions.append(fn)
+        if functions:
+            self.ObsFunctions = list(functions)
 
     def get_parameter_hierarchy(self, **kwargs):
         dc = kwargs['dc']
@@ -131,6 +130,6 @@ class BlueprintStSpABM(AbsBlueprintMCore):
         # todo
         pass
 
-    def from_json(self):
+    def from_json(self, js):
         # todo
         pass

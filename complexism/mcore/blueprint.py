@@ -49,5 +49,5 @@ class AbsBlueprintMCore(metaclass=ABCMeta):
         pass
 
     @abstractstaticmethod
-    def from_json(self):
+    def from_json(self, js):
         pass

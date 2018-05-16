@@ -55,7 +55,10 @@ class OrdinaryDifferentialEquations(AbsEquations):
         else:
             self.Y = np.zeros(n)
             for k, i in self.IndicesY.items():
-                self.Y[i] = y[k]
+                try:
+                    self.Y[i] = y[k]
+                except KeyError:
+                    self.Y[i] = 0
 
     def get_y_dict(self):
         return {v: self.Y[i] for v, i in self.IndicesY.items()}

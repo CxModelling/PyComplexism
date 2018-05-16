@@ -8,7 +8,7 @@ bn = cx.read_pc(cx.load_txt('../scripts/pSIR.txt'))
 dbp = cx.read_dc(cx.load_txt('../scripts/SIR_BN.txt'))
 
 model_name = 'ABM_SIR'
-dbp, pc = ss.prepare_pc_dc(model_name, ag_group='agent', dbp=dbp, bn=bn)
+pc = ss.prepare_pc(model_name, ag_group='agent', dbp=dbp, bn=bn)
 
 model = ss.generate_plain_model(model_name, dbp=dbp, pc=pc, prefix='Ag', group='agent')
 ss.install_behaviour(model, be_name='FOI', be_type='FDShockFast',
