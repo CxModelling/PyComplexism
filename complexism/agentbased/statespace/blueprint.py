@@ -52,6 +52,15 @@ class BlueprintStSpABM(AbsBlueprintMCore):
     def add_observation_function(self, fn):
         self.ObsFunctions.append(fn)
 
+    def get_parameter_hierarchy(self, **kwargs):
+        dc = kwargs['dc']
+        ag_gp = self.Population['Agent']['Group']
+        trs = dc.RequiredSamplers
+        return {
+            self.Name: [ag_gp],
+            ag_gp: trs
+        }
+
     def generate(self, name, **kwargs):
         # Prepare PC, DC
         dc = kwargs['dc']
@@ -63,14 +72,8 @@ class BlueprintStSpABM(AbsBlueprintMCore):
             pc = sm.generate(name, exo=kwargs['exo'] if 'exo' in kwargs else None)
         elif 'bn' in kwargs:
             bn = kwargs['bn']
-            ag_gp = self.Population['Agent']['Group']
-            trs = [v['Dist'] for v in dc.Transitions.values()]
-            trs = [dist for dist in trs if dist in bn.LeafNodes]
             random = kwargs['random'] if 'random' in kwargs else []
-            hie = {
-                self.Name: [ag_gp],
-                ag_gp: trs
-            }
+            hie = kwargs['hie'] if 'hie' in kwargs else self.get_parameter_hierarchy(dc=dc)
             sm = dag.as_simulation_core(bn, hie=hie, random=random)
             pc = sm.generate(name, exo=kwargs['exo'] if 'exo' in kwargs else None)
         else:

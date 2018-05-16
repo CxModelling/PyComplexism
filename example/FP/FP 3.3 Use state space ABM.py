@@ -5,17 +5,19 @@ __author__ = 'TimeWz667'
 
 
 bn = cx.read_pc(cx.load_txt('../scripts/pSIR.txt'))
-dc = cx.read_dc(cx.load_txt('../scripts/SIR_BN.txt'))
+dbp = cx.read_dc(cx.load_txt('../scripts/SIR_BN.txt'))
 
-mbp = ss.BlueprintStSpABM('ABM_SIR')
-mbp.set_agent(prefix='Ag', group='agent', dynamics='SIR')
-mbp.add_behaviour('FOI', 'FDShockFast', s_src='Inf', t_tar='Infect', dt=0.5)
-mbp.set_observations(states=['Sus', 'Inf', 'Rec', 'Alive', 'Dead'],
-                     transitions=['Infect', 'Recov', 'Die'],
-                     behaviours=['FOI'])
+model_name = 'ABM_SIR'
+dbp, pc = ss.prepare_pc_dc(model_name, ag_group='agent', dbp=dbp, bn=bn)
 
+model = ss.generate_plain_model(model_name, dbp=dbp, pc=pc, prefix='Ag', group='agent')
+ss.install_behaviour(model, be_name='FOI', be_type='FDShockFast',
+                     s_src='Inf', t_tar='Infect', dt=0.5)
 
-model = mbp.generate('M1', bn=bn, dc=dc)
+ss.set_observations(model,
+                    states=['Sus', 'Inf', 'Rec', 'Alive', 'Dead'],
+                    transitions=['Infect', 'Recov', 'Die'],
+                    behaviours=['FOI'])
 
 
 y0 = [

@@ -2,7 +2,7 @@ import epidag as dag
 from complexism.misc import *
 from .dcore.fn import *
 from .dcore import BlueprintCTMC, BlueprintCTBN
-# from complexism.abmodel import BlueprintABM
+from complexism.agentbased.statespace import BlueprintStSpABM
 # from complexism.ebmodel import BlueprintCoreODE
 from complexism.multimodel import ModelLayout
 from complexism.mcore import Simulator
@@ -15,7 +15,7 @@ __all__ = ['load_txt', 'load_json',
            'read_dc', 'load_dc', 'save_dc', 'new_dc',
            'generate_pc', 'generate_dc', 'generate_pc_dc',
            'load_mc', 'save_mc', 'new_mc', 'generate_model', 'copy_model',
-           'new_abm', 'generate_abm', 'copy_abm',
+           'new_ssabm', 'generate_abm', 'copy_abm',
            'add_abm_behaviour', 'add_abm_network', 'set_abm_observations',
            'new_core_ode', 'generate_core_ode', 'copy_core_ode',
            'add_core_ode_behaviour',
@@ -96,10 +96,10 @@ def load_mc(js):
     :param js: model core in json
     :return: a blueprint of model core
     """
-    if js['Type'] == 'ABM':
-        return BlueprintABM.from_json(js)
-    elif js['Type'] == 'CoreODE':
-        return BlueprintCoreODE.from_json(js)
+    if js['Type'] == 'SSABM':
+        return BlueprintStSpABM.from_json(js)
+    # elif js['Type'] == 'CoreODE':
+    #     return BlueprintCoreODE.from_json(js)
 
 
 def save_mc(mc, path):
@@ -111,15 +111,13 @@ def save_mc(mc, path):
     save_json(mc.to_json(), path)
 
 
-def new_abm(name, tar_pc, tar_dc):
+def new_ssabm(name):
     """
-    Generate a new ABM blueprint
+    Generate a new State-space ABM blueprint
     :param name: name
-    :param tar_pc: name of targeted pc
-    :param tar_dc: name of targeted dc
     :return: ABM blueprint
     """
-    bp_abm = BlueprintABM(name, tar_pc, tar_dc)
+    bp_abm = BlueprintStSpABM(name)
     return bp_abm
 
 
@@ -148,8 +146,8 @@ def new_mc(name, model_type, **kwargs):
     :param kwargs: tar_pc, tar_dc, ... if applicable
     :return: model blueprint
     """
-    if model_type == 'ABM':
-        return new_abm(name, kwargs['tar_pc'], kwargs['tar_dc'])
+    if model_type == 'SSABM':
+        return new_ssabm(name)
     elif model_type == 'CoreODE':
         return new_core_ode(name, kwargs['tar_pc'], kwargs['tar_dc'])
     elif model_type == 'FnODE':

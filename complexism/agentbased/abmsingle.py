@@ -16,24 +16,30 @@ class ObsSingleAgent(Observer):
     def __init__(self):
         Observer.__init__(self)
         self.Bes = list()
+        self.Ats = list()
         self.Recs = list()
+
+    def add_observing_attribute(self, atr):
+        self.Ats.append(atr)
 
     def add_observing_behaviour(self, beh):
         self.Bes.append(beh)
 
     def update_dynamic_observations(self, model, flow, ti):
-        trs = Counter([rec.Tr for rec in self.Recs])
-        flow.update(trs)
+        # trs = Counter([rec.Tr for rec in self.Recs])
+        # flow.update(trs)
         self.Recs.clear()
 
     def read_statics(self, model, tab, ti):
-        tab.update(model.Agent.to_data())
+        ats = model.Agent.to_data()
+        ats = {k: ats[k] for k in self.Ats}
+        tab.update(ats)
 
         for be in self.Bes:
             model.Behaviours[be].fill(tab, model, ti)
 
     def record(self, tr, ti):
-        self.Recs.append(Record(tr.Name, ti))
+        self.Recs.append(Record(tr, ti))
 
 
 class SingleIndividualABM(LeafModel):
@@ -42,9 +48,12 @@ class SingleIndividualABM(LeafModel):
         self.Agent = agent
         self.Behaviours = OrderedDict()
 
+    def add_observing_attribute(self, atr):
+        self.Obs.add_observing_attribute(atr)
+
     def add_observing_behaviour(self, be):
         if be in self.Behaviours:
-            self.Obs.add_obs_behaviour(be)
+            self.Obs.add_observing_behaviour(be)
 
     def add_behaviour(self, be):
         if be.Name not in self.Behaviours:

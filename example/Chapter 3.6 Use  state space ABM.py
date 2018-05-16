@@ -2,60 +2,23 @@ import complexism as cx
 import complexism.agentbased.statespace as ss
 import epidag as dag
 
+bn = cx.read_pc(cx.load_txt('scripts/pSIR.txt'))
+dc = cx.read_dc(cx.load_txt('scripts/SIR_BN.txt'))
 
-psc = """
-PCore pSIR {
-    beta = 0.4
-    gamma = 0.5
-    Infect ~ exp(beta)
-    Recov ~ exp(0.5)
-    Die ~ exp(0.02)
-}
-"""
-
-dsc = """
-CTBN SIR {
-    life[Alive | Dead]
-    sir[S | I | R]
-
-    Alive{life:Alive}
-    Dead{life:Dead}
-    Inf{life:Alive, sir:I}
-    Rec{life:Alive, sir:R}
-    Sus{life:Alive, sir:S}
-
-    Die -> Dead # from transition Die to state Dead by distribution Die
-    Sus -- Infect -> Inf
-    Inf -- Recov -> Rec
-
-    Alive -- Die # from state Alive to transition Die
-}
-"""
-
-bn = cx.read_pc(psc)
-sm = dag.as_simulation_core(bn,
-                            hie={'city': ['agent'],
-                                 'agent': ['Recov', 'Die', 'Infect']})
-
-model_name = 'M1'
-dc = cx.read_dc(dsc)
-Gene = sm.generate()
-eve = ss.StSpBreeder('Ag ', 'agent', Gene, dc)
-pop = cx.Population(eve)
+mbp = ss.BlueprintStSpABM('ABM_SIR')
+mbp.set_agent(prefix='Ag', group='agent', dynamics='SIR')
+mbp.add_behaviour('FOI', 'FDShockFast', s_src='Inf', t_tar='Infect', dt=0.5)
+mbp.set_observations(states=['Sus', 'Inf', 'Rec', 'Alive', 'Dead'],
+                     transitions=['Infect', 'Recov', 'Die'],
+                     behaviours=['FOI'])
 
 
-if __name__ == '__main__':
-    model = cx.StSpAgentBasedModel(model_name, Gene, pop)
+model = mbp.generate('M1', bn=bn, dc=dc)
 
-    for tr in ['Infect', 'Recov', 'Die']:
-        model.add_observing_transition(tr)
 
-    for st in ['Sus', 'Inf', 'Rec', 'Alive', 'Dead']:
-        model.add_observing_state(st)
+y0 = [
+    {'n': 990, 'attributes': {'st': 'Sus'}},
+    {'n': 10, 'attributes': {'st': 'Inf'}},
+]
 
-    y0 = [
-        {'n': 95, 'attributes': {'st': 'Sus'}},
-        {'n': 5, 'attributes': {'st': 'Inf'}},
-    ]
-
-    print(cx.simulate(model, y0, 0, 10, 1))
+print(cx.simulate(model, y0, 0, 10, 1))

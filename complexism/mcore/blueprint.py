@@ -24,6 +24,10 @@ class AbsBlueprintMCore(metaclass=ABCMeta):
         """
         self.__pc = pc
 
+    @abstractmethod
+    def get_parameter_hierarchy(self, **kwargs):
+        pass
+
     @property
     def require_pc(self):
         return bool(self.__pc)
