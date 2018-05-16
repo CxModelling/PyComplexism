@@ -14,6 +14,7 @@ mbp.set_observations(states=['Sus', 'Inf', 'Rec', 'Alive', 'Dead'],
                      transitions=['Infect', 'Recov', 'Die'],
                      behaviours=['FOI'])
 
+
 model = mbp.generate('M1', bn=bn, dc=dc)
 
 

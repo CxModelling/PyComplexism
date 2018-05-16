@@ -94,7 +94,7 @@ class BlueprintStSpABM(AbsBlueprintMCore):
         ws.renew_resources(resources)
         for net in self.Population['Networks']:
             net = ws.create(net)
-            mod.add_trait(net)
+            model.add_network(net)
         ws.clear_resources()
 
         # Install behaviours

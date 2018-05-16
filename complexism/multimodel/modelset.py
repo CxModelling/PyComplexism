@@ -15,7 +15,7 @@ class ObsModelSet(Observer):
     def add_obs_sel(self, sel):
         self.Observed.append(sel)
 
-    def update_dynamic_Observations(self, model, flow, ti):
+    def update_dynamic_observations(self, model, flow, ti):
         pass
 
     def read_statics(self, model, tab, ti):
