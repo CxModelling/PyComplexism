@@ -1,6 +1,5 @@
 import complexism as cx
 import complexism.agentbased.statespace as ss
-import epidag as dag
 
 bn = cx.read_pc(cx.load_txt('scripts/pSIR.txt'))
 dc = cx.read_dc(cx.load_txt('scripts/SIR_BN.txt'))

@@ -1,6 +1,8 @@
+from complexism.element import Event
 from complexism.mcore import *
+from .entries import RelationEntry
 from .summariser import *
-from complexism.multimodel import RelationEntry
+
 import pandas as pd
 
 __author__ = 'TimeWz667'
@@ -41,8 +43,9 @@ class ObsModelSet(Observer):
 
 
 class ModelSet(BranchModel):
-    def __init__(self, name, odt=0.5, meta=None):
-        BranchModel.__init__(self, name, ObsModelSet(), meta=meta)
+    def __init__(self, name, pc=None, odt=0.5):
+        BranchModel.__init__(self, name, ObsModelSet())
+        self.PCore = pc
         self.Network = dict()
         self.Network[name] = set()
         self.Summariser = Summariser(name, dt=odt)
@@ -72,10 +75,10 @@ class ModelSet(BranchModel):
         for k, model in self.Models.items():
             self.Requests.add([evt.up(k) for evt in model.next])
         self.Summariser.find_next()
-        self.Requests.append_src('Summary', '', self.Summariser.tte)
+        self.Requests.append_event(Event('Summarise', self.Summariser.TTE), 'Summariser', self.Name)
 
     def do_request(self, req):
-        if req.Node == 'Summary':
+        if req.Node == 'Summarise':
             ti = req.Time
             self.cross_impulse(ti)
             self.Summariser.do_request(req)

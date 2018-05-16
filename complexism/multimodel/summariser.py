@@ -18,7 +18,7 @@ class Summariser(LeafModel):
         self.Impulses = OrderedDict()
 
     def find_next(self):
-        self.Requests.append(Request('Summary', self.Clock.Next))
+        self.Requests.append(Request('Summarise', self.Clock.Next))
 
     def __getitem__(self, item):
         try:
@@ -39,14 +39,13 @@ class Summariser(LeafModel):
 
     def read_tasks(self):
         for tk in self.Tasks:
-            self.Impulses[tk.NewName] = \
-                self.Employer.select_all(tk.Selector).sum(tk.Parameter)
+            self.Impulses[tk.NewName] = self.Employer.select_all(tk.Selector).sum(tk.Parameter)
 
     def do_request(self, req):
         self.Clock.update(req.Time)
         self.TimeEnd = req.Time
 
-    def listen(self, src_model, src_value, par_target):
+    def listen(self, src_model, src_value, par_target, **kwargs):
         if not par_target:
             if src_model == '*':
                 par_target = src_value
