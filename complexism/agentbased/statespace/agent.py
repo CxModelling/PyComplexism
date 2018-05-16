@@ -27,7 +27,7 @@ class StSpAgent(GenericAgent):
         self.Transitions.clear()
         self.update_time(ti)
 
-    def reset(self, time=0, *args, **kwargs):
+    def reset(self, ti=0, *args, **kwargs):
         self.Transitions.clear()
         self.update_time(ti)
 
@@ -47,7 +47,7 @@ class StSpAgent(GenericAgent):
         ad = list(set(new_trs) - set(self.Transitions.keys()))
         self.Transitions = {k: v for k, v in self.Transitions.items() if k in new_trs}
         for tr in ad:
-            tte = tr.rand(self)
+            tte = tr.rand(self.Parameters, **self.Attributes)
             for mo in self.Modifiers.on(tr):
                 tte = mo.modify(tte)
             self.Transitions[tr] = tte + ti
@@ -94,7 +94,7 @@ class StSpAgent(GenericAgent):
         mod = self.Modifiers[m]
         if mod.Target in self.Transitions:
             tr = mod.Target
-            tte = tr.rand()
+            tte = tr.rand(self.Parameters, **self.Attributes)
             for mo in self.Modifiers.on(tr):
                 tte = mo.modify(tte)
             self.Transitions[tr] = tte + ti

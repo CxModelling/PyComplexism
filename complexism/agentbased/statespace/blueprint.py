@@ -64,7 +64,7 @@ class BlueprintStSpABM(AbsBlueprintMCore):
         elif 'bn' in kwargs:
             bn = kwargs['bn']
             ag_gp = self.Population['Agent']['Group']
-            trs = [v['Dist'] for _, v in dc.Transitions.items()]
+            trs = [v['Dist'] for v in dc.Transitions.values()]
             trs = [dist for dist in trs if dist in bn.LeafNodes]
             random = kwargs['random'] if 'random' in kwargs else []
             hie = {

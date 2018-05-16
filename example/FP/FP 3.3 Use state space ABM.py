@@ -8,7 +8,7 @@ bn = cx.read_pc(cx.load_txt('../scripts/pSIR.txt'))
 dc = cx.read_dc(cx.load_txt('../scripts/SIR_BN.txt'))
 
 mbp = ss.BlueprintStSpABM('ABM_SIR')
-mbp.set_agent('Ag ', 'agent', dynamics='SIR')
+mbp.set_agent(prefix='Ag', group='agent', dynamics='SIR')
 mbp.add_behaviour('FOI', 'FDShockFast', s_src='Inf', t_tar='Infect', dt=0.5)
 mbp.set_observations(states=['Sus', 'Inf', 'Rec', 'Alive', 'Dead'],
                      transitions=['Infect', 'Recov', 'Die'],

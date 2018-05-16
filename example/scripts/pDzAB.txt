@@ -1,0 +1,7 @@
+PCore pDzAB {
+    rateA = 0.05
+    rrA_B = 1.5
+    TrA ~ exp(rateA)
+    TrB ~ exp(0.1)
+    TrA_B ~ exp(rateA*rrA_B)
+}

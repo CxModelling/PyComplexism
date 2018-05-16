@@ -87,7 +87,7 @@ class LifeRate(TimeDepBehaviour):
         return Event(self.Name, ti)
 
     def do_action(self, model, todo, ti):
-        n = model.Pop.count()
+        n = len(model)
 
         if n <= 0:
             return
@@ -136,7 +136,7 @@ class LifeS(TimeDepBehaviour):
         return Event(self.Name, ti)
 
     def do_action(self, model, todo, ti):
-        n = model.Pop.count()
+        n = len(model)
 
         if n <= 0:
             return

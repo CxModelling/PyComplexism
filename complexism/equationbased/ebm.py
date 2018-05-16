@@ -160,7 +160,7 @@ class GenericEquationBasedModel(LeafModel):
         lks = [fl for fl in self.ForeignLinks if fl.mod_src == fore.Name]
         for _, par_src, par_tar in lks:
             val = fore[par_src]
-            self.Equations.shock(par_tar, val)
+            self.Equations.impulse(par_tar, val)
 
     def to_json(self):
         # todo

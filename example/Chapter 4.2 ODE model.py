@@ -1,5 +1,6 @@
 import complexism as cx
 import epidag as dag
+import matplotlib.pyplot as plt
 
 
 psc = """
@@ -18,12 +19,12 @@ def SIR_ODE(y, t, p, x):
     s = y[0]
     i = y[1]
     n = sum(y)
-    inf = s*i*p['beta']/n
+    inf = s*i*p['beta']/n * x['dis']
     rec = i*p['gamma']
     return [-inf, inf-rec, rec]
 
 
-eqs = cx.OrdinaryDifferentialEquations(SIR_ODE, ['S', 'I', 'R'], dt=.1)
+eqs = cx.OrdinaryDifferentialEquations(SIR_ODE, ['S', 'I', 'R'], dt=.1, x={'dis': 0.5})
 
 
 model_name = 'M1'
@@ -40,4 +41,17 @@ y0 = {
     'R': 0
 }
 
-print(cx.simulate(model, y0, 0, 10, 1))
+out = cx.simulate(model, y0, 0, 10, 1)
+out.plot()
+plt.show()
+
+model.Equations.impulse('dis', 0.1)
+out = cx.update(model, to=20, dt=1)
+out.plot()
+plt.show()
+
+
+pc.impulse({'beta': 10.0})
+out = cx.update(model, to=30, dt=1)
+out.plot()
+plt.show()

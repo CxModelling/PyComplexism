@@ -229,7 +229,8 @@ class BlueprintCTBN(AbsBlueprint):
         else:
             return True
 
-    def find_required_distributions(self):
+    @property
+    def RequiredSamplers(self):
         return [k for k, v in self.Transitions.items() if v['Dist'].find('(') < 0]
 
     def to_json(self):
@@ -248,7 +249,7 @@ class BlueprintCTBN(AbsBlueprint):
 
     def generate_model(self, name=None, *args, **kwargs):
         try:
-            dis = {di: kwargs[di] for di in self.find_required_distributions()}
+            dis = {di: kwargs[di] for di in self.RequiredSamplers}
         except KeyError as e:
             raise e
 

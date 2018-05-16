@@ -1,5 +1,6 @@
 PCore pBAD {
-    Die ~ exp(1)
+    dr = 0.2
+    Die ~ exp(dr)
     ToM ~ k(3)
     ToO ~ k(3)
 }

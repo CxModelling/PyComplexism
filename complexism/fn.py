@@ -16,7 +16,7 @@ __all__ = ['load_txt', 'load_json',
            'generate_pc', 'generate_dc', 'generate_pc_dc',
            'load_mc', 'save_mc', 'new_mc', 'generate_model', 'copy_model',
            'new_abm', 'generate_abm', 'copy_abm',
-           'add_abm_behaviour', 'add_abm_trait', 'add_abm_network', 'set_abm_observations',
+           'add_abm_behaviour', 'add_abm_network', 'set_abm_observations',
            'new_core_ode', 'generate_core_ode', 'copy_core_ode',
            'add_core_ode_behaviour',
            'load_layout', 'save_layout', 'new_layout', 'add_layout_entry', 'generate_multimodel',
@@ -196,10 +196,6 @@ def add_layout_entry(layout, model_name, y0, **kwargs):
     """
     # todo
     pass
-
-
-def add_abm_trait(bp_mc, trt_name, trt_type, **kwargs):
-    bp_mc.add_trait(trt_name, trt_type, **kwargs)
 
 
 def add_abm_network(bp_mc, net_name, net_type, **kwargs):

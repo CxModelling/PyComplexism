@@ -24,7 +24,7 @@ class CTMCTestCase(unittest.TestCase):
         self.assertTrue(self.BP.add_transition('TrCA', 'A', 'exp(0.1)'))
         self.assertEqual(len(self.BP.Transitions), 3)
 
-        self.assertSetEqual(set(self.BP.find_required_distributions()), {'TrAB', 'TrBC'})
+        self.assertSetEqual(set(self.BP.RequiredSamplers), {'TrAB', 'TrBC'})
         self.assertTrue(self.BP.link_state_transition('A', 'TrAB'))
         self.assertTrue(self.BP.link_state_transition('B', 'TrBC'))
         self.assertTrue(self.BP.link_state_transition('C', 'TrCA'))

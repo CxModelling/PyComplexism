@@ -116,6 +116,16 @@ class AbsBlueprint(metaclass=ABCMeta):
     def Name(self):
         return self.__Name
 
+    @property
+    @abstractmethod
+    def RequiredSamplers(self) -> list:
+        """
+        Get the name of distributions required from a parameter model
+        :return: list of required distributions
+        :rtype: list
+        """
+        pass
+
     @abstractmethod
     def generate_model(self, name=Name, *args, **kwargs):
         """

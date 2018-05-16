@@ -13,11 +13,11 @@ PCore ABC{
 """
 
 # Generate a simulation model
-print('Read script')
-pc = dag.quick_build_parameter_core(script, )
+print('\nRead script')
+pc = dag.quick_build_parameter_core(script)
 print(pc)
 
 # Extract a leaf distribution
-print('Draw five random values from "TrAB"')
+print('\nDraw five random values from "TrAB"')
 trAB = pc.get_sampler('TrAB')
 print(trAB.sample(5))
