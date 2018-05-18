@@ -61,4 +61,8 @@ if __name__ == '__main__':
         {'n': 2, 'attributes': {'st': 'Inf'}},
     ]
 
+    from complexism.misc.counter import *
+    start_counting('SIR')
     print(cx.simulate(model, y0, 0, 10, 1))
+    stop_counting()
+    print(get_results('SIR'))

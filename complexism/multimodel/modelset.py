@@ -1,5 +1,6 @@
 import pandas as pd
 import networkx as nx
+from complexism.misc.counter import count
 from complexism.element import Event
 from complexism.mcore import *
 from .entries import RelationEntry
@@ -106,6 +107,7 @@ class MultiModel(BranchModel):
                 tar = self.get_model(t)
                 tar.impulse_foreign(src, ti)
 
+    @count()
     def do_request(self, req):
         src = self.get_model(req.Who)
         for t, kb in self.Models[req.Who].items():

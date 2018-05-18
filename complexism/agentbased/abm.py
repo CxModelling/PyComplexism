@@ -1,5 +1,6 @@
 from abc import ABCMeta, abstractmethod
 from collections import namedtuple, OrderedDict
+from complexism.misc.counter import count
 from complexism.mcore import Observer, LeafModel
 from complexism.element import Request
 from .be import ForeignListener, MultiForeignListener
@@ -177,6 +178,7 @@ class GenericAgentBasedModel(LeafModel, metaclass=ABCMeta):
             nxt = ag.Next
             self.Requests.append_event(nxt, k, self.Name)
 
+    @count()
     def do_request(self, req: Request):
         nod, evt, time = req.Who, req.Event, req.When
         if nod in self.Behaviours:

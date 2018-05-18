@@ -3,6 +3,7 @@ from copy import deepcopy
 from collections import namedtuple
 from scipy.integrate import odeint
 from abc import ABCMeta, abstractmethod
+from complexism.misc.counter import count
 from complexism.mcore import Observer, LeafModel
 from complexism.element import Clock, Request, Event
 
@@ -149,6 +150,7 @@ class GenericEquationBasedModel(LeafModel):
         self.Clock.update(ti)
         self.drop_next()
 
+    @count()
     def do_request(self, req):
         if req.Time > self.UpdateEnd:
             self.go_to(req.Time)

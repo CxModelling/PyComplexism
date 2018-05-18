@@ -74,6 +74,7 @@ class EventCounter:
                 cnt = EventCounter.Counters[name]
             except KeyError:
                 cnt = EventCounter(name)
+                EventCounter.Counters[name] = cnt
         else:
             cnt = EventCounter.DefaultCounter
         EventCounter.ActivateCounter = cnt

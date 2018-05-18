@@ -1,5 +1,6 @@
 import epidag as dag
 import complexism as cx
+from complexism.misc import start_counting, stop_counting, get_results
 import complexism.equationbased as ebm
 import complexism.agentbased.statespace as ss
 __author__ = 'TimeWz667'
@@ -118,5 +119,9 @@ y0 = {
 
 m_abm.add_observing_behaviour('I-InfectF')
 
+start_counting('MM')
 output = cx.simulate(model, y0, 0, 10, 1)
+stop_counting()
 print(output)
+print()
+print(get_results('MM'))

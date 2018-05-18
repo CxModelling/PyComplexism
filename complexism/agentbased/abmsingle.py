@@ -1,8 +1,10 @@
+from collections import namedtuple, OrderedDict
+from complexism.misc.counter import count
 from complexism.mcore import Observer, LeafModel
 from complexism.element import Request
 from complexism.agentbased import GenericAgent
 from .be import ForeignListener, MultiForeignListener
-from collections import namedtuple, OrderedDict, Counter
+
 
 
 __author__ = 'TimeWz667'
@@ -117,6 +119,7 @@ class SingleIndividualABM(LeafModel):
         nxt = self.Agent.Next
         self.Requests.append_event(nxt, who=self.Agent.Name, where=self.Name)
 
+    @count()
     def do_request(self, req: Request):
         nod, evt, time = req.Who, req.Event, req.When
         if nod in self.Behaviours:

@@ -1,6 +1,7 @@
+from abc import ABCMeta, abstractmethod
 from complexism.element import Event, RequestSet
 from complexism.mcore import Observer, ModelSelector
-from abc import ABCMeta, abstractmethod
+from complexism.misc.counter import count
 
 __author__ = 'TimeWz667'
 
@@ -182,15 +183,19 @@ class AbsModel(metaclass=ABCMeta):
     def do_request(self, req):
         pass
 
+    @count('Observe')
     def initialise_observations(self, ti):
         self.Obs.initialise_observations(self, ti)
 
+    @count('Observe')
     def update_observations(self, ti):
         self.Obs.observe_routinely(self, ti)
 
+    @count('Observe')
     def captureMidTermObservations(self, ti):
         self.Obs.update_at_mid_term(self, ti)
 
+    @count('Observe')
     def push_observations(self, ti):
         self.Obs.push_observations(ti)
 
