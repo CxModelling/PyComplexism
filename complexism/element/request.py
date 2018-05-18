@@ -9,12 +9,6 @@ class Request:
     NullRequest = None
 
     def __init__(self, evt: Event, who='Someone', where='Somewhere'):
-        """
-
-        :param evt:
-        :param who:
-        :param where:
-        """
         self.Who = who
         self.Where = [where] if isinstance(where, str) else where
         self.Event = evt
@@ -124,7 +118,7 @@ class RequestSet:
         if ti < self.Time:
             self.Requests = [req]
             self.Time = ti
-        elif req.When == ti:
+        elif ti == self.Time:
             self.Requests.append(req)
 
     def append_event(self, evt, who, where):

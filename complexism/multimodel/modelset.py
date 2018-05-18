@@ -1,12 +1,13 @@
+import pandas as pd
+import networkx as nx
 from complexism.element import Event
 from complexism.mcore import *
 from .entries import RelationEntry
 from .summariser import *
 
-import pandas as pd
 
 __author__ = 'TimeWz667'
-__all__ = ['ObsModelSet', 'ModelSet']
+__all__ = ['ObsModelSet', 'MultiModel']
 
 
 class ObsModelSet(Observer):
@@ -14,7 +15,7 @@ class ObsModelSet(Observer):
         Observer.__init__(self)
         self.Observed = list()
 
-    def add_obs_sel(self, sel):
+    def add_observing_selector(self, sel):
         self.Observed.append(sel)
 
     def update_dynamic_observations(self, model, flow, ti):
@@ -42,6 +43,93 @@ class ObsModelSet(Observer):
         tab.update({"{}@{}".format(sel, k): v for k, v in dat.sum().items() if k != 'Time'})
 
 
+class ObsMultiModel(Observer):
+    def __init__(self):
+        Observer.__init__(self)
+        self.ObservingModels = list()
+
+    def add_observing_model(self, model):
+        if model not in self.ObservingModels:
+            self.ObservingModels.append(model)
+
+    def update_dynamic_observations(self, model, flow, ti):
+        for m in self.ObservingModels:
+            mod = model.get_model(m)
+            flow.update({'{}@{}'.format(m, k): v for k, v in mod.Obs.Flow.items() if k != 'Time'})
+
+    def read_statics(self, model, tab, ti):
+        for m in self.ObservingModels:
+            mod = model.get_model(m)
+            if tab is self.Last:
+                tab.update({'{}@{}'.format(m, k): v for k, v in mod.Obs.Last.items() if k != 'Time'})
+            elif self.ExtMid:
+                tab.update({'{}@{}'.format(m, k): v for k, v in mod.Obs.Mid.items() if k != 'Time'})
+
+
+class MultiModel(BranchModel):
+    def __init__(self, name, pc=None):
+        BranchModel.__init__(self, name, pc, ObsMultiModel())
+        self.Models = nx.MultiDiGraph()
+
+    def add_observing_model(self, m):
+        if m in self.Models:
+            self.Obs.add_observing_model(m)
+
+    def append(self, m):
+        if m.Name not in self.Models:
+            self.Models.add_node(m.Name, model=m)
+
+    def link(self, src, tar, **kwargs):
+        src = src if isinstance(src, RelationEntry) else RelationEntry(src)
+        tar = tar if isinstance(tar, RelationEntry) else RelationEntry(tar)
+
+        m_src = self.select_all(src.Selector)
+        m_tar = self.select_all(tar.Selector)
+
+        if src.is_single():
+            ms = m_src.first()
+            for kt, mt in m_tar.items():
+                if ms is not mt:
+                    mt.listen(ms.Name, src.Parameter, tar.Parameter, **kwargs)
+                    self.Models.add_edge(ms.Name, mt.Name, par_src=src.Parameter, par_tar=tar.Parameter)
+
+    def read_y0(self, y0, ti):
+        if not y0:
+            return
+        for k, m in self.Models.nodes().data('model'):
+            m.read_y0(y0=y0[k], ti=ti)
+
+    def reset_impulse(self, ti):
+        for s, nbd in self.Models.adjacency():
+            src = self.get_model(s)
+            for t in nbd.keys():
+                tar = self.get_model(t)
+                tar.impulse_foreign(src, ti)
+
+    def do_request(self, req):
+        src = self.get_model(req.Who)
+        for t, kb in self.Models[req.Who].items():
+            # for _, atr in kb.items():
+            tar = self.get_model(t)
+            tar.impulse_foreign(src, req.When)
+
+    def find_next(self):
+        for k, model in self.all_models().items():
+            for req in model.Next:
+                self.Requests.append_request(req.up_scale(self.Name))
+                self.Requests.append_event(req.Event, k, self.Name)
+#            self.Requests.append_requests([req.up_scale(k) for req in model.Next])
+
+    def all_models(self):
+        return dict(self.Models.nodes().data('model'))
+
+    def get_model(self, k):
+        return self.Models.nodes[k]['model']
+
+    def clone(self, **kwargs):
+        pass
+
+
 class ModelSet(BranchModel):
     def __init__(self, name, pc=None, odt=0.5):
         BranchModel.__init__(self, name, ObsModelSet())
@@ -54,8 +142,8 @@ class ModelSet(BranchModel):
     def __getitem__(self, item):
         return self.Obs[item]
 
-    def add_obs_model(self, mod):
-        self.Obs.add_obs_sel(mod)
+    def add_observing_selector(self, mod):
+        self.Obs.add_observing_selector(mod)
 
     def append(self, model):
         self.Models[model.Name] = model
@@ -73,12 +161,12 @@ class ModelSet(BranchModel):
 
     def find_next(self):
         for k, model in self.Models.items():
-            self.Requests.add([evt.up(k) for evt in model.next])
+            self.Requests.append_requests([req.up_scale(k) for req in model.Next])
         self.Summariser.find_next()
         self.Requests.append_event(Event('Summarise', self.Summariser.TTE), 'Summariser', self.Name)
 
     def do_request(self, req):
-        if req.Node == 'Summarise':
+        if req.Node == 'Summariser':
             ti = req.Time
             self.cross_impulse(ti)
             self.Summariser.do_request(req)
@@ -138,26 +226,6 @@ class ModelSet(BranchModel):
                     continue
                 mt = self.Models[v]
                 mt.impulse_foreign(ms, ti)
-
-    def initialise_observations(self, ti):
-        for m in self.Models.values():
-            m.initialise_observations(ti)
-        BranchModel.initialise_observations(self, ti)
-
-    def update_observations(self, ti):
-        for m in self.Models.values():
-            m.update_observations(ti)
-        BranchModel.update_observations(self, ti)
-
-    def captureMidTermObservations(self, ti):
-        for m in self.Models.values():
-            m.captureMidTermObservations(ti)
-        BranchModel.captureMidTermObservations(self, ti)
-
-    def push_observations(self, ti):
-        for m in self.Models.values():
-            m.push_observations(ti)
-        BranchModel.push_observations(self, ti)
 
     def to_json(self):
         # todo

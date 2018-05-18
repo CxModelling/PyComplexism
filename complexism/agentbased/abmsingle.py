@@ -43,8 +43,8 @@ class ObsSingleAgent(Observer):
 
 
 class SingleIndividualABM(LeafModel):
-    def __init__(self, name, agent: GenericAgent):
-        LeafModel.__init__(self, name, ObsSingleAgent())
+    def __init__(self, name, agent: GenericAgent, pc=None):
+        LeafModel.__init__(self, name, pc=pc, obs=ObsSingleAgent())
         self.Agent = agent
         self.Behaviours = OrderedDict()
 

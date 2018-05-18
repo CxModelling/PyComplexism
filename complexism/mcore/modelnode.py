@@ -112,9 +112,10 @@ class ModelAtom(metaclass=ABCMeta):
 
 
 class AbsModel(metaclass=ABCMeta):
-    def __init__(self, name, obs: Observer):
+    def __init__(self, name, pc=None, obs: Observer=None):
         self.Name = name
         self.Obs = obs
+        self.PCore = pc
         self.Requests = RequestSet()
         self.TimeEnd = None
 
@@ -125,8 +126,9 @@ class AbsModel(metaclass=ABCMeta):
         self.drop_next()
 
     def preset(self, ti):
-        pass
+        self.reset(ti)
 
+    @abstractmethod
     def reset(self, ti):
         pass
 
@@ -141,6 +143,9 @@ class AbsModel(metaclass=ABCMeta):
 
     def read_y0(self, y0, ti):
         pass
+
+    def get_snapshot(self, key, ti):
+        return self.Obs.get_snapshot(self, key, ti)
 
     def listen(self, model_src, par_src, par_tar, **kwargs):
         pass
@@ -195,8 +200,8 @@ class AbsModel(metaclass=ABCMeta):
 
 
 class LeafModel(AbsModel, metaclass=ABCMeta):
-    def __init__(self, name, obs):
-        AbsModel.__init__(self, name, obs)
+    def __init__(self, name, pc=None, obs: Observer=None):
+        AbsModel.__init__(self, name, pc, obs)
 
     def fetch_requests(self, rs):
         self.Requests.clear()
@@ -209,15 +214,28 @@ class LeafModel(AbsModel, metaclass=ABCMeta):
 
 
 class BranchModel(AbsModel, metaclass=ABCMeta):
-    def __init__(self, name, obs):
-        AbsModel.__init__(self, name, obs)
-        self.Models = dict()
+    def __init__(self, name, pc=None, obs=None):
+        AbsModel.__init__(self, name, pc, obs)
+
+    def preset(self, ti):
+        for v in self.all_models().values():
+            v.preset(ti)
+        self.reset_impulse(ti)
+
+    def reset(self, ti):
+        for v in self.all_models().values():
+            v.reset(ti)
+        self.reset_impulse(ti)
+
+    @abstractmethod
+    def reset_impulse(self, ti):
+        pass
 
     def select(self, mod):
-        return self.Models[mod]
+        return self.get_model(mod)
 
     def select_all(self, sel):
-        return ModelSelector(self.Models).select_all(sel)
+        return ModelSelector(self.all_models()).select_all(sel)
 
     def fetch_requests(self, res):
         self.Requests.clear()
@@ -226,26 +244,48 @@ class BranchModel(AbsModel, metaclass=ABCMeta):
 
     def pass_down(self):
         res = self.Requests.pop_lower_requests()
-        nest = dict()
-        for req in res:
-            m, req = req.down()
-            try:
-                nest[m].append(req)
-            except KeyError:
-                nest[m] = [req]
 
-        for k, v in nest.items():
-            self.select(k).fetch(v)
+        for k, v in res.items():
+            self.select(k).fetch_requests(v)
 
     def execute_requests(self):
         for req in self.Requests:
             self.do_request(req)
 
-        for v in self.Models.values():
-            if v.TTE == self.TTE:
+        ti = self.TTE
+        for v in self.all_models().values():
+            if v.TTE == ti:
                 v.execute_requests()
         self.drop_next()
 
     @abstractmethod
     def do_request(self, req):
         pass
+
+    @abstractmethod
+    def all_models(self)->dict:
+        pass
+
+    @abstractmethod
+    def get_model(self, k):
+        pass
+
+    def initialise_observations(self, ti):
+        for m in self.all_models().values():
+            m.initialise_observations(ti)
+        AbsModel.initialise_observations(self, ti)
+
+    def update_observations(self, ti):
+        for m in self.all_models().values():
+            m.update_observations(ti)
+        AbsModel.update_observations(self, ti)
+
+    def captureMidTermObservations(self, ti):
+        for m in self.all_models().values():
+            m.captureMidTermObservations(ti)
+        AbsModel.captureMidTermObservations(self, ti)
+
+    def push_observations(self, ti):
+        for m in self.all_models().values():
+            m.push_observations(ti)
+        AbsModel.push_observations(self, ti)

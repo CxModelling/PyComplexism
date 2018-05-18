@@ -26,7 +26,7 @@ class ForeignListener(TimeIndBehaviour):
         pass
 
     def impulse_foreign(self, model, fore, ti):
-        self.Value = fore[self.Source]
+        self.Value = fore.get_snapshot(self.Source, ti)
         model[self.Target] = self.Value
 
     @staticmethod
@@ -73,7 +73,7 @@ class MultiForeignListener(TimeIndBehaviour):
 
     def impulse_foreign(self, model, fore, ti):
         key = fore.Name
-        value = fore[self.Models[key]]
+        value = fore.get_snapshot(self.Models[key], ti)
         self.Values[key] = value
         model[self.Target] = self.Values
 

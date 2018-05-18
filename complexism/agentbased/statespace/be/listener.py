@@ -25,17 +25,17 @@ class ForeignShock(TimeIndModBehaviour):
         self.ProtoModifier.Value = self.Value
 
     def impulse_foreign(self, model, fore, ti):
-        self.Value = fore[self.Source]
+        self.Value = fore.get_snapshot(self.Source, ti)
         self.ProtoModifier.Value = self.Value
         for ag in model.agents:
             ag.modify(self.Name, ti)
 
     @staticmethod
     def decorate(name, model, **kwargs):
-        mod_src = kwargs['mod_src'] if 'mod_src' not in kwargs else None
-        par_src = kwargs['par_src'] if 'par_src' not in kwargs else None
+        mod_src = kwargs['mod_src'] if 'mod_src' in kwargs else None
+        par_src = kwargs['par_src'] if 'par_src' in kwargs else None
         t_tar = model.DCore.Transitions[kwargs['t_tar']]
-        default = kwargs['default'] if 'default' not in kwargs else 1
+        default = kwargs['default'] if 'default' in kwargs else 1
         model.Behaviours[name] = ForeignShock(name, mod_src, par_src, t_tar, default)
 
     def __repr__(self):
@@ -119,7 +119,7 @@ class Immigration(TimeIndBehaviour):
         pass
 
     def impulse_foreign(self, model, fore, ti):
-        self.ImN = fore[self.Source]
+        self.ImN = fore.get_snapshot(self.Source, ti)
         model.birth(n=self.ImN, ti=ti, st=self.S_immigrant)
 
     @staticmethod

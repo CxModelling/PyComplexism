@@ -9,10 +9,13 @@ class Observer(metaclass=ABCMeta):
         self.Last = OrderedDict()
         self.Flow = OrderedDict()
         self.Mid = OrderedDict()
+        self.StockNames = None
+        self.FlowNames = None
         self.TimeSeries = list()
         self.TimeSeriesMid = list()
         self.__ObsDt = 1
         self.ExtMid = ext
+        self.Snapshot = dict()
 
     @property
     def ObservationalInterval(self):
@@ -61,11 +64,39 @@ class Observer(metaclass=ABCMeta):
         """
         pass
 
+    def get_snapshot(self, model, key, ti):
+        try:
+            if key in self.FlowNames:
+                try:
+                    return self.Last[key]
+                except KeyError:
+                    pass
+            elif key in self.StockNames:
+                try:
+                    if self.Snapshot['Time'] == ti:
+                        return self.Snapshot[key]
+                except KeyError:
+                    pass
+                self.read_statics(model, self.Snapshot, ti)
+                self.Snapshot['Time'] = ti
+                return self.Snapshot[key]
+
+        except TypeError:
+            try:
+                self.read_statics(model, self.Snapshot, ti)
+                self.Snapshot['Time'] = ti
+                return self.Snapshot[key]
+            except KeyError:
+                return 0
+
     def initialise_observations(self, model, ti):
         self.renew()
         self.Last = OrderedDict()
         self.Last['Time'] = ti
         self.read_statics(model, self.Last, ti)
+        self.update_dynamic_observations(model, self.Flow, ti)
+        self.StockNames = list(self.Last.keys())
+        self.FlowNames = list(self.Flow.keys())
 
     def observe_routinely(self, model, ti):
         self.read_statics(model, self.Last, ti)

@@ -48,8 +48,7 @@ class ObsABM(Observer):
 class GenericAgentBasedModel(LeafModel, metaclass=ABCMeta):
     def __init__(self, name, pc, population, obs=None):
         obs = obs if obs else ObsABM()
-        LeafModel.__init__(self, name, obs)
-        self.PCore = pc
+        LeafModel.__init__(self, name, pc=pc, obs=obs)
         self.Population = population
         self.Behaviours = OrderedDict()
 

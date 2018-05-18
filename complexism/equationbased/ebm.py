@@ -95,19 +95,22 @@ class ObsEBM(Observer):
             func(model, flow, ti)
 
     def read_statics(self, model, tab, ti):
-        model.go_to(ti)
+        if tab is self.Mid:
+            tiu = ti - self.ObservationalInterval/2
+        else:
+            tiu = ti
+        model.go_to(tiu)
         for st in self.Stocks:
             tab[st] = model.Y[st]
 
         for func in self.StockFunctions:
-            func(model, tab, ti)
+            func(model, tab, tiu)
 
 
 class GenericEquationBasedModel(LeafModel):
     def __init__(self, name, pc, eqs, dt, obs=None):
         obs = obs if obs else ObsEBM()
-        LeafModel.__init__(self, name, obs)
-        self.PCore = pc
+        LeafModel.__init__(self, name, pc, obs)
         self.Clock = Clock(dt=dt)
         self.Y = None
         self.Equations = eqs
@@ -139,14 +142,15 @@ class GenericEquationBasedModel(LeafModel):
 
     def go_to(self, ti):
         f, t = self.UpdateEnd, ti
-        if f is t:
+        if f == t:
             return
         self.Y = self.Equations.update(t0=f, t1=t, pars=self.PCore)
         self.UpdateEnd = ti
         self.Clock.update(ti)
+        self.drop_next()
 
     def do_request(self, req):
-        if req.Time > self.TimeEnd:
+        if req.Time > self.UpdateEnd:
             self.go_to(req.Time)
 
     def find_next(self):
@@ -161,9 +165,10 @@ class GenericEquationBasedModel(LeafModel):
 
     def impulse_foreign(self, fore, ti):
         lks = [fl for fl in self.ForeignLinks if fl.mod_src == fore.Name]
-        for _, par_src, par_tar in lks:
-            val = fore[par_src]
+        for _, par_src, par_tar, _ in lks:
+            val = fore.get_snapshot(par_src, ti)
             self.Equations.impulse(par_tar, val)
+        self.drop_next()
 
     def to_json(self):
         # todo
@@ -182,7 +187,6 @@ class GenericEquationBasedModel(LeafModel):
         co.Y = deepcopy(self.Y)
         core.initialise(co, self.TimeEnd)
         return co
-
 
 
 class ODEModel(LeafModel):

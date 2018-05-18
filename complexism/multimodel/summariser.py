@@ -1,6 +1,6 @@
-from complexism import LeafModel
-from complexism.element import Request, Clock
 from collections import OrderedDict, namedtuple
+from complexism.element import Event, Clock
+from complexism.mcore import LeafModel, ModelAtom
 
 __author__ = 'TimeWz667'
 __all__ = ['Summariser']
@@ -9,7 +9,38 @@ __all__ = ['Summariser']
 Task = namedtuple('Task', ('Selector', 'Parameter', 'NewName'))
 
 
-class Summariser(LeafModel):
+class Summariser(ModelAtom):
+    def __init__(self, name, dt):
+        ModelAtom.__init__(name, None)
+        self.Clock = Clock(dt)
+        self.Models = None
+        self.Tasks = list()
+
+    def initialise(self, ti, *args, **kwargs):
+        pass
+
+    def reset(self, ti, *args, **kwargs):
+        pass
+
+    def find_next(self):
+        return Event('Summarise', self.Clock.Next)
+
+    def execute_event(self):
+        self.Clock.update(self.TTE)
+
+    def read_tasks(self):
+        for tk in self.Tasks:
+            self.Attributes[tk.NewName] = self.Models.select_all(tk.Selector).sum(tk.Parameter)
+
+    def clone(self, *args, **kwargs):
+        s = Summariser(self.Name, self.Clock.By)
+        s.Clock.Initial = self.Clock.Initial
+        s.Clock.Last = self.Clock.Last
+        s.Tasks = list(self.Tasks)
+        return s
+
+
+class sSummariser(LeafModel):
     def __init__(self, name, dt):
         LeafModel.__init__(self, name, None)
         self.Clock = Clock(dt=dt)
@@ -18,7 +49,8 @@ class Summariser(LeafModel):
         self.Impulses = OrderedDict()
 
     def find_next(self):
-        self.Requests.append(Request('Summarise', self.Clock.Next))
+        evt = Event('Summarise', self.Clock.Next)
+        self.Requests.append_request(Request(evt, 'Summariser', 'Summariser'))
 
     def __getitem__(self, item):
         try:

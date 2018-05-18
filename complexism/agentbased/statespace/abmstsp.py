@@ -1,7 +1,7 @@
 from complexism.dcore import Transition
-from complexism.mcore import Observer
 from complexism.agentbased.abm import GenericAgentBasedModel, ObsABM
 from collections import namedtuple, Counter
+from .be import ForeignShock
 
 __author__ = 'TimeWz667'
 __all__ = ['StSpAgentBasedModel']
@@ -24,14 +24,20 @@ class ObsStSpABM(ObsABM):
     def update_dynamic_observations(self, model, flow, ti):
         tds = [rec.Todo for rec in self.Records]
         count = Counter(tds)
+        trs = {k: v for k, v in count.items() if isinstance(k, Transition)}
+        es = {k: v for k, v in count.items() if not isinstance(k, Transition)}
 
-        for k, v in count.items():
-            if isinstance(k, Transition):
-                if k in self.Transitions:
-                    flow[k.Name] = v
-            else:
-                if k in self.Events:
-                    flow[str(k)] = v
+        for tr in self.Transitions:
+            try:
+                flow[tr.Name] = trs[tr]
+            except KeyError:
+                flow[tr.Name] = 0
+
+        for evt in self.Events:
+            try:
+                flow[str(evt)] = es[evt]
+            except KeyError:
+                flow[str(evt)] = 0
 
         self.Records.clear()
 
@@ -41,6 +47,12 @@ class ObsStSpABM(ObsABM):
         pop = model.Population
         for st in self.States:
             tab[st] = pop.count(st=st)
+
+        for be in self.Behaviours:
+            model.Behaviours[be].fill(tab, model, ti)
+
+        for fn in self.Functions:
+            fn(model, tab, ti)
 
     def record(self, ag, evt, ti):
         self.Records.append(Record(ag.Name, evt.Todo, ti))
@@ -73,9 +85,16 @@ class StSpAgentBasedModel(GenericAgentBasedModel):
             raise KeyError('State {} does not exist'.format(st))
 
     def listen(self, mod_src, par_src, par_tar, **kwargs):
-        pass
+        try:
+            be = self.Behaviours[par_tar]
+            be.set_source(mod_src, par_src)
+        except KeyError:
+            # name = par_tar
+            name = '{}-{}'.format(par_src, par_tar)
+            ForeignShock.decorate(name, self, mod_src=mod_src, par_src=par_src, t_tar=par_tar, **kwargs)
 
     def listen_multi(self, mod_src_all, par_src, par_tar, **kwargs):
+        # todo
         pass
 
     def clone(self, **kwargs):

@@ -20,7 +20,7 @@ class AbsTicker(metaclass=ABCMeta):
         pass
 
     def update(self, now):
-        while now > self.Last:
+        while now >= self.Next:
             self.Last = self.Next
 
     @property
