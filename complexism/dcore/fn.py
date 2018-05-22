@@ -1,16 +1,18 @@
 import re
+from complexism.misc import save_json
 from .ctbn import BlueprintCTBN
 from .ctmc import BlueprintCTMC
 
+
 __author__ = 'TimeWz667'
-__all__ = ['restore_dcore_from_json', 'restore_dcore_from_script']
+__all__ = ['new_dbp', 'read_dbp_json', 'read_dbp_script', 'save_dbp']
 
 
 def script_to_json(scr):
     dcs = scr.split('\n')
     while dcs:
         dc = dcs[0]
-        pars = re.match(r'(?P<Type>CTBN|CTMC)\s+(?P<Name>\w+)\s*\{', dc, re.I)
+        pars = re.match(r'(?P<Type>CTBN|CTMC)\s+(?P<Name>\w+)\s*', dc, re.I)
         if pars:
             break
         else:
@@ -62,7 +64,27 @@ def script_to_json(scr):
     return js
 
 
-def restore_dcore_from_json(js):
+def new_dbp(name, dc_type='CTMC'):
+    """
+    Generate a new blueprint of a dynamic core
+    :param name: name of the model
+    :param dc_type: type of dynamic core, CTBN or CTMC
+    :return: a new Blueprint
+    """
+    if dc_type == 'CTMC':
+        return BlueprintCTMC(name)
+    elif dc_type =='CTBN':
+        return BlueprintCTBN(name)
+    else:
+        raise TypeError('Unknown DCore type')
+
+
+def read_dbp_json(js):
+    """
+    Read a DC from a json object
+    :param js: script of dc
+    :return: a blueprint of dynamic core
+    """
     try:
         m = js['ModelType']
     except KeyError:
@@ -75,6 +97,20 @@ def restore_dcore_from_json(js):
     raise KeyError('Model type does not exist')
 
 
-def restore_dcore_from_script(scr):
-    js = script_to_json(scr)
-    return restore_dcore_from_json(js)
+def read_dbp_script(script):
+    """
+    Read a DC from a script
+    :param script: script of dc
+    :return: a blueprint of dynamic core
+    """
+    js = script_to_json(script)
+    return read_dbp_json(js)
+
+
+def save_dbp(dbp, path):
+    """
+    Output a blueprint of dynamic core to file system
+    :param dc: dynamic core
+    :param path: file path
+    """
+    save_json(dbp.to_json(), path)

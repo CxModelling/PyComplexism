@@ -1,225 +1,202 @@
-from complexism.fn import *
 from json import JSONDecodeError
 import logging
+import epidag as dag
+from complexism.fn import *
 
 log = logging.getLogger(__name__)
 
 __author__ = 'TimeWz667'
+__all__ = ['Director']
 
 
-class DirectorDCPC:
+class Director:
     def __init__(self):
-        self.PCores = dict()
-        self.DCores = dict()
+        self.BayesianNetworks = dict()
+        self.DCoreBlueprints = dict()
+        self.MCoreBlueprints = dict()
+        self.ModelLayouts = dict()
 
-    def __add_pc(self, pc):
-        if pc in self.PCores:
-            log.info('Parameter core {} have already existed'.format(pc))
+    def _add_bn(self, bn):
+        if bn in self.BayesianNetworks:
+            log.info('Bayesian Network {} have already existed'.format(bn.Name))
         else:
-            log.info('Parameter core {} added'.format(pc))
-        self.PCores[pc.Name] = pc
+            self.BayesianNetworks[bn.Name] = bn
+            log.info('Bayesian Network {} added'.format(bn.Name))
 
-    def __add_dc(self, dc):
-        if dc in self.DCores:
-            log.info('Dynamic core {} overrided'.format(dc))
+    def _add_dbp(self, dbp):
+        if dbp in self.DCoreBlueprints:
+            log.info('DCore Blueprint {} overrided'.format(dbp.Name))
         else:
-            log.info('Dynamic core {} added'.format(dc))
-        self.DCores[dc.Name] = dc
+            self.DCoreBlueprints[dbp.Name] = dbp
+            log.info('DCore Blueprint {} added'.format(dbp.Name))
 
-    def get_pc(self, pc):
-        return self.PCores[pc]
+    def _add_mbp(self, mbp):
+        if mbp in self.MCoreBlueprints:
+            log.info('MCore Blueprint {} overrided'.format(mbp.Name))
+        else:
+            self.MCoreBlueprints[mbp.Name] = mbp
+            log.info('MCore Blueprint {} added'.format(mbp.Name))
 
-    def get_dc(self, dc):
-        return self.DCores[dc]
+    def _add_lyo(self, lyo):
+        if lyo in self.ModelLayouts:
+            log.info('Model layout {} overrided'.format(lyo.Name))
+        else:
+            self.ModelLayouts[lyo.Name] = lyo
+            log.info('Model layout {} added'.format(lyo.Name))
 
-    def read_pc(self, script):
-        pc = read_pc(script)
-        self.__add_pc(pc)
+    def get_bn(self, bn_name):
+        return self.BayesianNetworks[bn_name]
 
-    def read_dc(self, script):
-        dc = read_dc(script)
-        self.__add_dc(dc)
+    def get_dbp(self, dbp_name):
+        return self.DCoreBlueprints[dbp_name]
 
-    def load_pc(self, file, ):
+    def get_mbp(self, mbp_name):
+        return self.MCoreBlueprints[mbp_name]
+
+    def get_lyo(self, lyo_name):
+        return self.ModelLayouts[lyo_name]
+
+    def read_bn_script(self, script):
+        bn = read_bn_script(script)
+        self._add_bn(bn)
+
+    def load_bn(self, file):
         try:
-            pc = load_pc(load_json(file))
+            bn = read_bn_json(load_json(file))
         except JSONDecodeError:
-            pc = read_pc(load_txt(file))
+            bn = read_bn_script(load_txt(file))
+        self._add_bn(bn)
 
-        self.__add_pc(pc)
-
-    def load_dc(self, file):
+    def save_bn(self, bn_name, file):
         try:
-            dc = load_dc(load_json(file))
+            bn = self.get_bn(bn_name)
+            save_bn(bn, file)
+        except KeyError:
+            log.warning('Bayesian Network {} not found'.format(bn_name))
+
+    def list_bns(self):
+        return list(self.BayesianNetworks.keys())
+
+    def read_dbp_script(self, script):
+        bn = read_dbp_script(script)
+        self._add_bn(bn)
+
+    def load_dbp(self, file):
+        try:
+            dbp = read_dbp_json(load_json(file))
         except JSONDecodeError:
-            dc = read_dc(load_txt(file))
+            dbp = read_dbp_script(load_txt(file))
+        self._add_dbp(dbp)
 
-        self.__add_dc(dc)
+    def new_dbp(self, dbp_name, dc_type):
+        """
+        Generate a new blueprint of a dynamic core
+        :param dbp_name: name of the model
+        :param dc_type: type of dynamic core, CTBN or CTMC
+        :return: a new Blueprint
+        """
+        dbp = new_dbp(dbp_name, dc_type)
+        self._add_dbp(dbp)
+        return dbp
 
-    def new_dc(self, name, dc_type='CTBN'):
-        dc = new_dc(name, dc_type)
-        self.__add_dc(dc)
-        return dc
-
-    def list_pc(self):
-        return list(self.PCores.keys())
-
-    def list_dc(self):
-        return list(self.DCores.keys())
-
-    def save_pc(self, pc, file):
+    def save_dbp(self, dbp_name, file):
         try:
-            pc = self.get_pc(pc)
+            dbp = self.get_dbp(dbp_name)
+            save_dbp(dbp, file)
         except KeyError:
-            # todo logging
-            pass
-        save_pc(pc, file)
+            log.warning('DCore Blueprint {} not found'.format(dbp_name))
 
-    def save_dc(self, dc, file):
+    def list_dbps(self):
+        return list(self.DCoreBlueprints.keys())
+
+    def load_mbp(self, file):
         try:
-            dc = self.get_dc(dc)
+            mbp = read_mbp_json(load_json(file))
+        except JSONDecodeError:
+            mbp = read_mbp_script(load_txt(file))
+        self._add_mbp(mbp)
+
+    def new_mbp(self, mbp_name, model_type):
+        """
+        Generate a new blueprint of a dynamic core
+        :param mbp_name: name of the model
+        :param model_type: type of simulation model, SSABM, SSODE, ODE
+        :return: a new Blueprint
+        """
+        mbp = new_mbp(mbp_name, model_type)
+        self._add_mbp(mbp)
+        return mbp
+
+    def save_mbp(self, mbp_name, file):
+        try:
+            mbp = self.get_mbp(mbp_name)
+            save_mbp(mbp, file)
         except KeyError:
-            # todo logging
-            pass
-        save_dc(dc, file)
+            log.warning('Model Blueprint {} not found'.format(mbp_name))
+
+    def list_mbps(self):
+        return list(self.MCoreBlueprints.keys())
+
+    def save_layout(self, lyo_name, file):
+        try:
+            lyo = self.get_lyo(lyo_name)
+            save_layout(lyo, file)
+        except KeyError:
+            log.info('Layout {} saved'.format(lyo))
+
+    def list_lyo(self):
+        return list(self.ModelLayouts.keys())
 
     def save(self, file):
         js = dict()
-        js['PCores'] = {k: v.to_json() for k, v in self.PCores.items()}
-        js['DCores'] = {k: v.to_json() for k, v in self.DCores.items()}
+        js['PCores'] = {k: v.to_json() for k, v in self.BayesianNetworks.items()}
+        js['DCores'] = {k: v.to_json() for k, v in self.DCoreBlueprints.items()}
+        js['MCores'] = {k: v.to_json() for k, v in self.MCoreBlueprints.items()}
+        js['Layouts'] = {k: v.to_json() for k, v in self.ModelLayouts.items()}
         save_json(js, file)
 
     def load(self, file):
         js = load_json(file)
-        self.PCores.update({k: load_pc(v) for k, v in js['PCores'].items()})
-        self.DCores.update({k: load_dc(v) for k, v in js['DCores'].items()})
+        self.BayesianNetworks.update({k: read_bn_json(v) for k, v in js['PCores'].items()})
+        self.DCoreBlueprints.update({k: read_dbp_json(v) for k, v in js['DCores'].items()})
+        # self.MCoreBlueprints.update({k: load_mc(v) for k, v in js['MCores'].items()})
+        # self.ModelLayouts.update({k: load_layout(v) for k, v in js['Layouts'].items()})
 
-    # functions in old version
-    save_pcore = save_pc
-    load_pcore = load_pc
-    read_pcore = read_pc
-    list_pcore = list_pc
-    save_dcore = save_dc
-    load_dcore = load_dc
-    read_dcore = read_dc
-    list_dcore = list_dc
-
-
-class Director(DirectorDCPC):
-    def __init__(self):
-        DirectorDCPC.__init__(self)
-        self.MCores = dict()
-        self.Layouts = dict()
-
-    def __add_mc(self, mc):
-        self.MCores[mc.Name] = mc
-
-    def __add_layout(self, layout):
-        self.Layouts[layout.Name] = layout
-
-    def get_mc(self, mc):
-        return self.MCores[mc]
-
-    def get_layout(self, layout):
-        return self.Layouts[layout]
-
-    def load_mc(self, file):
-        mc = load_mc(load_json(file))
-        self.__add_mc(mc)
-
-    def load_layout(self, file):
-        lo = load_layout(load_json(file))
-        self.__add_layout(lo)
-
-    def new_mc(self, name, mc_type='ABM', **kwargs):
-        mc = new_mc(name, mc_type, **kwargs)
-        self.__add_mc(mc)
-        return mc
-
-    def new_layout(self, name):
-        lo = new_layout(name)
-        self.__add_layout(lo)
-        return lo
-
-    def list_mc(self):
-        return list(self.MCores.keys())
-
-    def list_layout(self):
-        return list(self.Layouts.keys())
-
-    def save_mc(self, mc, file):
-        try:
-            mc = self.get_mc(mc)
-        except KeyError:
-            # todo logging
-            pass
-        save_mc(mc, file)
-
-    save_mcore = save_mc
-    load_mcore = load_mc
-    list_mcore = list_mc
-
-    def save_layout(self, ly, file):
-        try:
-            ly = self.get_layout(ly)
-        except KeyError:
-            log.info('Layout {} saved'.format(ly))
-        save_layout(ly, file)
-
-    def save(self, file):
-        js = dict()
-        js['PCores'] = {k: v.to_json() for k, v in self.PCores.items()}
-        js['DCores'] = {k: v.to_json() for k, v in self.DCores.items()}
-        js['MCores'] = {k: v.to_json() for k, v in self.MCores.items()}
-        js['Layouts'] = {k: v.to_json() for k, v in self.Layouts.items()}
-        save_json(js, file)
-
-    def load(self, file):
-        js = load_json(file)
-        self.PCores.update({k: load_pc(v) for k, v in js['PCores'].items()})
-        self.DCores.update({k: load_dc(v) for k, v in js['DCores'].items()})
-        self.MCores.update({k: load_mc(v) for k, v in js['MCores'].items()})
-        self.Layouts.update({k: load_layout(v) for k, v in js['Layouts'].items()})
-
-    def generate_model(self, mc, name=None, pc=None, dc=None, cond=None, kwargs=None):
+    def generate_model(self, mc, name=None, **kwargs):
         if not name:
             name = mc
-        mc = self.MCores[mc]
-        if mc.require_pc:
-            pc = pc if pc else generate_pc(self.PCores[mc.TargetedPCore], cond=cond)
-            if mc.require_dc:
-                dc = dc if dc else generate_dc(self.DCores[mc.TargetedDCore], pc)
-        kwargs = kwargs if kwargs else dict()
-        return generate_model(mc, pc, dc, name, **kwargs)
+        mbp = self.get_mbp(mc)
+        if 'bn' in kwargs:
+            kwargs['bn'] = self.get_bn(kwargs['bn'])
+        if 'dbp' in kwargs:
+            kwargs['dbp'] = self.get_dbp(kwargs['dbp'])
+        if 'dc' in kwargs:
+            kwargs['dc'] = self.get_dbp(kwargs['dc'])
 
-    def copy_model(self, mod_src, tr_tte=True, pc_new=None, intervention=None):
-        # copy model structure
-        pc, dc, mc = mod_src.Meta
-        if pc: pc = self.PCores[pc]
-        if dc: dc = self.DCores[dc]
-        if mc: mc = self.MCores[mc]
+        return mbp.generate('M1', **kwargs)
 
-        return copy_model(mod_src, mc, pc, dc, tr_tte=tr_tte, pc_new=pc_new, intervention=intervention)
+    def copy_model(self, mod_src, **kwargs):
+        pass
 
     def generate(self, model, cond=None, fixed=None, odt=0.5):
         if fixed is None:
             fixed = list()
 
         try:
-            lyo = self.Layouts[model]
+            lyo = self.ModelLayouts[model]
             return lyo.generate(self.generate_model, odt, fixed=fixed, cond=cond)
         except KeyError:
             # todo logging
             pass
 
     def simulate(self, model, to, y0=None, fr=0, dt=1, fixed=None, cond=None):
-        if model in self.Layouts:
+        if model in self.ModelLayouts:
             m, y0 = self.generate(model, odt=dt/2, cond=cond, fixed=fixed)
-        elif model in self.MCores and y0:
+        elif model in self.MCoreBlueprints and y0:
             m = self.generate_model(model)
         else:
-            # todo logging
-            raise ValueError('No match model')
+            log.warning('No matched model')
+            return
 
         out = simulate(m, y0=y0, fr=fr, to=to, dt=dt)
         return m, out
@@ -227,8 +204,3 @@ class Director(DirectorDCPC):
     def update(self, model, to, dt=1):
         out = update(model, to, dt)
         return out
-
-#class DirectorABM(Director):
-#    def __init__(self):
-#        Director.__init__(self)
-

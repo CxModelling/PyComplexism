@@ -85,7 +85,7 @@ def num(m, tab, ti):
     tab['N'] = n if n else 0
 
 
-dbp = cx.read_dc(dsc)
+dbp = cx.read_dbp_script(dsc)
 p_abm = pc.breed(abm_name, 'abm')
 
 mbp = ss.BlueprintStSpABM(abm_name)

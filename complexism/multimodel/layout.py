@@ -1,4 +1,4 @@
-from complexism.multimodel.modelset import ModelSet
+from complexism.multimodel.modelset import MultiModel
 from complexism.multimodel.entries import *
 
 __author__ = 'TimeWz667'
@@ -72,7 +72,7 @@ class ModelLayout:
             name, proto, y0 = self.Entries[0]
             return gen(proto, name, cond=cd), y0
 
-        models = ModelSet(self.Name, odt)
+        models = MultiModel(self.Name, odt)
         y0s = dict()
 
         for mod in self.models():
@@ -87,7 +87,7 @@ class ModelLayout:
             models.link(rel['Source'], rel['Target'])
 
         for mod in self.Summary:
-            models.add_obs_model(mod)
+            models.add_observing_model(mod)
 
         return models, y0s
 

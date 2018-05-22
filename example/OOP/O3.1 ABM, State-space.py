@@ -7,7 +7,7 @@ import epidag as dag
 model_name = 'M1'
 
 # Step 1 set a parameter core
-bn = cx.read_pc(cx.load_txt('../scripts/pDzAB.txt'))
+bn = cx.read_bn_script(cx.load_txt('../scripts/pDzAB.txt'))
 sm = dag.as_simulation_core(bn,
                             hie={'city': ['agent'],
                                  'agent': ['TrA', 'TrB', 'TrA_B']})
@@ -15,7 +15,7 @@ pc = sm.generate(model_name)
 
 
 # Step 1- set dynamic cores as agents need
-dbp = cx.read_dc(cx.load_txt('../scripts/DzAB.txt'))
+dbp = cx.read_dbp_script(cx.load_txt('../scripts/DzAB.txt'))
 
 
 # Step 2 define at least one type of agent

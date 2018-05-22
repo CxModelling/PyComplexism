@@ -83,6 +83,7 @@ class BlueprintStSpABM(AbsBlueprintMCore):
         eve = StSpBreeder(ag['Prefix'], ag['Group'], pc, dc)
         pop = cx.Population(eve)
         model = StSpAgentBasedModel(name, pc, pop)
+
         # Set resources
         resources = {
             'states': model.DCore.States,

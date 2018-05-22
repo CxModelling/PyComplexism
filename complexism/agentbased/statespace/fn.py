@@ -2,7 +2,7 @@ import epidag as dag
 from epidag.factory import get_workshop
 from .. import Community, Population
 from .breeder import StSpBreeder
-from .blueprint import StSpAgentBasedModel
+from .abmstsp import StSpAgentBasedModel
 
 __author__ = 'TimeWz667'
 __all__ = ['prepare_pc', 'generate_plain_model',

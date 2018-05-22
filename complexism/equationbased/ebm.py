@@ -64,6 +64,21 @@ class OrdinaryDifferentialEquations(AbsEquations):
     def get_y_dict(self):
         return {v: self.Y[i] for v, i in self.IndicesY.items()}
 
+    def pop_y(self, y):
+        try:
+            n = self.Y[self.IndicesY[y]]
+            n = np.floor(n)
+            self.Y[self.IndicesY[y]] -= n
+            return n
+        except KeyError:
+            return 0
+
+    def add_y(self, y, n):
+        try:
+            self.Y[self.IndicesY[y]] += n
+        except KeyError as e:
+            raise e
+
     def update(self, t0, t1, pars):
         num = int((t1 - t0) / self.Dt) + 1
         ts = np.linspace(t0, t1, num)
