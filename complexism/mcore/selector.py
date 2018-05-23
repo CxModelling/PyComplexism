@@ -44,8 +44,8 @@ class ModelSelector:
         for v in self.Models.values():
             return v
 
-    def sum(self, par):
-        return sum([m[par] for m in self.Models.values()])
+    def sum(self, par, ti):
+        return sum([m.get_snapshot(par, ti) for m in self.Models.values()])
 
     def sum_up(self, sel, par):
         ss, sp = ModelSelector.parse_selector(sel)

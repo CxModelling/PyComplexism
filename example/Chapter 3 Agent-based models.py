@@ -1,11 +1,11 @@
 import complexism as cx
-import complexism.abmodel as ab
+import complexism.agentbased as ab
 
 __author__ = 'TimeWz667'
 
-ctrl = cx.DirectorDCPC()
-ctrl.load_pc('scripts/pSIR_net.txt')
-ctrl.load_dc('scripts/SIR_BN.txt')
+ctrl = cx.Director()
+ctrl.load_bn('scripts/pSIR_net.txt')
+ctrl.load_dbp('scripts/SIR_BN.txt')
 
 
 pc = ctrl.get_pc('pSIR_net').sample_core()
@@ -24,7 +24,7 @@ cx.simulate(abm, {'Sus': 50, 'Inf': 50}, fr=0, to=10)
 print(abm.output(mid=True))
 
 
-ctrl = cx.DirectorDCPC()
+ctrl = cx.Director()
 ctrl.load_pc('scripts/pBAD.txt')
 ctrl.load_dc('scripts/BAD.txt')
 

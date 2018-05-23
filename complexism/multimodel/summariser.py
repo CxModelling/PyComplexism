@@ -6,21 +6,40 @@ __author__ = 'TimeWz667'
 __all__ = ['Summariser']
 
 
-Task = namedtuple('Task', ('Selector', 'Parameter', 'NewName'))
+class Task:
+    def __init__(self, sel, par, name=None):
+        self.Selector = sel
+        self.Parameter = par
+        self.NewName = name if name else '{}@{}'.format(sel, par)
+
+    def __repr__(self):
+        return 'Task({}@{}->{})'.format(self.Selector, self.Parameter, self.NewName)
+
+    def to_json(self):
+        return {
+            'Selector': self.Selector,
+            'Parameter': self.Parameter,
+            'NewName': self.NewName
+        }
 
 
 class Summariser(ModelAtom):
     def __init__(self, name, dt):
-        ModelAtom.__init__(name, None)
+        ModelAtom.__init__(self, name, None)
         self.Clock = Clock(dt)
-        self.Models = None
         self.Tasks = list()
+        self.Impulses = OrderedDict()
+
+    def __getitem__(self, item):
+        return self.Impulses[item]
 
     def initialise(self, ti, *args, **kwargs):
-        pass
+        self.Clock.initialise(ti)
+        self.Impulses = OrderedDict()
 
     def reset(self, ti, *args, **kwargs):
-        pass
+        self.Clock.initialise(ti)
+        self.Impulses = OrderedDict()
 
     def find_next(self):
         return Event('Summarise', self.Clock.Next)
@@ -28,9 +47,12 @@ class Summariser(ModelAtom):
     def execute_event(self):
         self.Clock.update(self.TTE)
 
-    def read_tasks(self):
+    def read_tasks(self, mm, ti):
         for tk in self.Tasks:
-            self.Attributes[tk.NewName] = self.Models.select_all(tk.Selector).sum(tk.Parameter)
+            self.Impulses[tk.NewName] = mm.select_all(tk.Selector).sum(tk.Parameter, ti)
+
+    def add_task(self, selector, parameter, new_name=None):
+        self.Tasks.append(Task(selector, parameter, new_name))
 
     def clone(self, *args, **kwargs):
         s = Summariser(self.Name, self.Clock.By)
@@ -39,51 +61,8 @@ class Summariser(ModelAtom):
         s.Tasks = list(self.Tasks)
         return s
 
-
-class sSummariser(LeafModel):
-    def __init__(self, name, dt):
-        LeafModel.__init__(self, name, None)
-        self.Clock = Clock(dt=dt)
-        self.Tasks = list()
-        self.Employer = None
-        self.Impulses = OrderedDict()
-
-    def find_next(self):
-        evt = Event('Summarise', self.Clock.Next)
-        self.Requests.append_request(Request(evt, 'Summariser', 'Summariser'))
-
-    def __getitem__(self, item):
-        try:
-            return self.Impulses[item]
-        except KeyError:
-            return 0
-
-    def clone(self, **kwargs):
-        s = Summariser(self.Name, self.Clock.By)
-        s.Clock.Initial = self.Clock.Initial
-        s.Clock.Last = self.Clock.Last
-        s.Tasks = list(self.Tasks)
-        return s
-
-    def reset(self, ti):
-        self.Clock.initialise(ti)
-        self.Impulses = OrderedDict()
-
-    def read_tasks(self):
-        for tk in self.Tasks:
-            self.Impulses[tk.NewName] = self.Employer.select_all(tk.Selector).sum(tk.Parameter)
-
-    def do_request(self, req):
-        self.Clock.update(req.Time)
-        self.TimeEnd = req.Time
-
-    def listen(self, src_model, src_value, par_target, **kwargs):
-        if not par_target:
-            if src_model == '*':
-                par_target = src_value
-            else:
-                par_target = '{}@{}'.format(src_model, src_value)
-        self.Tasks.append(Task(src_model, src_value, par_target))
+    def get_snapshot(self, s, ti):
+        return self.Impulses[s]
 
     def to_json(self):
         return {

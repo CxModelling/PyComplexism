@@ -3,7 +3,7 @@ import complexism.equationbased as ebm
 import matplotlib.pyplot as plt
 
 
-bn = cx.read_pc(cx.load_txt('scripts/pSIR.txt'))
+bn = cx.read_bn_script(cx.load_txt('scripts/pSIR.txt'))
 
 
 def SIR_ODE(y, t, p, x):

@@ -4,8 +4,8 @@ import complexism.agentbased.statespace as ss
 __author__ = 'TimeWz667'
 
 
-bn = cx.read_pc(cx.load_txt('../scripts/pSIR.txt'))
-dbp = cx.read_dc(cx.load_txt('../scripts/SIR_BN.txt'))
+bn = cx.read_bn_script(cx.load_txt('../scripts/pSIR.txt'))
+dbp = cx.read_dbp_script(cx.load_txt('../scripts/SIR_BN.txt'))
 
 model_name = 'ABM_SIR'
 pc = ss.prepare_pc(model_name, ag_group='agent', dbp=dbp, bn=bn)

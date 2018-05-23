@@ -29,13 +29,13 @@ CTBN BAD {
 }
 """
 
-bn = cx.read_pc(psc)
+bn = cx.read_bn_script(psc)
 sm = dag.as_simulation_core(bn,
                             hie={'city': ['agent'],
                                  'agent': ['Die', 'ToM', 'ToO']})
 
 model_name = 'M1'
-dc = cx.read_dc(dsc)
+dc = cx.read_dbp_script(dsc)
 Gene = sm.generate()
 eve = stsp.StSpBreeder('Ag ', 'agent', Gene, dc)
 pop = cx.Population(eve)

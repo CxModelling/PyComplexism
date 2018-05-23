@@ -1,4 +1,4 @@
-from dzdy import *
+import complexism as cx
 
 __author__ = 'TimeWz667'
 
@@ -20,7 +20,7 @@ CTMC SIR{
 }
 """
 
-da = Director()
+da = cx.Director()
 da.read_pc(pc)
 da.read_dc(dc)
 

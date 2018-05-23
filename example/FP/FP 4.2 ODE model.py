@@ -6,7 +6,7 @@ __author__ = 'TimeWz667'
 
 model_name = 'EBM_SIR'
 
-bn = cx.read_pc(cx.load_txt('../scripts/pSIR.txt'))
+bn = cx.read_bn_script(cx.load_txt('../scripts/pSIR.txt'))
 pc = ebm.prepare_pc(model_name, bn=bn)
 
 

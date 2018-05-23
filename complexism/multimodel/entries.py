@@ -81,6 +81,9 @@ class RelationEntry:
     def is_single(self):
         return self.Single
 
+    def indicator(self):
+        return '{}@{}'.format(self.Selector, self.Parameter)
+
     def type(self):
         return 'Single' if self.Single else 'Multiple'
 
@@ -100,10 +103,10 @@ class RelationEntry:
     def parse(ori):
         s = re.sub(r'\s+', '', ori)
         try:
-            sel, par = s.split('@')
+            sel, par = s.split('@', 1)
             if re.match('\A\w+\Z', sel):
-                return sel, 'Single', par
+                return sel, True, par
             else:
-                return sel, 'Multiple', par
+                return sel, False, par
         except ValueError:
             raise SyntaxError('Ill-defined selector')
