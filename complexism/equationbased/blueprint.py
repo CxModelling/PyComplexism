@@ -75,6 +75,7 @@ class BlueprintODE(AbsBlueprintMCore):
 
         return model
 
+    @staticmethod
     def from_json(self, js):
         # todo
         pass

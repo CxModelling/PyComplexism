@@ -4,13 +4,15 @@ from .dcore.fn import *
 from .mcore import Simulator
 import complexism.agentbased.statespace as ssa
 import complexism.equationbased as ebm
+import complexism.multimodel as mm
 
 __author__ = 'TimeWz667'
 __all__ = [
     'load_txt', 'load_json', 'save_json',
     'read_bn_script', 'read_bn_json', 'save_bn',
     'new_dbp', 'read_dbp_json', 'read_dbp_script', 'save_dbp',
-    'new_mbp',
+    'new_mbp', # 'read_mbp_json', 'save_mbp',
+    'new_lyo', 'read_lyo_json', 'save_lyo',
     'simulate', 'update'
 ]
 
@@ -44,6 +46,12 @@ def save_bn(bn, path):
 
 
 def new_mbp(name, model_type='SSABM'):
+    """
+    Generate a new blueprint of model
+    :param name: name of blueprint
+    :param model_type: type of model
+    :return: blueprint of model
+    """
     if model_type == 'SSABM':
         return ssa.BlueprintStSpABM(name)
     elif model_type == 'ODEABM':
@@ -54,6 +62,60 @@ def new_mbp(name, model_type='SSABM'):
         pass
     else:
         pass
+
+
+def read_mbp_json(js):
+    """
+    Read a model blueprint from a json file
+    :param js: json formatted model blueprint
+    :return: model blueprint
+    """
+    if js['Type'] == 'SSABM':
+        return ssa.BlueprintStSpABM.from_json(js)
+    elif js['Type'] == 'ODEABM':
+        pass
+    elif js['Type'] == 'ODE':
+        return ebm.BlueprintODE.from_json(js)
+    elif js['Type'] == 'SSODE':
+        pass
+    else:
+        pass
+
+
+def save_mbp(mbp, path):
+    """
+    Output model layout to file system
+    :param mbp: model blueprint
+    :param path: file path
+    """
+    save_json(mbp.to_json(), path)
+
+
+def read_lyo_json(js):
+    """
+    Load model layout from json format
+    :param js: json
+    :return: model layout
+    """
+    return mm.ModelLayout.from_json(js)
+
+
+def new_lyo(name):
+    """
+    Generate a new blueprint of layout
+    :param name: name of blueprint
+    :return: blueprint of layout
+    """
+    return mm.ModelLayout(name)
+
+
+def save_lyo(layout, path):
+    """
+    Output model layout to file system
+    :param layout: model layout
+    :param path: file path
+    """
+    save_json(layout.to_json(), path)
 
 
 def simulate(model, y0, fr, to, dt=1):

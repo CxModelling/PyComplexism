@@ -106,6 +106,7 @@ class MultiModelStep(BranchModel):
                 self.Requests.append_event(req.Event, k, self.Name)
         self.Requests.append_event(self.Summariser.Next,'Summariser', self.Name)
 
+    @count('Impulse')
     def cross_impulse(self, ti):
         self.Summariser.read_tasks(self, ti)
         for k in self.Acceptors:
