@@ -3,7 +3,6 @@
 # from .statespace.odecore import *
 from .ebm import *
 from .ebmodeller import *
-from .odefn import *
 from .blueprint import *
 from .fn import *
 

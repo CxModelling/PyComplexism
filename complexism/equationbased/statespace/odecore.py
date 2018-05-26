@@ -30,7 +30,6 @@ class CoreODE:
         self.Transition_Names = None
         self.Flows = list()
         self.Mods = dict()
-        # self.initialise(dc)
         self.Ys = None
         self.FlowLast = list()
 
