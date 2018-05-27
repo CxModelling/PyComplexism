@@ -14,6 +14,10 @@ class Request:
         self.Event = evt
 
     @property
+    def Message(self):
+        return self.Event.Message
+
+    @property
     def When(self):
         return self.Event.Time
 
@@ -34,7 +38,7 @@ class Request:
         return self.Where[-1]
 
     def __repr__(self):
-        return 'Request({} does {} at {} as {:.3f})'.format(self.Who, self.What, self.Address, self.When)
+        return 'Request({} does {} at {} as {:.3f})'.format(self.Who, self.Message, self.Address, self.When)
 
     def up_scale(self, adr):
         """

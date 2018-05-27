@@ -11,7 +11,8 @@ class StSpBreeder(GenericBreeder):
         self.WStates = {wd: self.DCore[wd] for wd in self.DCore.WellDefinedStates}
 
     def _filter_attributes(self, kw):
-        sts = {'st': self.WStates[kw['st']]}
+        st = self.WStates[kw['st']]
+        sts = {'st': st}
         del kw['st']
         return sts, kw
 

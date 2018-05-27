@@ -68,7 +68,7 @@ class State(Stock):
         :rtype: list
         """
         trs = self.next_transitions()
-        return [Event(tr, tr.rand(attr)+ti) for tr in trs]
+        return [Event(tr, tr.rand(attr)+ti, tr.Name) for tr in trs]
 
     def next_event(self, ti=0, attr=None):
         """

@@ -74,6 +74,6 @@ StSpBeLibrary.register('ForeignSumShock', ForeignSumShock,
                         vld.PositiveFloat('default', default=1, opt=True)])
 
 StSpBeLibrary.register('Immigration', Immigration,
-                       [vld.Options('s_immigrant', 'state'),
+                       [vld.Options('s_immigrant', 'states'),
                         vld.String('mod_src', opt=True),
                         vld.String('par_src', opt=True)])

@@ -33,7 +33,8 @@ class StSpAgent(GenericAgent):
 
     def find_next(self):
         if self.Transitions:
-            return Event(*min(self.Transitions.items(), key=lambda x: x[1]))
+            tr, ti = min(self.Transitions.items(), key=lambda x: x[1])
+            return Event(tr, ti, tr.Name)
         else:
             return Event.NullEvent
 

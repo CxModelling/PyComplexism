@@ -7,7 +7,7 @@ __all__ = ['ForeignShock', 'ForeignSumShock', 'Immigration']
 
 
 class ForeignShock(TimeIndModBehaviour):
-    def __init__(self, name, mod_src, par_src, t_tar, default):
+    def __init__(self, name, t_tar, mod_src=None, par_src=None, default=1):
         trigger = ForeignTrigger(model=mod_src, loc=par_src)
         mod = GloRateModifier(name, t_tar)
         TimeIndModBehaviour.__init__(self, name, mod, trigger)
@@ -18,6 +18,8 @@ class ForeignShock(TimeIndModBehaviour):
         self.Value = self.Default
 
     def set_source(self, mod_src, par_src):
+        self.Model = mod_src
+        self.Source = par_src
         self.Trigger.append(mod_src, par_src)
 
     def initialise(self, model, ti):
@@ -26,6 +28,8 @@ class ForeignShock(TimeIndModBehaviour):
 
     def impulse_foreign(self, model, fore, ti):
         self.Value = fore.get_snapshot(self.Source, ti)
+        if self.Value is None:
+            self.Value = self.Default
         self.ProtoModifier.Value = self.Value
         for ag in model.agents:
             ag.modify(self.Name, ti)
@@ -36,7 +40,7 @@ class ForeignShock(TimeIndModBehaviour):
         par_src = kwargs['par_src'] if 'par_src' in kwargs else None
         t_tar = model.DCore.Transitions[kwargs['t_tar']]
         default = kwargs['default'] if 'default' in kwargs else 1
-        model.Behaviours[name] = ForeignShock(name, mod_src, par_src, t_tar, default)
+        model.Behaviours[name] = ForeignShock(name, t_tar, mod_src, par_src, default)
 
     def __repr__(self):
         opt = self.Name, '{}@{}'.format(self.Model, self.Source), self.T_tar, self.Value
@@ -110,6 +114,8 @@ class Immigration(TimeIndBehaviour):
         self.ImN = 0
 
     def set_source(self, mod_src, par_src):
+        self.Model = mod_src
+        self.Source = par_src
         self.Trigger.append(mod_src, par_src)
 
     def initialise(self, model, ti):
@@ -120,7 +126,8 @@ class Immigration(TimeIndBehaviour):
 
     def impulse_foreign(self, model, fore, ti):
         self.ImN = fore.get_snapshot(self.Source, ti)
-        model.birth(n=self.ImN, ti=ti, st=self.S_immigrant)
+        if self.ImN:
+            model.birth(n=self.ImN, ti=ti, st=self.S_immigrant)
 
     @staticmethod
     def decorate(name, model, **kwargs):

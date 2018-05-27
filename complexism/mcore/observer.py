@@ -68,7 +68,7 @@ class Observer(metaclass=ABCMeta):
         try:
             if key in self.FlowNames:
                 try:
-                    return self.Last[key]
+                    return self.TimeSeries[-1][key]
                 except KeyError:
                     pass
             elif key in self.StockNames:
