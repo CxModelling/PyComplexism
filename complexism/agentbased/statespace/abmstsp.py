@@ -84,18 +84,14 @@ class StSpAgentBasedModel(GenericAgentBasedModel):
         else:
             raise KeyError('State {} does not exist'.format(st))
 
-    def listen(self, mod_src, par_src, par_tar, **kwargs):
+    def listen(self, mod_src, message, par_src, par_tar, **kwargs):
         try:
             be = self.Behaviours[par_tar]
-            be.set_source(mod_src, par_src)
+            be.set_source(mod_src, message, par_src)
         except KeyError:
             # name = par_tar
-            name = '{}-{}'.format(par_src, par_tar)
-            ForeignShock.decorate(name, self, mod_src=mod_src, par_src=par_src, t_tar=par_tar, **kwargs)
-
-    def listen_multi(self, mod_src_all, par_src, par_tar, **kwargs):
-        # todo
-        pass
+            name = '{}-{}@{}'.format(par_src, par_tar, message)
+            ForeignShock.decorate(name, self, mod_src=mod_src, message=message, par_src=par_src, t_tar=par_tar, **kwargs)
 
     def clone(self, **kwargs):
         pass

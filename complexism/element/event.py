@@ -14,7 +14,7 @@ class Event:
         """
         self.Time = ti
         self.Todo = todo
-        self.__message = msg
+        self.__message = msg if msg else str(todo)
 
     def __call__(self, *args, **kwargs):
         return self.Todo

@@ -61,22 +61,13 @@ class SingleIndividualABM(LeafModel):
         if be.Name not in self.Behaviours:
             self.Behaviours[be.Name] = be
 
-    def listen(self, mod_src, par_src, par_tar, **kwargs):
+    def listen(self, mod_src, message, par_src, par_tar, **kwargs):
+        # todo
         try:
             be = self.Behaviours[par_tar]
-            be.set_source(mod_src, par_src)
+            be.set_source(mod_src, message, par_src)
         except KeyError:
             ForeignListener.decorate(par_tar, self, **kwargs)
-
-    def listen_multi(self, mod_src_all, par_src, par_tar, **kwargs):
-        try:
-            be = self.Behaviours[par_tar]
-            for mod in mod_src_all:
-                be.set_source(mod, par_src)
-        except KeyError:
-            m = MultiForeignListener.decorate(par_tar, self, t_tar=par_tar)
-            for mod in mod_src_all:
-                m.set_source(mod, par_src)
 
     def read_y0(self, y0, ti):
         for be in self.Behaviours.values():

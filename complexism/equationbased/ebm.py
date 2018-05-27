@@ -13,7 +13,7 @@ __all__ = ['AbsEquations', 'OrdinaryDifferentialEquations',
            'ObsEBM', 'GenericEquationBasedModel']
 
 
-Links = namedtuple('Links', ('mod_src', 'par_src', 'par_tar', 'kwargs'))
+Links = namedtuple('Links', ('mod_src', 'message', 'par_src', 'par_tar', 'kwargs'))
 
 
 class AbsEquations(metaclass=ABCMeta):
@@ -171,21 +171,22 @@ class GenericEquationBasedModel(LeafModel):
             self.go_to(req.Time)
 
     def find_next(self):
-        evt = Event('Update Forward', self.Clock.Next)
+        evt = Event('Update Forward', self.Clock.Next, 'update')
         self.Requests.append_event(evt, 'Equation', self.Name)
 
-    def listen(self, mod_src, par_src, par_tar, **kwargs):
-        self.ForeignLinks.append(Links(mod_src, par_src, par_tar, kwargs))
+    def listen(self, mod_src, message, par_src, par_tar, **kwargs):
+        self.ForeignLinks.append(Links(mod_src, message, par_src, par_tar, kwargs))
 
-    def listen_multi(self, mod_src_all, par_src, par_tar, **kwargs):
-        self.ForeignLinks.append(Links(mod_src_all, par_src, par_tar, kwargs))
-
-    def impulse_foreign(self, fore, ti):
+    def impulse_foreign(self, fore, message, ti, **kwargs):
         lks = [fl for fl in self.ForeignLinks if fl.mod_src == fore.Name]
-        for _, par_src, par_tar, _ in lks:
-            val = fore.get_snapshot(par_src, ti)
-            self.Equations.impulse(par_tar, val)
-        self.drop_next()
+        if message != 'update':
+            lks = [fl for fl in lks if fl.message is None or message in fl.message]
+        if lks:
+            self.go_to(ti)
+            for _, _, par_src, par_tar, _ in lks:
+                val = fore.get_snapshot(par_src, ti)
+                self.Equations.impulse(par_tar, val)
+            self.drop_next()
 
     def to_json(self):
         # todo

@@ -3,7 +3,7 @@ from collections import namedtuple, OrderedDict
 from complexism.misc.counter import count
 from complexism.mcore import Observer, LeafModel
 from complexism.element import Request
-from .be import ForeignListener, MultiForeignListener
+from .be import ForeignListener
 from .pop import Community
 
 
@@ -69,23 +69,12 @@ class GenericAgentBasedModel(LeafModel, metaclass=ABCMeta):
         else:
             raise AttributeError('The population is not network-based')
 
-    def listen(self, mod_src, par_src, par_tar, **kwargs):
+    def listen(self, mod_src, message, par_src, par_tar, **kwargs):
         try:
             be = self.Behaviours[par_tar]
-            be.set_source(mod_src, par_src)
+            be.set_source(mod_src, message, par_src)
         except KeyError:
-            ForeignListener.decorate(par_tar, self, mod_src=mod_src, par_src=par_src, **kwargs)
-
-    def listen_multi(self, mod_src_all, par_src, par_tar, **kwargs):
-        try:
-            be = self.Behaviours[par_tar]
-            for mod in mod_src_all:
-                be.set_source(mod, par_src)
-        except KeyError:
-            MultiForeignListener.decorate(par_tar, self, **kwargs)
-            m = self.Behaviours[par_tar]
-            for mod in mod_src_all:
-                m.set_source(mod, par_src)
+            ForeignListener.decorate(par_tar, self, mod_src=mod_src, message=message, par_src=par_src, **kwargs)
 
     @abstractmethod
     def read_y0(self, y0, ti):
@@ -140,13 +129,12 @@ class GenericAgentBasedModel(LeafModel, metaclass=ABCMeta):
         for be in bes:
             be.impulse_change(self, ag, ti)
 
-    def impulse_foreign(self, fore, ti):
+    def impulse_foreign(self, fore, message, ti, **kwargs):
         res = False
         for be in self.Behaviours.values():
-            if be.check_foreign(fore):
+            if be.check_foreign(fore, message):
                 res = True
-                be.impulse_foreign(self, fore, ti)
-
+                be.impulse_foreign(self, fore, message, ti, **kwargs)
         if res:
             self.drop_next()
         return res

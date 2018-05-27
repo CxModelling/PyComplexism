@@ -44,7 +44,7 @@ class MultiModel(BranchModel):
         if m.Name not in self.Models:
             self.Models.add_node(m.Name, model=m)
 
-    def link(self, src, tar, **kwargs):
+    def link(self, src, tar, message=None, **kwargs):
         src = src if isinstance(src, RelationEntry) else RelationEntry(src)
         tar = tar if isinstance(tar, RelationEntry) else RelationEntry(tar)
 
@@ -55,7 +55,7 @@ class MultiModel(BranchModel):
             ms = m_src.first()
             for kt, mt in m_tar.items():
                 if ms is not mt:
-                    mt.listen(ms.Name, src.Parameter, tar.Parameter, **kwargs)
+                    mt.listen(ms.Name, message, src.Parameter, tar.Parameter, **kwargs)
                     self.Models.add_edge(ms.Name, mt.Name, par_src=src.Parameter, par_tar=tar.Parameter)
 
     def read_y0(self, y0, ti):
@@ -69,7 +69,7 @@ class MultiModel(BranchModel):
             src = self.get_model(s)
             for t in nbd.keys():
                 tar = self.get_model(t)
-                tar.impulse_foreign(src, ti)
+                tar.impulse_foreign(src, 'update', ti)
 
     @count()
     def do_request(self, req):
@@ -77,7 +77,7 @@ class MultiModel(BranchModel):
         for t, kb in self.Models[req.Who].items():
             # for _, atr in kb.items():
             tar = self.get_model(t)
-            tar.impulse_foreign(src, req.When)
+            tar.impulse_foreign(src, req.Message, req.When)
 
     def find_next(self):
         for k, model in self.all_models().items():

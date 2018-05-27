@@ -1,13 +1,13 @@
 from .behaviour import TimeIndBehaviour
-from .trigger import ForeignSetTrigger, ForeignTrigger
+from .trigger import ForeignTrigger
 
 __author__ = 'TimeWz667'
 __all__ = ['ForeignListener', 'MultiForeignListener', 'Immigration']
 
 
 class ForeignListener(TimeIndBehaviour):
-    def __init__(self, name, mod_src, par_src, par_tar, **kwargs):
-        tri = ForeignTrigger(model=mod_src, loc=par_src)
+    def __init__(self, name, mod_src, msg, par_src, par_tar, **kwargs):
+        tri = ForeignTrigger(model=mod_src, msg=msg)
         TimeIndBehaviour.__init__(self, name, tri)
         self.Model = mod_src
         self.Source = par_src
@@ -15,8 +15,10 @@ class ForeignListener(TimeIndBehaviour):
         self.Default = kwargs['default'] if 'default' in kwargs else 0
         self.Value = self.Default
 
-    def set_source(self, mod_src, par_src):
-        self.Trigger.append(mod_src, par_src)
+    def set_source(self, mod_src, par_src, msg):
+        self.Model = mod_src
+        self.Source = par_src
+        self.Trigger.add_source(mod_src, msg)
 
     def initialise(self, model, ti):
         self.Value = self.Default
@@ -25,7 +27,7 @@ class ForeignListener(TimeIndBehaviour):
     def register(self, ag, ti):
         pass
 
-    def impulse_foreign(self, model, fore, ti):
+    def impulse_foreign(self, model, fore, message, ti, **kwargs):
         self.Value = fore.get_snapshot(self.Source, ti)
         model[self.Target] = self.Value
 
@@ -71,7 +73,7 @@ class MultiForeignListener(TimeIndBehaviour):
     def register(self, ag, ti):
         pass
 
-    def impulse_foreign(self, model, fore, ti):
+    def impulse_foreign(self, model, fore, message, ti, **kwargs):
         key = fore.Name
         value = fore.get_snapshot(self.Models[key], ti)
         self.Values[key] = value
@@ -115,7 +117,7 @@ class Immigration(TimeIndBehaviour):
     def register(self, ag, ti):
         pass
 
-    def impulse_foreign(self, model, fore, ti):
+    def impulse_foreign(self, model, fore, message, ti, **kwargs):
         self.ImN = fore[self.Source]
         model.birth(n=self.ImN, ti=ti, **self.ImInfo)
 

@@ -148,10 +148,10 @@ class AbsModel(metaclass=ABCMeta):
     def get_snapshot(self, key, ti):
         return self.Obs.get_snapshot(self, key, ti)
 
-    def listen(self, model_src, par_src, par_tar, **kwargs):
+    def listen(self, fore, messages, par_src, par_tar, **kwargs):
         pass
 
-    def listen_multi(self, model_src_all, par_src, par_tar, **kwargs):
+    def impulse_foreign(self, fore, message, ti):
         pass
 
     @property

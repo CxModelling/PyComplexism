@@ -96,7 +96,7 @@ model.add_observing_model(ebm_name)
 model.append(m_abm)
 model.add_observing_model(abm_name)
 
-model.link('{}@Inf'.format(abm_name), '{}@fI'.format(ebm_name))
+model.link('{}@Inf'.format(abm_name), '{}@fI'.format(ebm_name), ['Infect', 'InfectF', 'Recov'])
 model.link('{}@N'.format(abm_name), '{}@fN'.format(ebm_name))
 model.link('{}@I'.format(ebm_name), '{}@InfectF'.format(abm_name))
 

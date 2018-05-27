@@ -14,7 +14,7 @@ __all__ = ['TimeIndModBehaviour', 'TimeDepModBehaviour',
            'WeightSumShock', 'WeightAvgShock', 'NetShock', 'NetWeightShock',
            'SwitchOn', 'SwitchOff',
            'Reincarnation', 'Cohort', 'LifeRate', 'LifeS',
-           'ForeignShock', 'ForeignSumShock', 'Immigration',
+           'ForeignShock', 'Immigration',
            'StSpBeLibrary']
 
 
@@ -68,12 +68,13 @@ StSpBeLibrary.register('ForeignShock', ForeignShock,
                         vld.String('par_src', opt=True),
                         vld.PositiveFloat('default', default=1, opt=True)])
 
-StSpBeLibrary.register('ForeignSumShock', ForeignSumShock,
-                       [vld.Options('t_tar', 'transitions'),
-                        vld.NotNull('mod_par_src', opt=True),
-                        vld.PositiveFloat('default', default=1, opt=True)])
+# StSpBeLibrary.register('ForeignSumShock', ForeignSumShock,
+#                        [vld.Options('t_tar', 'transitions'),
+#                         vld.NotNull('mod_par_src', opt=True),
+#                         vld.PositiveFloat('default', default=1, opt=True)])
 
 StSpBeLibrary.register('Immigration', Immigration,
                        [vld.Options('s_immigrant', 'states'),
+                        vld.String('msg', opt=True),
                         vld.String('mod_src', opt=True),
                         vld.String('par_src', opt=True)])

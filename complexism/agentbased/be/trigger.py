@@ -3,7 +3,7 @@ __author__ = 'TimeWz667'
 
 __all__ = ['Trigger', 'EventTrigger',
            'AttributeTrigger', 'AttributeEnterTrigger', 'AttributeExitTrigger',
-           'ForeignTrigger', 'ForeignSetTrigger']
+           'ForeignTrigger']
 
 
 class Trigger:
@@ -124,34 +124,28 @@ class AttributeExitTrigger(Trigger):
 
 
 class ForeignTrigger(Trigger):
-    def __init__(self, model=None, loc=None):
+    def __init__(self, model=None, msg=None):
         self.Model = model
-        self.Location = loc
+        if not msg:
+            self.Messages = []
+        elif isinstance(msg, list):
+            self.Messages = msg
+        else:
+            self.Messages = [str(msg)]
 
-    def append(self, model, loc):
-        self.Model = model
-        self.Location = loc
+    def add_source(self, model, msg):
+        if self.Model == model:
+            if isinstance(msg, str):
+                self.Messages.append(msg)
+            elif isinstance(msg, list):
+                self.Messages += msg
+        else:
+            self.Model = model
+            self.Messages = msg if isinstance(msg, list) else [msg]
 
-    def check_foreign(self, model, loc=None):
+    def check_foreign(self, model, msg='update'):
         if self.Model != model.Name:
             return False
-        if not loc:
+        if msg == 'update':
             return True
-        return loc == self.Location
-
-
-class ForeignSetTrigger(Trigger):
-    def __init__(self, mps=None):
-        self.Models = dict(mps) if isinstance(mps, dict) else dict()
-
-    def append(self, model, loc):
-        self.Models[model] = loc
-
-    def check_foreign(self, model, loc=None):
-        try:
-            location = self.Models[model]
-            if not loc:
-                return True
-            return loc == location
-        except KeyError:
-            return False
+        return msg in self.Messages

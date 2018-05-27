@@ -42,7 +42,7 @@ class Summariser(ModelAtom):
         self.Impulses = OrderedDict()
 
     def find_next(self):
-        return Event('Summarise', self.Clock.Next)
+        return Event('Summarise', self.Clock.Next, 'update')
 
     def execute_event(self):
         self.Clock.update(self.TTE)
