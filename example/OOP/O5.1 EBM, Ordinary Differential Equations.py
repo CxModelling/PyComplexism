@@ -14,7 +14,7 @@ PCore pSIR {
 }
 """
 
-bn = cx.read_pc(psc)
+bn = cx.read_bn_script(psc)
 sm = dag.as_simulation_core(bn, hie={'city': []})
 pc = sm.generate('Taipei')
 

@@ -7,7 +7,7 @@ import epidag as dag
 model_name = 'M Birth Death'
 
 # Step 1 set a parameter core
-bn = cx.read_pc(cx.load_txt('../scripts/pBAD.txt'))
+bn = cx.read_bn_script(cx.load_txt('../scripts/pBAD.txt'))
 sm = dag.as_simulation_core(bn,
                             hie={'city': ['agent'],
                                  'agent': ['ToM', 'ToO', 'Die']})
@@ -16,7 +16,7 @@ pc.impulse({'dr': 0.01})
 
 
 # Step 1- set dynamic cores as agents need
-dbp = cx.read_dc(cx.load_txt('../scripts/BAD.txt'))
+dbp = cx.read_dbp_script(cx.load_txt('../scripts/BAD.txt'))
 
 
 # Step 2 define at least one type of agent
