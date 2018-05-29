@@ -49,7 +49,7 @@ class AbsBehaviour(metaclass=ABCMeta):
     def check_foreign(self, model, loc=None):
         return self.Trigger.check_foreign(model, loc)
 
-    def impulse_foreign(self, model, fore, message, ti, **kwargs):
+    def impulse_foreign(self, model, fore, message, ti, **k):
         pass
 
     def fill(self, obs: dict, model, ti):

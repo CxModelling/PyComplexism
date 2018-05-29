@@ -141,7 +141,12 @@ class ForeignTrigger(Trigger):
                 self.Messages += msg
         else:
             self.Model = model
-            self.Messages = msg if isinstance(msg, list) else [msg]
+            if not msg:
+                self.Messages = []
+            elif isinstance(msg, list):
+                self.Messages = msg
+            else:
+                self.Messages = [str(msg)]
 
     def check_foreign(self, model, msg='update'):
         if self.Model != model.Name:

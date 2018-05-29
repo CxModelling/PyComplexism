@@ -2,7 +2,7 @@ from abc import ABCMeta, abstractmethod
 from collections import namedtuple, OrderedDict
 from complexism.misc.counter import count
 from complexism.mcore import Observer, LeafModel
-from complexism.element import Request
+from complexism.element import Request, Event
 from .be import ForeignListener
 from .pop import Community
 
@@ -131,12 +131,17 @@ class GenericAgentBasedModel(LeafModel, metaclass=ABCMeta):
 
     def impulse_foreign(self, fore, message, ti, **kwargs):
         res = False
+        req = list()
         for be in self.Behaviours.values():
             if be.check_foreign(fore, message):
                 res = True
-                be.impulse_foreign(self, fore, message, ti, **kwargs)
+                msg = be.impulse_foreign(self, fore, message, ti, **kwargs)
+                if msg:
+                    req.append((msg, ti))
         if res:
             self.drop_next()
+            for exp, ti in req:
+                self.Requests.append_event(Event(exp, ti), 'Expose', self.Name)
         return res
 
     def birth(self, n, ti, **kwargs):
@@ -174,18 +179,21 @@ class GenericAgentBasedModel(LeafModel, metaclass=ABCMeta):
             be.fetch_event(evt)
             be.operate(self)
         else:
-            ag = self.Population[nod]
-            ag.fetch_event(evt)
-            pre = self.check_pre_change(ag)
-            self.Obs.record(ag, evt, time)
-            ag.execute_event()
-            ag.drop_next()
-            post = self.check_post_change(ag)
+            try:
+                ag = self.Population[nod]
+                ag.fetch_event(evt)
+                pre = self.check_pre_change(ag)
+                self.Obs.record(ag, evt, time)
+                ag.execute_event()
+                ag.drop_next()
+                post = self.check_post_change(ag)
 
-            bes = self.check_change(pre, post)
-            self.impulse_change(bes, ag, time)
+                bes = self.check_change(pre, post)
+                self.impulse_change(bes, ag, time)
 
-            ag.update_time(time)
+                ag.update_time(time)
+            except KeyError:
+                pass
 
     def __len__(self):
         return len(self.Population.Agents)

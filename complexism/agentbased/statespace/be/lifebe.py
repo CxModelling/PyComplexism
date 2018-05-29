@@ -56,7 +56,7 @@ class Cohort(TimeIndBehaviour):
 
     def impulse_change(self, model, ag, ti):
         model.kill(ag.Name, ti)
-        self.DeathN = 0
+        self.DeathN += 1
 
     def fill(self, obs, model, ti):
         obs[self.Name] = self.DeathN

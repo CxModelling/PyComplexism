@@ -1,10 +1,6 @@
-from abc import abstractmethod, ABCMeta
-from complexism.element import Event
 import epidag as dag
 import complexism as cx
 import complexism.agentbased.statespace as ss
-
-import matplotlib.pyplot as plt
 
 
 bn_scr = '''
@@ -88,9 +84,9 @@ model.append(model_ser)
 
 model.append(model_i)
 
-model.link('I@Inf', 'SER@FOI')
-model.link('I@Recover', 'SER@Recovery')
-model.link('SER@Activate', 'I@Activation')
+model.link('I@Inf', 'SER@FOI', message=['Recover'])
+model.link('I@Recover', 'SER@Recovery', message='Recover')
+model.link('SER@Activate', 'I@Activation', message='Activate')
 
 model.add_observing_model('I')
 model.add_observing_model('SER')
@@ -98,7 +94,8 @@ model.add_observing_model('SER')
 
 y0 = {
     'SER': [
-        {'n': 280, 'attributes': {'st': 'Sus'}}
+        {'n': 180, 'attributes': {'st': 'Sus'}},
+        {'n': 100, 'attributes': {'st': 'Lat'}}
     ],
     'I': [
         {'n': 20, 'attributes': {'st': 'Inf'}},
@@ -106,5 +103,6 @@ y0 = {
 
 }
 
-out = cx.simulate(model, y0, 0, 10, 1)
+out = cx.simulate(model, y0, 0, 10, 1, mid=False, seed=100)
 print(out)
+

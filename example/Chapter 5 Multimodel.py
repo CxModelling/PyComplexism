@@ -102,8 +102,7 @@ model.link('{}@I'.format(ebm_name), '{}@InfectF'.format(abm_name))
 
 y0 = {
     abm_name: [
-        {'n': 300, 'attributes': {'st': 'Sus'}},
-        # {'n': 10, 'attributes': {'st': 'Inf'}}
+        {'n': 300, 'attributes': {'st': 'Sus'}}
     ],
     ebm_name: {'S': 290, 'I': 10, 'R': 0}
 }

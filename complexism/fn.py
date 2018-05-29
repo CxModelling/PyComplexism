@@ -118,7 +118,7 @@ def save_lyo(layout, path):
     save_json(layout.to_json(), path)
 
 
-def simulate(model, y0, fr, to, dt=1):
+def simulate(model, y0, fr, to, dt=1, seed=None, mid=False):
     """
     Simulate a dynamic model with initial values (y0)
     :param model: dynamic model
@@ -129,10 +129,10 @@ def simulate(model, y0, fr, to, dt=1):
     :return: data of simulation
     """
     if model.TimeEnd:
-        return model.output()
-    sim = Simulator(model)
+        return model.output(mid=mid)
+    sim = Simulator(model, seed=seed)
     sim.simulate(y0, fr, to, dt)
-    return model.output()
+    return model.output(mid=mid)
 
 
 def update(model, to, dt=1):

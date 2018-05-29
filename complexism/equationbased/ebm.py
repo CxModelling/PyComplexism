@@ -80,7 +80,7 @@ class OrdinaryDifferentialEquations(AbsEquations):
             raise e
 
     def update(self, t0, t1, pars):
-        num = int((t1 - t0) / self.Dt) + 1
+        num = max(int((t1 - t0) / self.Dt) + 1, 2)
         ts = np.linspace(t0, t1, num)
         self.Y = odeint(self.Func, self.Y, ts, args=(pars, self.X))[-1]
         return self.get_y_dict()

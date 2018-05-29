@@ -85,10 +85,10 @@ class ScheduleTicker(AbsTicker):
 
 
 class AppointmentTicker(AbsTicker):
-    def __init__(self, name, queue, t=0):
+    def __init__(self, name, queue=None, t=0):
         AbsTicker.__init__(self, name)
         self.initialise(t)
-        self.Queue = set(queue)
+        self.Queue = set(queue) if queue else set()
         self.Queue = [q for q in self.Queue if q >= t]
         self.Queue.sort()
 

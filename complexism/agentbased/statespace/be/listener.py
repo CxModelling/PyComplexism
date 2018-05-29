@@ -107,7 +107,7 @@ class ForeignShock(TimeIndModBehaviour):
 
 class Immigration(TimeIndBehaviour):
     def __init__(self, name, mod_src=None, message=None, par_src=None, s_immigrant=None):
-        trigger = ForeignTrigger(model=None, msg=message)
+        trigger = ForeignTrigger(model=None, msg=par_src)
         TimeIndBehaviour.__init__(self, name, trigger)
         self.Model = mod_src
         self.Source = par_src
@@ -117,8 +117,8 @@ class Immigration(TimeIndBehaviour):
     def set_source(self, mod_src, message, par_src):
         self.Model = mod_src
         self.Source = par_src
-        loc = message if message != 'update' else None
-        self.Trigger.append(mod_src, loc)
+        loc = message if message != 'update' else None  # todo
+        self.Trigger.add_source(mod_src, loc)
 
     def initialise(self, model, ti):
         self.ImN = 0
@@ -128,8 +128,9 @@ class Immigration(TimeIndBehaviour):
 
     def impulse_foreign(self, model, fore, message, ti, **kwargs):
         if message == self.Source:
-            model.birth(ti=ti, st=self.S_immigrant)
+            model.birth(n=1, ti=ti, st=self.S_immigrant.Name)
             self.ImN += 1
+        return 'update'
 
     @staticmethod
     def decorate(name, model, **kwargs):
