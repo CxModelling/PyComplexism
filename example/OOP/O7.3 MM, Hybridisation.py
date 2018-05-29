@@ -64,7 +64,7 @@ mbp_ser.add_behaviour('Activation', 'Cohort', s_death='Export')
 mbp_ser.add_behaviour('Recovery', 'Immigration', s_immigrant='Rec')
 mbp_ser.set_observations(states=['Sus', 'Lat', 'Export', 'Rec'],
                          transitions=['Infect', 'Activate'],
-                         behaviours=['Activation', 'FOI'])
+                         behaviours=['Recovery', 'Activation', 'FOI'])
 
 
 mbp_i = ss.BlueprintStSpABM('I')
@@ -73,7 +73,7 @@ mbp_i.add_behaviour('Activation', 'Immigration', s_immigrant='Inf')
 mbp_i.add_behaviour('Recovery', 'Cohort', s_death='Export')
 mbp_i.set_observations(states=['Inf', 'Export'],
                        transitions=['Recover'],
-                       behaviours=['Recovery'])
+                       behaviours=['Recovery', 'Activation'])
 
 
 model_ser = mbp_ser.generate('SER', pc=pc.breed('SER', 'abm_ser'), dc=dbp_ser)
@@ -84,7 +84,7 @@ model.append(model_ser)
 
 model.append(model_i)
 
-model.link('I@Inf', 'SER@FOI', message=['Recover'])
+model.link('I@Inf', 'SER@FOI', message=['Recover', 'Activation'])
 model.link('I@Recover', 'SER@Recovery', message='Recover')
 model.link('SER@Activate', 'I@Activation', message='Activate')
 

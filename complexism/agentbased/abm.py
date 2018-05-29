@@ -52,6 +52,7 @@ class GenericAgentBasedModel(LeafModel, metaclass=ABCMeta):
         LeafModel.__init__(self, name, pc=pc, obs=obs)
         self.Population = population
         self.Behaviours = OrderedDict()
+        self.ToExpose = list()
 
     def add_observing_event(self, todo):
         self.Obs.Events.append(todo)
@@ -140,8 +141,7 @@ class GenericAgentBasedModel(LeafModel, metaclass=ABCMeta):
                     req.append((msg, ti))
         if res:
             self.drop_next()
-            for exp, ti in req:
-                self.Requests.append_event(Event(exp, ti), 'Expose', self.Name)
+            self.ToExpose += req
         return res
 
     def birth(self, n, ti, **kwargs):
@@ -170,6 +170,10 @@ class GenericAgentBasedModel(LeafModel, metaclass=ABCMeta):
         for k, ag in self.Population.Agents.items():
             nxt = ag.Next
             self.Requests.append_event(nxt, k, self.Name)
+
+        for exp, ti in self.ToExpose:
+            self.Requests.append_event(Event(exp, ti), 'Expose', self.Name)
+        self.ToExpose.clear()
 
     @count()
     def do_request(self, req: Request):

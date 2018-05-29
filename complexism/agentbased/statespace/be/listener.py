@@ -28,6 +28,7 @@ class ForeignShock(TimeIndModBehaviour):
 
     def impulse_foreign(self, model, fore, message, ti, **kwargs):
         self.Value = fore.get_snapshot(self.Source, ti)
+        print(self.Value, ti)
         if self.Value is None:
             self.Value = self.Default
         self.ProtoModifier.Value = self.Value
@@ -130,7 +131,7 @@ class Immigration(TimeIndBehaviour):
         if message == self.Source:
             model.birth(n=1, ti=ti, st=self.S_immigrant.Name)
             self.ImN += 1
-        return 'update'
+        return self.Name
 
     @staticmethod
     def decorate(name, model, **kwargs):
