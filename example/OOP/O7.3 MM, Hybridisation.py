@@ -1,3 +1,5 @@
+import matplotlib.pyplot as plt
+from complexism.misc import start_counting, stop_counting, get_results
 import epidag as dag
 import complexism as cx
 import complexism.agentbased.statespace as ss
@@ -6,7 +8,7 @@ import complexism.agentbased.statespace as ss
 bn_scr = '''
 PCore pSEIR {
     beta = 1.5/300
-    theta = 0.1
+    theta = 0.5
     gamma = 0.2
     Activate ~ exp(theta)
     Infect ~ exp(beta)
@@ -62,7 +64,7 @@ mbp_ser.set_agent(prefix='Ag', group='ag_ser', dynamics='SER')
 mbp_ser.add_behaviour('FOI', 'ForeignShock', t_tar='Infect')
 mbp_ser.add_behaviour('Activation', 'Cohort', s_death='Export')
 mbp_ser.add_behaviour('Recovery', 'Immigration', s_immigrant='Rec')
-mbp_ser.set_observations(states=['Sus', 'Lat', 'Export', 'Rec'],
+mbp_ser.set_observations(states=['Sus', 'Lat', 'Rec'],
                          transitions=['Infect', 'Activate'],
                          behaviours=['Recovery', 'Activation', 'FOI'])
 
@@ -71,7 +73,7 @@ mbp_i = ss.BlueprintStSpABM('I')
 mbp_i.set_agent(prefix='Ag', group='ag_i', dynamics='I')
 mbp_i.add_behaviour('Activation', 'Immigration', s_immigrant='Inf')
 mbp_i.add_behaviour('Recovery', 'Cohort', s_death='Export')
-mbp_i.set_observations(states=['Inf', 'Export'],
+mbp_i.set_observations(states=['Inf'],
                        transitions=['Recover'],
                        behaviours=['Recovery', 'Activation'])
 
@@ -94,8 +96,8 @@ model.add_observing_model('SER')
 
 y0 = {
     'SER': [
-        {'n': 180, 'attributes': {'st': 'Sus'}},
-        {'n': 100, 'attributes': {'st': 'Lat'}}
+        {'n': 280, 'attributes': {'st': 'Sus'}},
+        # {'n': 100, 'attributes': {'st': 'Lat'}}
     ],
     'I': [
         {'n': 20, 'attributes': {'st': 'Inf'}},
@@ -103,6 +105,13 @@ y0 = {
 
 }
 
-out = cx.simulate(model, y0, 0, 10, 1, mid=False, seed=100)
-print(out)
+start_counting('Hybrid')
+output = cx.simulate(model, y0, 0, 30, 1, mid=False, seed=100)
+stop_counting()
+print(output)
+
+print('Profilling\n', get_results('Hybrid'))
+
+output[['SER@Sus', 'SER@Lat', 'I@Inf', 'SER@Rec']].plot()
+plt.show()
 

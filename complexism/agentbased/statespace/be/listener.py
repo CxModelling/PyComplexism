@@ -28,7 +28,7 @@ class ForeignShock(TimeIndModBehaviour):
 
     def impulse_foreign(self, model, fore, message, ti, **kwargs):
         self.Value = fore.get_snapshot(self.Source, ti)
-        print(self.Value, ti)
+        # print(self.Value, ti)
         if self.Value is None:
             self.Value = self.Default
         self.ProtoModifier.Value = self.Value
