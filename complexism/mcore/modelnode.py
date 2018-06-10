@@ -60,9 +60,9 @@ class ModelAtom(metaclass=ABCMeta):
         """
         self.__next = Event.NullEvent
 
-    def fetch_event(self, evt):
+    def approve_event(self, evt):
         """
-        Assign an event to the particle
+        Approve an event to the particle
         :param evt: event to be executed
         :type evt: Event
         """
@@ -72,6 +72,20 @@ class ModelAtom(metaclass=ABCMeta):
     def execute_event(self):
         """
         Let the next event happen
+        """
+        pass
+
+    def disapprove_event(self, ti):
+        """
+        Disapprove an event and update to time ti
+        :param ti: update to ti without any event happened
+        """
+        self.update_time(ti)
+
+    def update_time(self, ti):
+        """
+        Update to time to
+        :param ti: time
         """
         pass
 
@@ -101,6 +115,14 @@ class ModelAtom(metaclass=ABCMeta):
     def to_snapshot(self):
         return self.to_json()
 
+    def __repr__(self):
+        s = 'ID: {}'.format(self.Name)
+        if self.Attributes:
+            atr = ', '.join(['{}: {}'.format(k, v) for k, v in self.Attributes.items()])
+            return '{}, {}'.format(s, atr)
+        else:
+            return s
+
     def to_data(self):
         dat = dict()
         dat['Name'] = self.Name
@@ -118,6 +140,7 @@ class AbsModel(metaclass=ABCMeta):
         self.Obs = obs
         self.PCore = pc
         self.Requests = RequestSet()
+        self.ToExpose = list()
         self.TimeEnd = None
 
     def initialise(self, ti=None, y0=None):
@@ -192,7 +215,7 @@ class AbsModel(metaclass=ABCMeta):
         self.Obs.observe_routinely(self, ti)
 
     @count('Observe')
-    def captureMidTermObservations(self, ti):
+    def capture_mid_term_observations(self, ti):
         self.Obs.update_at_mid_term(self, ti)
 
     @count('Observe')
@@ -285,10 +308,10 @@ class BranchModel(AbsModel, metaclass=ABCMeta):
             m.update_observations(ti)
         AbsModel.update_observations(self, ti)
 
-    def captureMidTermObservations(self, ti):
+    def capture_mid_term_observations(self, ti):
         for m in self.all_models().values():
-            m.captureMidTermObservations(ti)
-        AbsModel.captureMidTermObservations(self, ti)
+            m.capture_mid_term_observations(ti)
+        AbsModel.capture_mid_term_observations(self, ti)
 
     def push_observations(self, ti):
         for m in self.all_models().values():
