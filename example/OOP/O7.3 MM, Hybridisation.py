@@ -110,7 +110,7 @@ output = cx.simulate(model, y0, 0, 30, 1, mid=False, seed=100)
 stop_counting()
 print(output)
 
-print('Profilling\n', get_results('Hybrid'))
+print('Profiling\n', get_results('Hybrid'))
 
 output[['SER@Sus', 'SER@Lat', 'I@Inf', 'SER@Rec']].plot()
 plt.show()

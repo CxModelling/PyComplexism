@@ -25,16 +25,6 @@ class AbsModel(metaclass=ABCMeta):
     def do_request(self, req):
         pass
 
-    @property
-    def Next(self):
-        if self.Scheduler.is_empty():
-            self.find_next()
-        return self.Scheduler
-
-    @property
-    def TTE(self):
-        return self.Scheduler.Time
-
     @abstractmethod
     def validate_requests(self):
         pass
@@ -59,7 +49,8 @@ class AbsModel(metaclass=ABCMeta):
         pass
 
     def exit_cycle(self):
-        self.Scheduler.cycle_completed()
+        if not self.Scheduler.waiting_for_validation():
+            self.Scheduler.cycle_completed()
 
     @abstractmethod
     def print_schedule(self):
@@ -71,10 +62,12 @@ class LeafModel(AbsModel, metaclass=ABCMeta):
         AbsModel.__init__(self, name, env)
 
     def collect_requests(self):
-        self.find_next()
-        self.Scheduler.collection_completed()
+        if self.Scheduler.waiting_for_collection():
+            self.find_next()
+            self.Scheduler.collection_completed()
+        return self.Scheduler.Requests
 
-    def validate_messages(self):
+    def validate_requests(self):
         # todo validation if not validated, disapprove
         pass
 
@@ -87,6 +80,9 @@ class LeafModel(AbsModel, metaclass=ABCMeta):
             for req in self.Scheduler.Requests:
                 self.do_request(req)
             self.Scheduler.execution_completed()
+
+    def collect_disclosure(self):
+        return self.Scheduler.pop_disclosures()
 
     def print_schedule(self):
         self.Scheduler.print()
@@ -110,14 +106,17 @@ class BranchModel(AbsModel, metaclass=ABCMeta):
     def select_all(self, sel):
         return ModelSelector(self.all_models()).select_all(sel)
 
-    def collect_messages(self):
-        self.find_next()
-        for v in self.all_models().values():
-            v.collect_messages()
-            self.Scheduler.append_lower_schedule(v.Scheduler)
-        self.Scheduler.collection_completed()
+    def collect_requests(self):
+        if self.Scheduler.waiting_for_collection():
+            self.find_next()
 
-    def validate_messages(self):
+            for v in self.all_models().values():
+                v.collect_requests()
+                self.Scheduler.append_lower_schedule(v.Scheduler)
+            self.Scheduler.collection_completed()
+        return self.Scheduler.Requests
+
+    def validate_requests(self):
         pass  # todo
 
     def fetch_requests(self, rs):
@@ -138,13 +137,25 @@ class BranchModel(AbsModel, metaclass=ABCMeta):
         for v in self.all_models().values():
             v.execute_requests()
 
+    def collect_disclosure(self):
+        dss = self.Scheduler.pop_disclosures()
+        for v in self.all_models().values():
+            ds = v.collect_disclosure()
+            ds = [d.up_scale(self.Name) for d in ds]
+            dss += ds
+        return dss
+
     @abstractmethod
     def do_request(self, req):
         pass
 
+    def exit_cycle(self):
+        for v in self.all_models().values():
+            v.exit_cycle()
+        AbsModel.exit_cycle(self)
+
     def print_schedule(self):
         self.Scheduler.print()
-        print()
         for m in self.all_models().values():
             m.print_schedule()
 
@@ -162,6 +173,7 @@ class Country(BranchModel):
         return self.Models[k]
 
     def do_request(self, req):
+        self.Check = True
         self.disclose(req.Message, req.When)
         print(req)
 
@@ -186,11 +198,12 @@ class City(BranchModel):
         return self.Models[k]
 
     def do_request(self, req):
+        self.Check = True
         self.disclose(req.Message, req.When)
 
     def find_next(self):
         if not self.Check:
-            self.request(Event('City', 3), 'self')
+            self.request(Event('broadcast', 3), 'self')
 
     def impulse_externally(self, dss, ti):
         pass
@@ -205,50 +218,58 @@ class School(LeafModel):
         self.Last = 0
 
     def find_next(self):
-        self.request(Event(self.Name, self.Last+abs(random())), 'student')
+        self.request(Event(self.Name, self.Last+random()*5), 'student')
 
     def do_request(self, req):
-        self.disclose(req.When, self.Name)
+        self.disclose("teach", self.Name)
         self.Last = req.When
 
     def impulse_externally(self, dss, ti):
         pass
 
 
-tw = Country('Taiwan')
-tp = City('Taipei')
-tw.Models['Taipei'] = tp
+if __name__ == '__main__':
 
-tn = City('Tainan')
-tw.Models['Tainan'] = tn
+    tw = Country('Taiwan')
+    tp = City('Taipei')
+    tw.Models['Taipei'] = tp
 
-for st in range(2):
-    n = 'S{}'.format(st)
-    tp.Models[n] = School(n)
+    tn = City('Tainan')
+    tw.Models['Tainan'] = tn
 
-for st in range(2):
-    n = 'S{}'.format(st)
-    tn.Models[n] = School(n)
+    for st in range(2):
+        n = 'S{}'.format(st)
+        tp.Models[n] = School(n)
 
-# tw.print_schedule()
-tw.collect_messages()
-#print('\nCollecting Requests\n')
-# tw.print_schedule()
+    for st in range(2):
+        n = 'S{}'.format(st)
+        tn.Models[n] = School(n)
 
-# print('\nValidating Requests\n')
-req = tw.Scheduler.Requests
-print(req)
-tw.fetch_requests(req)
-# tw.print_schedule()
+    tw.print_schedule()
+    tw.collect_requests()
+    print('\nCollecting Requests\n')
+    tw.print_schedule()
 
-# print('\nExecute Requests\n')
-tw.execute_requests()
-tw.print_schedule()
+    print('\nValidating Requests\n')
+    req = tw.Scheduler.Requests
+    print(req)
+    tw.fetch_requests(req)
+    tw.print_schedule()
 
-tw.collect_messages()
-req = tw.Scheduler.Requests
-tw.fetch_requests(req)
-tw.execute_requests()
-tw.print_schedule()
-print(req)
+    print('\nExecute Requests\n')
+    tw.execute_requests()
+    tw.print_schedule()
+    ds = tw.collect_disclosure()
+    print(ds)
+    tw.exit_cycle()
 
+    for _ in range(10):
+        tw.collect_requests()
+        req = tw.Scheduler.Requests
+        print(req)
+        tw.fetch_requests(req)
+        tw.execute_requests()
+        ds = tw.collect_disclosure()
+        tw.exit_cycle()
+        # tw.print_schedule()
+        print(ds)

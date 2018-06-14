@@ -181,22 +181,15 @@ class Schedule:
     def up_scale_requests(self, loc):
         return [req.up_scale(loc) for req in self.Requests]
 
-    def up_scale_disclosures(self, loc):
-        return [dss.up_scale(loc) for dss in self.Disclosures]
-
     def append_lower_schedule(self, lower):
         ti = lower.Time
         if ti < self.Time:
             if lower.Requests:
                 self.Requests = lower.up_scale_requests(self.Location)
-            if lower.Disclosures:
-                self.Disclosures = lower.up_scale_disclosures(self.Location)
             self.Time = ti
         elif ti == self.Time:
             if self.Requests:
                 self.Requests += lower.up_scale_requests(self.Location)
-            if lower.Disclosures:
-                self.Disclosures += lower.up_scale_disclosures(self.Location)
         else:
             return
 
@@ -204,9 +197,6 @@ class Schedule:
 
     def fetch_requests(self, rs):
         self.Requests = rs
-
-    def fetch_disclosures(self, dss):
-        self.Disclosures = dss
 
     def pop_lower_requests(self):
         gp = groupby(self.Requests, lambda x: x.reached())
@@ -229,8 +219,9 @@ class Schedule:
 
         return pop
 
-    def emit_exposures(self):
-        return self.Disclosures
+    def pop_disclosures(self):
+        ds, self.Disclosures = self.Disclosures, list()
+        return ds
 
     def waiting_for_collection(self):
         return self.Status is Status.TO_COLLECT
@@ -264,8 +255,12 @@ class Schedule:
         self.Requests.clear()
         self.Time = float('inf')
 
+    def cycle_broke(self):
+        self.cycle_completed()
+        self.collection_completed()
+
     def is_empty(self):
-        return (not self.Requests) and (not self.Disclosures)
+        return not self.Requests
 
     def __repr__(self):
         return 'Status: {}, Req: {}, Dss: {}, Next Event Time: {}'.format(
