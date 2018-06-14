@@ -1,5 +1,5 @@
 from abc import ABCMeta, abstractmethod
-from complexism.element import Event, RequestSet
+from complexism.element import Event, Schedule
 from complexism.mcore import Observer, ModelSelector
 from complexism.misc.counter import count
 
@@ -139,8 +139,7 @@ class AbsModel(metaclass=ABCMeta):
         self.Name = name
         self.Obs = obs
         self.PCore = pc
-        self.Requests = RequestSet()
-        self.ToExpose = list()
+        self.Scheduler = Schedule(self.Name)
         self.TimeEnd = None
 
     def initialise(self, ti=None, y0=None):
@@ -179,16 +178,16 @@ class AbsModel(metaclass=ABCMeta):
 
     @property
     def Next(self):
-        if self.Requests.is_empty():
+        if self.Scheduler.is_empty():
             self.find_next()
-        return self.Requests.Requests
+        return self.Scheduler
 
     @property
     def TTE(self):
-        return self.Requests.Time
+        return self.Scheduler.Time
 
     def drop_next(self):
-        self.Requests.clear()
+        self.Scheduler.execution_completed()
 
     @abstractmethod
     def find_next(self):
@@ -232,6 +231,7 @@ class LeafModel(AbsModel, metaclass=ABCMeta):
         AbsModel.__init__(self, name, pc, obs)
 
     def fetch_requests(self, rs):
+        self.Scheduler.validation_completed()
         self.Requests.clear()
         self.Requests.append_requests(rs)
 
@@ -277,7 +277,7 @@ class BranchModel(AbsModel, metaclass=ABCMeta):
             self.select(k).fetch_requests(v)
 
     def execute_requests(self):
-        for req in self.Requests:
+        for req in self.Scheduler.RequestList:
             self.do_request(req)
 
         ti = self.TTE

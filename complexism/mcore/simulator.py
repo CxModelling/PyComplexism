@@ -1,4 +1,4 @@
-from complexism.element import RequestSet
+from complexism.element import Schedule
 import numpy.random as rd
 import numpy as np
 
@@ -11,7 +11,7 @@ class Simulator:
         if seed:
             rd.seed(seed)
         self.Time = 0
-        self.Receptor = RequestSet()
+        self.Receptor = Schedule()
 
     def simulate(self, y0, fr, to, dt):
         self.Time = fr
@@ -43,7 +43,7 @@ class Simulator:
             if ti > end:
                 break
             tx = ti
-            rqs = self.Receptor.Requests
+            rqs = self.Receptor.RequestSet
             self.Model.fetch_requests(rqs)
             self.Model.execute_requests()
             self.Model.drop_next()

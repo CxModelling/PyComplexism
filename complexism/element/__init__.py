@@ -1,5 +1,5 @@
 from .event import *
-from .request import *
+from .schedule import *
 from .ticker import *
 
 __author__ = 'TimeWz667'
