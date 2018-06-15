@@ -1,3 +1,4 @@
+import matplotlib.pyplot as plt
 import complexism as cx
 import complexism.agentbased.statespace as ss
 import epidag as dag
@@ -63,4 +64,6 @@ if __name__ == '__main__':
         {'n': 5, 'attributes': {'st': 'Inf'}},
     ]
 
-    print(cx.simulate(model, y0, 0, 10, 1))
+    output = cx.simulate(model, y0, 0, 10, 1)
+    output[['Sus', 'Inf', 'Rec']].plot()
+    plt.show()

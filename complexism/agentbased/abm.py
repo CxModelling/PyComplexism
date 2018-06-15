@@ -2,7 +2,7 @@ from abc import ABCMeta, abstractmethod
 from collections import namedtuple, OrderedDict
 from complexism.misc.counter import count
 from complexism.mcore import Observer, LeafModel
-from complexism.element import Request, Event
+from complexism.element import Request
 from .be import ForeignListener
 from .pop import Community
 
@@ -47,22 +47,21 @@ class ObsABM(Observer):
 
 
 class GenericAgentBasedModel(LeafModel, metaclass=ABCMeta):
-    def __init__(self, name, pc, population, obs=None):
+    def __init__(self, name, env, population, obs=None):
         obs = obs if obs else ObsABM()
-        LeafModel.__init__(self, name, pc=pc, obs=obs)
+        LeafModel.__init__(self, name, env=env, obs=obs)
         self.Population = population
         self.Behaviours = OrderedDict()
-        self.ToExpose = list()
 
     def add_observing_event(self, todo):
-        self.Obs.Events.append(todo)
+        self.Observer.Events.append(todo)
 
     def add_observing_behaviour(self, be):
         if be in self.Behaviours:
-            self.Obs.Behaviours.append(be)
+            self.Observer.Behaviours.append(be)
 
     def add_observing_function(self, func):
-        self.Obs.add_observing_function(func)
+        self.Observer.add_observing_function(func)
 
     def add_network(self, net):
         if isinstance(self.Population, Community):
@@ -92,12 +91,14 @@ class GenericAgentBasedModel(LeafModel, metaclass=ABCMeta):
             be.initialise(ti=ti, model=self)
         for ag in self.Population.Agents.values():
             ag.initialise(ti=ti, model=self)
+        self.disclose('initialise', '*')
 
     def reset(self, ti):
         for be in self.Behaviours.values():
             be.reset(ti=ti, model=self)
         for ag in self.Population.Agents.values():
             ag.reset(ti=ti, model=self)
+        self.disclose('initialise', '*')
 
     def check_enter(self, ag):
         return (be for be in self.Behaviours.values() if be.check_enter(ag))
@@ -140,8 +141,7 @@ class GenericAgentBasedModel(LeafModel, metaclass=ABCMeta):
                 if msg:
                     req.append((msg, ti))
         if res:
-            self.drop_next()
-            self.ToExpose += req
+            self.exit_cycle()
         return res
 
     def birth(self, n, ti, **kwargs):
@@ -152,7 +152,7 @@ class GenericAgentBasedModel(LeafModel, metaclass=ABCMeta):
             bes = self.check_enter(ag)
             ag.initialise(ti)
             self.impulse_enter(bes, ag, ti)
-
+            self.disclose('add an agent', ag.Name)
         return ags
 
     def kill(self, i, ti):
@@ -160,34 +160,31 @@ class GenericAgentBasedModel(LeafModel, metaclass=ABCMeta):
         bes = self.check_exit(ag)
         self.Population.remove_agent(i)
         self.impulse_exit(bes, ag, ti)
+        self.disclose('remove an agent', ag.Name)
 
     def find_next(self):
         # to be parallel
         for k, be in self.Behaviours.items():
             nxt = be.Next
-            self.Requests.append_event(nxt, k, self.Name)
+            self.Scheduler.append_request_from_source(nxt, k)
 
         for k, ag in self.Population.Agents.items():
             nxt = ag.Next
-            self.Requests.append_event(nxt, k, self.Name)
-
-        for exp, ti in self.ToExpose:
-            self.Requests.append_event(Event(exp, ti), 'Expose', self.Name)
-        self.ToExpose.clear()
+            self.Scheduler.append_request_from_source(nxt, k)
 
     @count()
     def do_request(self, req: Request):
         nod, evt, time = req.Who, req.Event, req.When
         if nod in self.Behaviours:
             be = self.Behaviours[nod]
-            be.fetch_event(evt)
+            be.approve_event(evt)
             be.operate(self)
         else:
             try:
                 ag = self.Population[nod]
-                ag.fetch_event(evt)
+                ag.approve_event(evt)
                 pre = self.check_pre_change(ag)
-                self.Obs.record(ag, evt, time)
+                self.Observer.record(ag, evt, time)
                 ag.execute_event()
                 ag.drop_next()
                 post = self.check_post_change(ag)

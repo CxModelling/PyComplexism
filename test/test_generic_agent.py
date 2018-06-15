@@ -1,5 +1,6 @@
 import unittest
 import complexism as cx
+from complexism.element import Event
 from random import choice
 
 
@@ -11,7 +12,7 @@ class TwoDRandomWalker(cx.GenericAgent):
         cx.GenericAgent.__init__(self, name)
 
     def find_next(self):
-        return cx.Event(todo=(choice([-1, 0, 1]), choice([-1, 0, 1])),
+        return Event(todo=(choice([-1, 0, 1]), choice([-1, 0, 1])),
                         ti=self['t'] + self['dt'])
 
     def initialise(self, time=0, **kwargs):

@@ -38,7 +38,7 @@ class MultiModel(BranchModel):
 
     def add_observing_model(self, m):
         if m in self.Models:
-            self.Obs.add_observing_model(m)
+            self.Observer.add_observing_model(m)
 
     def append(self, m):
         if m.Name not in self.Models:

@@ -16,7 +16,7 @@ class Simulator:
         self.Model.initialise(ti=fr, y0=y0)
         self.Model.initialise_observations(fr)
         self.Model.push_observations(fr)
-        self.deal_with_disclosures(fr)
+        self.deal_with_disclosures(fr, None)
         self.update(to, dt)
 
     def update(self, forward, dt):
@@ -35,30 +35,34 @@ class Simulator:
         tx = t
         while tx < end:
             self.Model.collect_requests()
-            req = self.Model.Scheduler.Requests
-            ti = req[0].When
+            requests = self.Model.Scheduler.Requests
+            ti = requests[0].When
             if ti > end:
                 break
             tx = ti
 
-            self.Model.fetch_requests(req)
+            self.Model.fetch_requests(requests)
             self.Model.execute_requests()
-            self.deal_with_disclosures(ti)
+            self.deal_with_disclosures(ti, requests)
             self.Model.exit_cycle()
         self.Model.exit_cycle()
         # self.Model.print_schedule()
         self.Time = end
         self.Model.TimeEnd = end
 
-    def deal_with_disclosures(self, time):
-        while True:
+    def deal_with_disclosures(self, time, requests):
+        if requests:
+            ds = [req.to_disclosure() for req in requests]
+        else:
             ds = self.Model.collect_disclosure()
-            ds = [d for d in ds if d.Where[0] != self.Model.Name]
+        ds = [d for d in ds if d.Where[0] != self.Model.Name]
 
-            if not ds:
-                break
+        while len(ds) > 0:
             ds_ms = [(d.down_scale()[1], self._find_model(d.Where)) for d in ds]
             self.Model.fetch_disclosures(ds_ms, time)
+
+            ds = self.Model.collect_disclosure()
+            ds = [d for d in ds if d.Where[0] != self.Model.Name]
 
     def _find_model(self, where):
         where = list(where[:-1])

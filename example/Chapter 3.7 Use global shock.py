@@ -32,7 +32,7 @@ CTBN SIR {
 }
 """
 
-bn = cx.read_pc(psc)
+bn = cx.read_bn_script(psc)
 sm = dag.as_simulation_core(bn,
                             hie={'city': ['agent'],
                                  'agent': ['Recov', 'Die', 'Infect']})

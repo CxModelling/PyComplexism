@@ -76,11 +76,11 @@ class StSpAgentBasedModel(GenericAgentBasedModel):
             tr = self.DCore.Transitions[tr]
         except KeyError:
             raise KeyError('Transition {} does not exist'.format(tr))
-        self.Obs.add_observing_transition(tr)
+        self.Observer.add_observing_transition(tr)
 
     def add_observing_state(self, st):
         if st in self.DCore.States:
-            self.Obs.add_observing_state(st)
+            self.Observer.add_observing_state(st)
         else:
             raise KeyError('State {} does not exist'.format(st))
 

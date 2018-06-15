@@ -72,7 +72,7 @@ class RequestTestCase(unittest.TestCase):
 
 class RequestSetTestCase(unittest.TestCase):
     def setUp(self):
-        self.ReqSet = RequestSet()
+        self.ReqSet = Schedule('Home')
         self.Req1 = Request(Event('Task 1', 1), 'I', 'Home')
         self.Req2 = Request(Event('Task 2', 2), 'You', 'Home')
         self.Req3 = Request(Event('Task 3', 2), 'She', 'Home')
@@ -95,7 +95,7 @@ class RequestSetTestCase(unittest.TestCase):
         self.assertEqual(self.ReqSet.Time, 1)
         self.assertEqual(len(self.ReqSet), 1)
 
-        self.ReqSet.clear()
+        self.ReqSet.cycle_completed()
         self.assertEqual(self.ReqSet.Time, float('inf'))
         self.assertEqual(len(self.ReqSet), 0)
         self.assertTrue(self.ReqSet.is_empty())
@@ -104,16 +104,17 @@ class RequestSetTestCase(unittest.TestCase):
         self.ReqSet.append_request(self.Req4)
         self.assertEqual(self.ReqSet.Time, 3)
 
-        self.ReqSet.append_requests([self.Req3, self.Req2])
+        self.ReqSet.append_request(self.Req3)
+        self.ReqSet.append_request(self.Req2)
         self.assertEqual(self.ReqSet.Time, 2)
         self.assertEqual(len(self.ReqSet), 2)
 
     def test_pass_request(self):
-        rsu = RequestSet()
+        rsu = Schedule('Taipei')
         rsu.append_request(self.Req5)
 
         self.ReqSet.append_request(self.Req1)
-        rsu.merge_lower(self.ReqSet, 'Taipei')
+        rsu.append_lower_schedule(self.ReqSet)
         self.assertEqual(rsu.Time, 1)
         self.assertEqual(len(rsu), 2)
 

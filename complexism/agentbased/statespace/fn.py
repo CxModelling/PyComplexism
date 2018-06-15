@@ -11,7 +11,7 @@ __all__ = ['prepare_pc', 'generate_plain_model',
 
 
 def form_resources(model):
-    pc, dc = model.PCore, model.DCore
+    pc, dc = model.Environment, model.DCore
     resources = {
         'states': dc.States,
         'transitions': dc.Transitions

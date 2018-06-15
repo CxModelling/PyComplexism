@@ -196,7 +196,6 @@ class AbsModel(metaclass=ABCMeta):
     def fetch_disclosures(self, ds_ms, time):
         pass
 
-    @abstractmethod
     def trigger_external_impulses(self, disclosure, model, time):
         pass
 

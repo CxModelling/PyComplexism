@@ -32,14 +32,14 @@ CTBN SIR {
 }
 """
 
-bn = cx.read_pc(psc)
+bn = cx.read_bn_script(psc)
 sm = dag.as_simulation_core(bn,
                             hie={'city': ['agent'],
                                  'agent': ['Recov', 'Die', 'Infect']})
 
 pc = sm.generate()
 
-dc = cx.read_dc(dsc)
+dc = cx.read_dbp_script(dsc)
 
 Name = 'M1'
 proto = pc.breed('proto_agent_{}'.format(Name), 'agent')

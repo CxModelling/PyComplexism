@@ -3,8 +3,7 @@ from complexism.misc.counter import count
 from complexism.mcore import Observer, LeafModel
 from complexism.element import Request
 from complexism.agentbased import GenericAgent
-from .be import ForeignListener, MultiForeignListener
-
+from .be import ForeignListener
 
 
 __author__ = 'TimeWz667'
@@ -46,16 +45,16 @@ class ObsSingleAgent(Observer):
 
 class SingleIndividualABM(LeafModel):
     def __init__(self, name, agent: GenericAgent, pc=None):
-        LeafModel.__init__(self, name, pc=pc, obs=ObsSingleAgent())
+        LeafModel.__init__(self, name, env=pc, obs=ObsSingleAgent())
         self.Agent = agent
         self.Behaviours = OrderedDict()
 
     def add_observing_attribute(self, atr):
-        self.Obs.add_observing_attribute(atr)
+        self.Observer.add_observing_attribute(atr)
 
     def add_observing_behaviour(self, be):
         if be in self.Behaviours:
-            self.Obs.add_observing_behaviour(be)
+            self.Observer.add_observing_behaviour(be)
 
     def add_behaviour(self, be):
         if be.Name not in self.Behaviours:
@@ -83,15 +82,15 @@ class SingleIndividualABM(LeafModel):
         for be in self.Behaviours.values():
             be.initialise(self, ti)
 
-    def impulse_foreign(self, fore, ti):
+    def trigger_external_impulses(self, disclosure, model, time):
         res = False
         for be in self.Behaviours.values():
-            if be.check_foreign(fore):
+            if be.check_foreign(model):
                 res = True
-                be.impulse_foreign(self, fore, ti)
+                be.impulse_foreign(self, model, time)
 
         if res:
-            self.drop_next()
+            self.exit_cycle()
         return res
 
     def check_tr(self, ag, tr):
@@ -105,10 +104,10 @@ class SingleIndividualABM(LeafModel):
         # to be parallel
         for k, be in self.Behaviours.items():
             nxt = be.next
-            self.Requests.append_event(nxt, who=k, where=self.Name)
+            self.Scheduler.append_request_from_source(nxt, k)
 
         nxt = self.Agent.Next
-        self.Requests.append_event(nxt, who=self.Agent.Name, where=self.Name)
+        self.Scheduler.append_request_from_source(nxt, who=self.Agent.Name)
 
     @count()
     def do_request(self, req: Request):
@@ -118,8 +117,8 @@ class SingleIndividualABM(LeafModel):
             be.exec(self, evt)
         else:
             tr = evt.Todo
-            self.Agent.fetch_event(evt)
-            self.Obs.record(tr, time)
+            self.Agent.approve_event(evt)
+            self.Observer.record(tr, time)
             bes = self.check_tr(self.Agent, tr)
             self.Agent.execute_event()
             self.Agent.drop_next()

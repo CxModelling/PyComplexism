@@ -134,13 +134,13 @@ class GenericEquationBasedModel(LeafModel):
         self.ForeignLinks = list()
 
     def add_observing_stock(self, stock):
-        self.Obs.add_observing_stock(stock)
+        self.Observer.add_observing_stock(stock)
 
     def add_observing_stock_function(self, func):
-        self.Obs.add_observing_stock_function(func)
+        self.Observer.add_observing_stock_function(func)
 
     def add_observing_flow_function(self, func):
-        self.Obs.add_observing_flow_function(func)
+        self.Observer.add_observing_flow_function(func)
 
     def read_y0(self, y0, ti):
         self.Equations.set_y(y0)
@@ -160,19 +160,18 @@ class GenericEquationBasedModel(LeafModel):
         f, t = self.UpdateEnd, ti
         if f == t:
             return
-        self.Y = self.Equations.update(t0=f, t1=t, pars=self.PCore)
+        self.Y = self.Equations.update(t0=f, t1=t, pars=self.Environment)
         self.UpdateEnd = ti
         self.Clock.update(ti)
-        self.drop_next()
 
     @count()
     def do_request(self, req):
-        if req.Time > self.UpdateEnd:
-            self.go_to(req.Time)
+        if req.When > self.UpdateEnd:
+            self.go_to(req.When)
 
     def find_next(self):
         evt = Event('Update Forward', self.Clock.Next, 'update')
-        self.Requests.append_event(evt, 'Equation', self.Name)
+        self.Scheduler.append_request_from_source(evt, 'Equation')
 
     def listen(self, mod_src, message, par_src, par_tar, **kwargs):
         self.ForeignLinks.append(Links(mod_src, message, par_src, par_tar, kwargs))
@@ -186,7 +185,7 @@ class GenericEquationBasedModel(LeafModel):
             for _, _, par_src, par_tar, _ in lks:
                 val = fore.get_snapshot(par_src, ti)
                 self.Equations.impulse(par_tar, val)
-            self.drop_next()
+            self.exit_cycle()
 
     def to_json(self):
         # todo
@@ -194,14 +193,14 @@ class GenericEquationBasedModel(LeafModel):
 
     def clone(self, **kwargs):
         core = self.Equations.clone(**kwargs)
-        pc = kwargs['pc'] if 'pc' in kwargs else self.PCore
+        pc = kwargs['env'] if 'env' in kwargs else self.Environment
         co = ODEModel(self.Name, core, pc, dt=self.Clock.By)
         co.Clock.Initial = self.Clock.Initial
         co.Clock.Last = self.Clock.Last
         co.TimeEnd = self.TimeEnd
         co.UpdateEnd = self.UpdateEnd
-        co.Obs.TimeSeries = deepcopy(self.Obs.TimeSeries)
-        co.Obs.Last = dict(self.Obs.Last.items())
+        co.Observer.TimeSeries = deepcopy(self.Observer.TimeSeries)
+        co.Observer.Last = dict(self.Observer.Last.items())
         co.Y = deepcopy(self.Y)
         core.initialise(co, self.TimeEnd)
         return co
@@ -209,7 +208,7 @@ class GenericEquationBasedModel(LeafModel):
 
 class ODEModel(LeafModel):
     def __init__(self, name, core, pc=None, meta=None, dt=1, fdt=None):
-        LeafModel.__init__(self, name, ObsEBM(), meta=meta)
+        LeafModel.__init__(self, name, ObsEBM())
         self.Y = None
         self.PCore = pc
         self.ODE = core
@@ -219,17 +218,16 @@ class ODEModel(LeafModel):
         self.Fdt = min(dt, fdt) if fdt else dt
 
     def add_obs_state(self, st):
-        self.Obs.add_obs_state(st)
+        self.Observer.add_obs_state(st)
 
     def add_obs_transition(self, tr):
-        self.Obs.add_obs_transition(tr)
+        self.Observer.add_obs_transition(tr)
 
     def add_obs_behaviour(self, be):
-        self.Obs.add_obs_behaviour(be)
+        self.Observer.add_obs_behaviour(be)
 
     def read_y0(self, y0, ti):
         self.ODE.initialise(self, y0, ti)
-        #self.Y = self.ODE.form_ys(self.ODE.Ys)
 
     def reset(self, ti):
         self.Clock.initialise(ti)
@@ -250,7 +248,7 @@ class ODEModel(LeafModel):
             self.go_to(req.Time)
 
     def find_next(self):
-        self.Requests.append(Request(None, self.Clock.Next))
+        self.Scheduler.append_request_from_source(Event('update', self.Clock.Next), 'Equation')
 
     def listen(self, mod_src, par_src, tar, par_tar=None):
         tar = (tar, par_tar) if par_tar else tar
