@@ -1,6 +1,6 @@
 from abc import ABCMeta, abstractmethod
 from complexism.element import Event, Schedule
-from complexism.mcore import Observer, ModelSelector
+from complexism.mcore import Observer, DefaultObserver, ModelSelector
 from complexism.misc.counter import count
 
 __author__ = 'TimeWz667'
@@ -129,24 +129,24 @@ class ModelAtom(metaclass=ABCMeta):
         dat.update(self.Attributes)
         return dat
 
-    @abstractmethod
     def clone(self, *args, **kwargs):
-        pass
+        self.__class__.__init__(self, self.Name, self.Parameters)
 
 
 class AbsModel(metaclass=ABCMeta):
-    def __init__(self, name, pc=None, obs: Observer=None):
+    def __init__(self, name, env=None, obs: Observer=None):
         self.Name = name
-        self.Obs = obs
-        self.PCore = pc
+        self.Observer = obs if obs else DefaultObserver()
         self.Scheduler = Schedule(self.Name)
+        self.Validator = None
+        self.Environment = env
         self.TimeEnd = None
 
     def initialise(self, ti=None, y0=None):
         if y0:
             self.read_y0(y0, ti)
         self.preset(ti)
-        self.drop_next()
+        self.exit_cycle()
 
     def preset(self, ti):
         self.reset(ti)
@@ -155,108 +155,145 @@ class AbsModel(metaclass=ABCMeta):
     def reset(self, ti):
         pass
 
-    def __getitem__(self, item):
-        return self.Obs[item]
-
-    def output(self, mid=False):
-        if mid:
-            return self.Obs.AdjustedObservations
-        else:
-            return self.Obs.Observations
-
     def read_y0(self, y0, ti):
         pass
 
-    def get_snapshot(self, key, ti):
-        return self.Obs.get_snapshot(self, key, ti)
-
-    def listen(self, fore, messages, par_src, par_tar, **kwargs):
+    @abstractmethod
+    def collect_requests(self):
         pass
-
-    def impulse_foreign(self, fore, message, ti):
-        pass
-
-    @property
-    def Next(self):
-        if self.Scheduler.is_empty():
-            self.find_next()
-        return self.Scheduler
-
-    @property
-    def TTE(self):
-        return self.Scheduler.Time
-
-    def drop_next(self):
-        self.Scheduler.execution_completed()
 
     @abstractmethod
     def find_next(self):
         pass
 
+    def request(self, event, who):
+        self.Scheduler.append_request_from_source(event, who)
+
     @abstractmethod
-    def fetch_requests(self, rs):
+    def do_request(self, request):
+        pass
+
+    @abstractmethod
+    def validate_requests(self):
+        pass
+
+    @abstractmethod
+    def fetch_requests(self, requests):
         pass
 
     @abstractmethod
     def execute_requests(self):
         pass
 
+    def disclose(self, msg, who):
+        self.Scheduler.append_disclosure_from_source(msg, who)
+
     @abstractmethod
-    def do_request(self, req):
+    def collect_disclosure(self):
+        pass
+
+    @abstractmethod
+    def fetch_disclosures(self, ds_ms, time):
+        pass
+
+    @abstractmethod
+    def trigger_external_impulses(self, disclosure, model, time):
+        pass
+
+    def exit_cycle(self):
+        if not self.Scheduler.waiting_for_validation():
+            self.Scheduler.cycle_completed()
+
+    @abstractmethod
+    def print_schedule(self):
         pass
 
     @count('Observe')
     def initialise_observations(self, ti):
-        self.Obs.initialise_observations(self, ti)
+        self.Observer.initialise_observations(self, ti)
 
     @count('Observe')
     def update_observations(self, ti):
-        self.Obs.observe_routinely(self, ti)
+        self.Observer.observe_routinely(self, ti)
 
     @count('Observe')
     def capture_mid_term_observations(self, ti):
-        self.Obs.update_at_mid_term(self, ti)
+        self.Observer.update_at_mid_term(self, ti)
 
     @count('Observe')
     def push_observations(self, ti):
-        self.Obs.push_observations(ti)
+        self.Observer.push_observations(ti)
 
-    @abstractmethod
+    def get_snapshot(self, key, ti):
+        return self.Observer.get_snapshot(self, key, ti)
+
+    def output(self, mid=False):
+        if mid:
+            return self.Observer.AdjustedObservations
+        else:
+            return self.Observer.Observations
+
     def clone(self, **kwargs):
         pass
 
 
 class LeafModel(AbsModel, metaclass=ABCMeta):
-    def __init__(self, name, pc=None, obs: Observer=None):
-        AbsModel.__init__(self, name, pc, obs)
+    def __init__(self, name, env=None, obs: Observer=None):
+        AbsModel.__init__(self, name, env, obs)
+
+    def collect_requests(self):
+        if self.Scheduler.waiting_for_collection():
+            self.find_next()
+            self.Scheduler.collection_completed()
+            return self.Scheduler.Requests
+        elif self.Scheduler.waiting_for_validation():
+            return self.Scheduler.Requests
+        else:
+            raise AttributeError(self.Scheduler.Status)
+
+    def validate_requests(self):
+        # todo validation if not validated, disapprove
+        pass
 
     def fetch_requests(self, rs):
+        self.Scheduler.fetch_requests(rs)
         self.Scheduler.validation_completed()
-        self.Requests.clear()
-        self.Requests.append_requests(rs)
 
     def execute_requests(self):
-        for req in self.Requests:
-            self.do_request(req)
-        self.drop_next()
+        if self.Scheduler.waiting_for_execution():
+            for request in self.Scheduler.Requests:
+                self.do_request(request)
+            self.Scheduler.execution_completed()
+
+    def collect_disclosure(self):
+        return self.Scheduler.pop_disclosures()
+
+    def fetch_disclosures(self, ds_ms, time):
+        for d, m in ds_ms:
+            self.trigger_external_impulses(d, m, time)
+
+    def print_schedule(self):
+        self.Scheduler.print()
 
 
 class BranchModel(AbsModel, metaclass=ABCMeta):
-    def __init__(self, name, pc=None, obs=None):
-        AbsModel.__init__(self, name, pc, obs)
+    def __init__(self, name, env=None, obs=None):
+        AbsModel.__init__(self, name, env, obs)
 
     def preset(self, ti):
         for v in self.all_models().values():
             v.preset(ti)
-        self.reset_impulse(ti)
 
     def reset(self, ti):
         for v in self.all_models().values():
             v.reset(ti)
-        self.reset_impulse(ti)
 
     @abstractmethod
-    def reset_impulse(self, ti):
+    def all_models(self) -> dict:
+        pass
+
+    @abstractmethod
+    def get_model(self, k):
         pass
 
     def select(self, mod):
@@ -265,38 +302,75 @@ class BranchModel(AbsModel, metaclass=ABCMeta):
     def select_all(self, sel):
         return ModelSelector(self.all_models()).select_all(sel)
 
-    def fetch_requests(self, res):
-        self.Requests.clear()
-        self.Requests.append_requests(res)
-        self.pass_down()
+    def collect_requests(self):
+        if self.Scheduler.waiting_for_collection():
+            self.find_next()
+            for v in self.all_models().values():
+                v.collect_requests()
+                self.Scheduler.append_lower_schedule(v.Scheduler)
+            self.Scheduler.collection_completed()
+        return self.Scheduler.Requests
 
-    def pass_down(self):
-        res = self.Requests.pop_lower_requests()
+    def validate_requests(self):
+        pass  # todo
+
+    def fetch_requests(self, rs):
+        self.Scheduler.fetch_requests(rs)
+
+        res = self.Scheduler.pop_lower_requests()
 
         for k, v in res.items():
             self.select(k).fetch_requests(v)
+        if res or self.Scheduler.Requests:
+            self.Scheduler.validation_completed()
 
     def execute_requests(self):
-        for req in self.Scheduler.RequestList:
-            self.do_request(req)
-
-        ti = self.TTE
         for v in self.all_models().values():
-            if v.TTE == ti:
-                v.execute_requests()
-        self.drop_next()
+            v.execute_requests()
+
+        if self.Scheduler.waiting_for_execution():
+            for request in self.Scheduler.Requests:
+                self.do_request(request)
+            self.Scheduler.execution_completed()
+
+    def collect_disclosure(self):
+        dss = self.Scheduler.pop_disclosures()
+        for v in self.all_models().values():
+            ds = v.collect_disclosure()
+            ds = [d.up_scale(self.Name) for d in ds]
+            dss += ds
+        return dss
+
+    def fetch_disclosures(self, ds_ms, time):
+        for d, m in ds_ms:
+            self.trigger_external_impulses(d, m, time)
+        if not self.Scheduler.Disclosures:
+            self.Scheduler.cycle_completed()
+
+        for k, mod in self.all_models().items():
+            ds = list()
+            for d, fore in ds_ms:
+                if d.Group == k:
+                    if d.Where[0] != k:
+                        ds.append((d.down_scale()[1], fore))
+                else:
+                    ds.append((d.sibling_scale(), fore))
+            if ds:
+                mod.fetch_disclosures(ds, time)
 
     @abstractmethod
-    def do_request(self, req):
+    def do_request(self, request):
         pass
 
-    @abstractmethod
-    def all_models(self)->dict:
-        pass
+    def exit_cycle(self):
+        for v in self.all_models().values():
+            v.exit_cycle()
+        AbsModel.exit_cycle(self)
 
-    @abstractmethod
-    def get_model(self, k):
-        pass
+    def print_schedule(self):
+        self.Scheduler.print()
+        for m in self.all_models().values():
+            m.print_schedule()
 
     def initialise_observations(self, ti):
         for m in self.all_models().values():

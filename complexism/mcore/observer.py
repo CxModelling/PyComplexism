@@ -167,3 +167,11 @@ class Observer(metaclass=ABCMeta):
             print(self.AdjustedObservations)
         else:
             print(self.Observations)
+
+
+class DefaultObserver(Observer):
+    def read_statics(self, model, tab, ti):
+        pass
+
+    def update_dynamic_observations(self, model, flow, ti):
+        pass

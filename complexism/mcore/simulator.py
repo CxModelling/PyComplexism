@@ -1,4 +1,3 @@
-from complexism.element import Schedule
 import numpy.random as rd
 import numpy as np
 
@@ -11,13 +10,13 @@ class Simulator:
         if seed:
             rd.seed(seed)
         self.Time = 0
-        self.Receptor = Schedule()
 
     def simulate(self, y0, fr, to, dt):
         self.Time = fr
         self.Model.initialise(ti=fr, y0=y0)
         self.Model.initialise_observations(fr)
         self.Model.push_observations(fr)
+        self.deal_with_disclosures(fr)
         self.update(to, dt)
 
     def update(self, forward, dt):
@@ -27,27 +26,44 @@ class Simulator:
             ts.append(forward)
         for f, t in zip(ts[:-1], ts[1:]):
             self.step(f, (f+t)/2)
-            self.Model.captureMidTermObservations(t)
+            self.Model.capture_mid_term_observations(t)
             self.step((f+t)/2, t)
             self.Model.update_observations(t)
             self.Model.push_observations(t)
 
     def step(self, t, end):
         tx = t
-        self.Model.drop_next()
-        self.Receptor.clear()
         while tx < end:
-            self.Receptor.append_requests(self.Model.Next)
-
-            ti = self.Receptor.Time
+            self.Model.collect_requests()
+            req = self.Model.Scheduler.Requests
+            ti = req[0].When
             if ti > end:
                 break
             tx = ti
-            rqs = self.Receptor.RequestSet
-            self.Model.fetch_requests(rqs)
-            self.Model.execute_requests()
-            self.Model.drop_next()
-            self.Receptor.clear()
 
+            self.Model.fetch_requests(req)
+            self.Model.execute_requests()
+            self.deal_with_disclosures(ti)
+            self.Model.exit_cycle()
+        self.Model.exit_cycle()
+        # self.Model.print_schedule()
         self.Time = end
         self.Model.TimeEnd = end
+
+    def deal_with_disclosures(self, time):
+        while True:
+            ds = self.Model.collect_disclosure()
+            ds = [d for d in ds if d.Where[0] != self.Model.Name]
+
+            if not ds:
+                break
+            ds_ms = [(d.down_scale()[1], self._find_model(d.Where)) for d in ds]
+            self.Model.fetch_disclosures(ds_ms, time)
+
+    def _find_model(self, where):
+        where = list(where[:-1])
+        where.reverse()
+        mod = self.Model
+        for sel in where:
+            mod = mod.get_model(sel)
+        return mod
