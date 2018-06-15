@@ -16,23 +16,27 @@ class Disclosure:
         """
         Append upper address into address
         :param adr: upper position
-        :return: extended request
+        :return: extended disclosure
         """
         new_adr = self.Where + [adr]
+        return Disclosure(self.What, self.Who, new_adr)
+
+    def sibling_scale(self):
+        """
+        Append a sibling indicator into address
+        :return: extended disclosure
+        """
+        new_adr = self.Where + ['^']
         return Disclosure(self.What, self.Who, new_adr)
 
     def down_scale(self):
         """
         Decrease scale of the request
         :return: upper address and reformed request
+        :rtype: tuple
         """
-        if self.reached():
-            raise AttributeError('Affected scale reached')
         new_adr = self.Where[:-1]
         return self.Where[-1], Disclosure(self.What, self.Who, new_adr)
-
-    def reached(self):
-        return len(self.Where) <= 2
 
     @property
     def Address(self):
@@ -222,6 +226,9 @@ class Schedule:
     def pop_disclosures(self):
         ds, self.Disclosures = self.Disclosures, list()
         return ds
+
+    def fetch_disclosures(self, ds):
+        self.Disclosures = ds
 
     def waiting_for_collection(self):
         return self.Status is Status.TO_COLLECT
