@@ -66,3 +66,7 @@ docs/
 
 .log
 playground.ipynb
+.pytest_cache/
+
+test/*.log
+example/*.log

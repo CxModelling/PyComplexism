@@ -49,6 +49,9 @@ class Disclosure:
     def __repr__(self):
         return 'Disclosure({} did {} in {})'.format(self.Who, self.What, self.Address)
 
+    def __str__(self):
+        return 'Disclose:\t{} by {} in {}'.format(self.What, self.Who, self.Address)
+
 
 class Request:
     NullRequest = None
@@ -83,6 +86,9 @@ class Request:
 
     def __repr__(self):
         return 'Request({} want to do {} in {} when t={:.3f})'.format(self.Who, self.Message, self.Address, self.When)
+
+    def __str__(self):
+        return 'Request:\t{} by {} in {}'.format(self.Message, self.Who, self.Address)
 
     def up_scale(self, adr):
         """

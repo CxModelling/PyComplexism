@@ -1,15 +1,28 @@
 import numpy.random as rd
 import numpy as np
+import logging
 
 __author__ = 'TimeWz667'
 
+log = logging.getLogger(__name__)
+log.setLevel(logging.INFO)
+
 
 class Simulator:
-    def __init__(self, model, seed=None):
+    def __init__(self, model, seed=None, keep_log=False, history=log):
         self.Model = model
         if seed:
             rd.seed(seed)
         self.Time = 0
+        self.Logger = history
+
+        if keep_log:
+            file = '{}.log'.format(self.Model.Name)
+            with open(file, 'w'):
+                pass
+            fh = logging.FileHandler(file)
+            fh.setFormatter(logging.Formatter('%(asctime)s - %(message)s'))
+            self.Logger.addHandler(fh)
 
     def simulate(self, y0, fr, to, dt):
         self.Time = fr
@@ -40,7 +53,8 @@ class Simulator:
             if ti > end:
                 break
             tx = ti
-
+            for req in requests:
+                self.Logger.info(str(req))
             self.Model.fetch_requests(requests)
             self.Model.execute_requests()
             self.deal_with_disclosures(ti, requests)
@@ -56,6 +70,8 @@ class Simulator:
         else:
             ds = self.Model.collect_disclosure()
         ds = [d for d in ds if d.Where[0] != self.Model.Name]
+        for d in ds:
+            self.Logger.info(str(d))
 
         while len(ds) > 0:
             ds_ms = [(d.down_scale()[1], self._find_model(d.Where)) for d in ds]
