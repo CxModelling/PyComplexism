@@ -80,11 +80,7 @@ class MultiModel(BranchModel):
             tar.impulse_foreign(src, req.Message, req.When)
 
     def find_next(self):
-        for k, model in self.all_models().items():
-            for req in model.Next:
-                self.Requests.append_request(req.up_scale(self.Name))
-                self.Requests.append_event(req.Event, k, self.Name)
-#            self.Requests.append_requests([req.up_scale(k) for req in model.Next])
+        pass
 
     def all_models(self):
         return dict(self.Models.nodes().data('model'))
