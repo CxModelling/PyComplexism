@@ -88,7 +88,7 @@ class Request:
         return 'Request({} want to do {} in {} when t={:.3f})'.format(self.Who, self.Message, self.Address, self.When)
 
     def __str__(self):
-        return 'Request:\t{} by {} in {}'.format(self.Message, self.Who, self.Address)
+        return 'Request:\t{} by {} in {} when t={:.3f}'.format(self.Message, self.Who, self.Address, self.When)
 
     def up_scale(self, adr):
         """

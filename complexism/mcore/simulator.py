@@ -9,7 +9,7 @@ log.setLevel(logging.INFO)
 
 
 class Simulator:
-    def __init__(self, model, seed=None, keep_log=False, history=log):
+    def __init__(self, model, seed=None, keep_log=True, history=log):
         self.Model = model
         if seed:
             rd.seed(seed)

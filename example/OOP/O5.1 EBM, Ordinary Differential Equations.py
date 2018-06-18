@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 __author__ = 'TimeWz667'
 
 
-model_name = 'EBM:ODE'
+model_name = 'EBM-ODE'
 
 # Step 1 set a parameter core
 psc = """
