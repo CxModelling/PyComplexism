@@ -1,21 +1,24 @@
 import numpy as np
 import numpy.random as rd
 from complexism.element import Clock, Event
-from complexism.agentbased import TimeIndBehaviour, TimeDepBehaviour
+from complexism.agentbased import ActiveBehaviour, PassiveBehaviour
 from .trigger import StateEnterTrigger
 
 __author__ = 'TimeWz667'
-__all__ = ['Reincarnation', 'Cohort', 'LifeRate', 'LifeS']
+__all__ = ['Reincarnation', 'Cohort', 'LifeRate', 'LifeS', 'AgentImport']
 
 
-class Reincarnation(TimeIndBehaviour):
+class Reincarnation(PassiveBehaviour):
     def __init__(self, name, s_death, s_birth):
-        TimeIndBehaviour.__init__(self, name, StateEnterTrigger(s_death))
+        PassiveBehaviour.__init__(self, name, StateEnterTrigger(s_death))
         self.S_death = s_death
         self.S_birth = s_birth
         self.BirthN = 0
 
-    def initialise(self, model, ti):
+    def initialise(self, ti, *args, **kwargs):
+        pass
+
+    def reset(self, ti, *args, **kwargs):
         pass
 
     def register(self, ag, ti):
@@ -42,13 +45,16 @@ class Reincarnation(TimeIndBehaviour):
         return 'Reincarnation({}, Death:{}, Birth:{}, NBir:{})'.format(*opt)
 
 
-class Cohort(TimeIndBehaviour):
+class Cohort(PassiveBehaviour):
     def __init__(self, name, s_death):
-        TimeIndBehaviour.__init__(self, name, StateEnterTrigger(s_death))
+        PassiveBehaviour.__init__(self, name, StateEnterTrigger(s_death))
         self.S_death = s_death
         self.DeathN = 0
 
-    def initialise(self, model, ti):
+    def initialise(self, ti, *args, **kwargs):
+        pass
+
+    def reset(self, ti, *args, **kwargs):
         pass
 
     def register(self, ag, ti):
@@ -74,9 +80,9 @@ class Cohort(TimeIndBehaviour):
         return 'Cohort({}, Death:{}, NDeath:{})'.format(*opt)
 
 
-class LifeRate(TimeDepBehaviour):
+class LifeRate(ActiveBehaviour):
     def __init__(self, name, s_birth, s_death, rate, dt=1):
-        TimeDepBehaviour.__init__(self, name, Clock(dt), StateEnterTrigger(s_death))
+        ActiveBehaviour.__init__(self, name, Clock(dt), StateEnterTrigger(s_death))
         self.S_death = s_death.Name
         self.S_birth = s_birth
         self.BirthRate = rate
@@ -122,9 +128,9 @@ class LifeRate(TimeDepBehaviour):
         pass
 
 
-class LifeS(TimeDepBehaviour):
+class LifeS(ActiveBehaviour):
     def __init__(self, name, s_birth, s_death, cap, rate, dt=1):
-        TimeDepBehaviour.__init__(self, name, Clock(dt), StateEnterTrigger(s_death))
+        ActiveBehaviour.__init__(self, name, Clock(dt), StateEnterTrigger(s_death))
         self.S_death = s_death.Name
         self.S_birth = s_birth
         self.Cap = cap
@@ -172,3 +178,37 @@ class LifeS(TimeDepBehaviour):
 
     def clone(self, *args, **kwargs):
         pass
+
+
+class AgentImport(PassiveBehaviour):
+    def __init__(self, name, s_birth):
+        PassiveBehaviour.__init__(self, name)
+        self.S_birth = s_birth
+        self.BirthN = 0
+
+    def initialise(self, ti, *args, **kwargs):
+        pass
+
+    def reset(self, ti, *args, **kwargs):
+        pass
+
+    def register(self, ag, ti):
+        pass
+
+    def fill(self, obs, model, ti):
+        obs[self.Name] = self.BirthN
+
+    def shock(self, ti, source, target, value):
+        target.birth(n=1, ti=ti, st=self.S_birth)
+        self.BirthN += 1
+
+    @staticmethod
+    def decorate(name, model, **kwargs):
+        model.Behaviours[name] = AgentImport(name, kwargs['s_birth'])
+
+    def match(self, be_src, ags_src, ags_new, ti):
+        self.BirthN = be_src.BirthN
+
+    def __repr__(self):
+        opt = self.Name, self.S_birth, self.BirthN
+        return 'AgentImport({}, Birth:{}, NBir:{})'.format(*opt)

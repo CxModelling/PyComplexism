@@ -68,8 +68,9 @@ class Simulator:
         if requests:
             ds = [req.to_disclosure() for req in requests]
         else:
-            ds = self.Model.collect_disclosure()
-        ds = [d for d in ds if d.Where[0] != self.Model.Name]
+            ds = list()
+        ds += self.Model.collect_disclosure()
+        #ds = [d for d in ds if d.Where[0] != self.Model.Name]
         for d in ds:
             self.Logger.info(str(d))
 

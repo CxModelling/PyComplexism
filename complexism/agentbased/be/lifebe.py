@@ -1,4 +1,4 @@
-from complexism.agentbased import RealTimeBehaviour, StateInTrigger, StateTrigger, TimeBe, TimeModBe, DirectModifier, GloRateModifier
+from complexism.agentbased import PassiveBehaviour
 from complexism.element import Clock, Event
 from complexism.util import DemographySimplified
 import numpy as np

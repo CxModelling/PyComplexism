@@ -3,7 +3,6 @@ from collections import namedtuple, OrderedDict
 from complexism.misc.counter import count
 from complexism.mcore import Observer, LeafModel
 from complexism.element import Request
-from .be import ForeignListener
 from .pop import Community
 
 
@@ -146,13 +145,18 @@ class GenericAgentBasedModel(LeafModel, metaclass=ABCMeta):
 
     def birth(self, n, ti, **kwargs):
         ags = self.Population.add_agent(n, **kwargs)
+        n_birth = 0
         for ag in ags:
             for be in self.Behaviours.values():
                 be.register(ag, ti)
             bes = self.check_enter(ag)
             ag.initialise(ti)
             self.impulse_enter(bes, ag, ti)
-            self.disclose('add an agent', ag.Name)
+            n_birth += 1
+
+        if n_birth:
+            self.disclose('Add {} agents'.format(n_birth), self.Name)
+
         return ags
 
     def kill(self, i, ti):
@@ -160,17 +164,15 @@ class GenericAgentBasedModel(LeafModel, metaclass=ABCMeta):
         bes = self.check_exit(ag)
         self.Population.remove_agent(i)
         self.impulse_exit(bes, ag, ti)
-        self.disclose('remove an agent', ag.Name)
+        self.disclose('Remove agent', ag.Name)
 
     def find_next(self):
         # to be parallel
         for k, be in self.Behaviours.items():
-            nxt = be.Next
-            self.Scheduler.append_request_from_source(nxt, k)
+            self.request(be.Next, k)
 
         for k, ag in self.Population.Agents.items():
-            nxt = ag.Next
-            self.Scheduler.append_request_from_source(nxt, k)
+            self.request(ag.Next, k)
 
     @count()
     def do_request(self, req: Request):

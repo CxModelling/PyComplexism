@@ -3,7 +3,6 @@ from complexism.misc.counter import count
 from complexism.mcore import Observer, LeafModel
 from complexism.element import Request
 from complexism.agentbased import GenericAgent
-from .be import ForeignListener
 
 
 __author__ = 'TimeWz667'

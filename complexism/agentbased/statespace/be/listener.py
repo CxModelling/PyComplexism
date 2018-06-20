@@ -1,5 +1,5 @@
 from complexism.agentbased import ForeignTrigger, TimeIndBehaviour
-from .behaviour import TimeIndModBehaviour
+from .behaviour import PassiveModBehaviour
 from ..modifier import GloRateModifier
 
 __author__ = 'TimeWz667'

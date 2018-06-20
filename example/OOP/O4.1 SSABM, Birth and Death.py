@@ -4,7 +4,7 @@ import complexism.agentbased.statespace as ss
 import epidag as dag
 
 
-model_name = 'M Birth Death'
+model_name = 'M_BD'
 
 # Step 1 set a parameter core
 bn = cx.read_bn_script(cx.load_txt('../scripts/pBAD.txt'))
@@ -49,6 +49,7 @@ y0 = [
     {'n': 33, 'attributes': {'st': 'Middle'}},
     {'n': 33, 'attributes': {'st': 'Old'}}
 ]
+
 
 output = cx.simulate(model, y0, 0, 10, 1)
 print(output)

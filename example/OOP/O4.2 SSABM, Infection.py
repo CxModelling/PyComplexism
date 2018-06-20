@@ -4,7 +4,7 @@ import complexism.agentbased.statespace as ss
 import epidag as dag
 
 
-model_name = 'M Birth Death'
+model_name = 'M_SIR'
 
 # Step 1 set a parameter core
 bn = cx.read_bn_script(cx.load_txt('../scripts/pSIR.txt'))

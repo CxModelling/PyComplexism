@@ -1,7 +1,6 @@
 from complexism.dcore import Transition
 from complexism.agentbased.abm import GenericAgentBasedModel, ObsABM
 from collections import namedtuple, Counter
-from .be import ForeignShock
 
 __author__ = 'TimeWz667'
 __all__ = ['StSpAgentBasedModel']
@@ -91,7 +90,7 @@ class StSpAgentBasedModel(GenericAgentBasedModel):
         except KeyError:
             # name = par_tar
             name = '{}-{}'.format(par_src, par_tar)
-            ForeignShock.decorate(name, self, mod_src=mod_src, message=message, par_src=par_src, t_tar=par_tar, **kwargs)
+            #ForeignShock.decorate(name, self, mod_src=mod_src, message=message, par_src=par_src, t_tar=par_tar, **kwargs)
 
     def clone(self, **kwargs):
         pass

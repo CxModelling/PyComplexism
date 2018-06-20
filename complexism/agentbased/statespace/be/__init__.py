@@ -5,16 +5,15 @@ from .trigger import *
 from .behaviour import *
 from .modbe import *
 from .lifebe import *
-from .listener import *
+# from .listener import *
 
 __author__ = 'TimeWz667'
-__all__ = ['TimeIndModBehaviour', 'TimeDepModBehaviour',
+__all__ = ['PassiveModBehaviour', 'ActiveModBehaviour',
            'TransitionTrigger', 'StateTrigger', 'StateEnterTrigger', 'StateExitTrigger',
            'FDShock', 'FDShockFast', 'DDShock', 'DDShockFast',
            'WeightSumShock', 'WeightAvgShock', 'NetShock', 'NetWeightShock',
            'SwitchOn', 'SwitchOff',
-           'Reincarnation', 'Cohort', 'LifeRate', 'LifeS',
-           'ForeignShock', 'Immigration',
+           'Reincarnation', 'Cohort', 'LifeRate', 'LifeS', 'AgentImport',
            'StSpBeLibrary']
 
 
@@ -62,19 +61,16 @@ StSpBeLibrary.register('NetWeightShock', NetWeightShock,
                        [vld.Options('t_tar', 'transitions'), vld.Options('s_src', 'states'),
                         vld.Options('net', 'networks'), vld.ProbTab('weight')])
 
-StSpBeLibrary.register('ForeignShock', ForeignShock,
-                       [vld.Options('t_tar', 'transitions'),
-                        vld.String('mod_src', opt=True),
-                        vld.String('par_src', opt=True),
-                        vld.PositiveFloat('default', default=1, opt=True)])
+# StSpBeLibrary.register('ForeignShock', ForeignShock,
+#                       [vld.Options('t_tar', 'transitions'),
+#                        vld.String('mod_src', opt=True),
+#                        vld.String('par_src', opt=True),
+#                        vld.PositiveFloat('default', default=1, opt=True)])
 
 # StSpBeLibrary.register('ForeignSumShock', ForeignSumShock,
 #                        [vld.Options('t_tar', 'transitions'),
 #                         vld.NotNull('mod_par_src', opt=True),
 #                         vld.PositiveFloat('default', default=1, opt=True)])
 
-StSpBeLibrary.register('Immigration', Immigration,
-                       [vld.Options('s_immigrant', 'states'),
-                        vld.String('msg', opt=True),
-                        vld.String('mod_src', opt=True),
-                        vld.String('par_src', opt=True)])
+StSpBeLibrary.register('AgentImport', AgentImport,
+                       [vld.Options('s_birth', 'states')])

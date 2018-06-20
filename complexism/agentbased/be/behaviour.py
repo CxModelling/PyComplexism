@@ -4,16 +4,13 @@ from complexism.mcore import ModelAtom
 from complexism.element import AbsTicker, Event
 
 __author__ = 'TimeWz667'
-__all__ = ['AbsBehaviour', 'TimeDepBehaviour', 'TimeIndBehaviour']
+__all__ = ['AbsBehaviour', 'PassiveBehaviour', 'ActiveBehaviour']
 
 
-class AbsBehaviour(metaclass=ABCMeta):
-    def __init__(self, trigger=Trigger.NullTrigger):
+class AbsBehaviour(ModelAtom, metaclass=ABCMeta):
+    def __init__(self, name, trigger=Trigger.NullTrigger):
+        ModelAtom.__init__(self, name)
         self.Trigger = trigger
-
-    @abstractmethod
-    def initialise(self, model, ti):
-        pass
 
     @abstractmethod
     def register(self, ag, ti):
@@ -46,12 +43,6 @@ class AbsBehaviour(metaclass=ABCMeta):
     def impulse_exit(self, model, ag, ti):
         pass
 
-    def check_foreign(self, model, loc=None):
-        return self.Trigger.check_foreign(model, loc)
-
-    def impulse_foreign(self, model, fore, message, ti, **k):
-        pass
-
     def fill(self, obs: dict, model, ti):
         pass
 
@@ -65,10 +56,9 @@ class AbsBehaviour(metaclass=ABCMeta):
         pass
 
 
-class TimeDepBehaviour(AbsBehaviour, ModelAtom, metaclass=ABCMeta):
+class ActiveBehaviour(AbsBehaviour, metaclass=ABCMeta):
     def __init__(self, name, clock: AbsTicker, trigger=Trigger.NullTrigger):
-        ModelAtom.__init__(self, name)
-        AbsBehaviour.__init__(self, trigger)
+        AbsBehaviour.__init__(self, name, trigger)
         self.Clock = clock
 
     def find_next(self):
@@ -116,10 +106,9 @@ class TimeDepBehaviour(AbsBehaviour, ModelAtom, metaclass=ABCMeta):
         pass
 
 
-class TimeIndBehaviour(AbsBehaviour, metaclass=ABCMeta):
+class PassiveBehaviour(AbsBehaviour, metaclass=ABCMeta):
     def __init__(self, name, trigger=Trigger.NullTrigger):
-        AbsBehaviour.__init__(self, trigger)
-        self.Name = name
+        AbsBehaviour.__init__(self, name, trigger)
 
     @property
     def Next(self):
@@ -128,3 +117,12 @@ class TimeIndBehaviour(AbsBehaviour, metaclass=ABCMeta):
     @property
     def TTE(self):
         return float('inf')
+
+    def drop_next(self):
+        return
+
+    def find_next(self):
+        pass
+
+    def execute_event(self):
+        pass

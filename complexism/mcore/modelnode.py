@@ -90,11 +90,11 @@ class ModelAtom(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def initialise(self, ti, *args, **kwargs):
+    def initialise(self, ti, model, *args, **kwargs):
         pass
 
     @abstractmethod
-    def reset(self, ti, *args, **kwargs):
+    def reset(self, ti, model, *args, **kwargs):
         pass
 
     def shock(self, ti, source, target, value):
@@ -139,6 +139,7 @@ class AbsModel(metaclass=ABCMeta):
         self.Observer = obs if obs else DefaultObserver()
         self.Scheduler = Schedule(self.Name)
         self.Validator = None
+        self.Communicator = None
         self.Environment = env
         self.TimeEnd = None
 
@@ -146,7 +147,7 @@ class AbsModel(metaclass=ABCMeta):
         if y0:
             self.read_y0(y0, ti)
         self.preset(ti)
-        self.exit_cycle()
+#        self.exit_cycle()
 
     def preset(self, ti):
         self.reset(ti)
@@ -194,6 +195,10 @@ class AbsModel(metaclass=ABCMeta):
 
     @abstractmethod
     def fetch_disclosures(self, ds_ms, time):
+        pass
+
+    @abstractmethod
+    def listen(self, model, *args, **kwargs):
         pass
 
     def trigger_external_impulses(self, disclosure, model, time):

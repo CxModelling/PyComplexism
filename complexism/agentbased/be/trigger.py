@@ -2,8 +2,7 @@ __author__ = 'TimeWz667'
 
 
 __all__ = ['Trigger', 'EventTrigger',
-           'AttributeTrigger', 'AttributeEnterTrigger', 'AttributeExitTrigger',
-           'ForeignTrigger']
+           'AttributeTrigger', 'AttributeEnterTrigger', 'AttributeExitTrigger']
 
 
 class Trigger:
@@ -25,9 +24,6 @@ class Trigger:
         return False
 
     def check_exit(self, ag):
-        return False
-
-    def check_foreign(self, model, loc=None):
         return False
 
 
@@ -121,36 +117,3 @@ class AttributeExitTrigger(Trigger):
 
     def check_exit(self, ag):
         return self.__check(ag)
-
-
-class ForeignTrigger(Trigger):
-    def __init__(self, model=None, msg=None):
-        self.Model = model
-        if not msg:
-            self.Messages = []
-        elif isinstance(msg, list):
-            self.Messages = msg
-        else:
-            self.Messages = [str(msg)]
-
-    def add_source(self, model, msg):
-        if self.Model == model:
-            if isinstance(msg, str):
-                self.Messages.append(msg)
-            elif isinstance(msg, list):
-                self.Messages += msg
-        else:
-            self.Model = model
-            if not msg:
-                self.Messages = []
-            elif isinstance(msg, list):
-                self.Messages = msg
-            else:
-                self.Messages = [str(msg)]
-
-    def check_foreign(self, model, msg='update'):
-        if self.Model != model.Name:
-            return False
-        if msg == 'update':
-            return True
-        return msg in self.Messages

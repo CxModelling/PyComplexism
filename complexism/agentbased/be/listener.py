@@ -1,11 +1,11 @@
-from .behaviour import TimeIndBehaviour
-from .trigger import ForeignTrigger
+from .behaviour import ActiveBehaviour
+from .trigger import NullTrigger
 
 __author__ = 'TimeWz667'
 __all__ = ['ForeignListener', 'MultiForeignListener', 'Immigration']
 
 
-class ForeignListener(TimeIndBehaviour):
+class ForeignListener(ActiveBehaviour):
     def __init__(self, name, mod_src, msg, par_src, par_tar, **kwargs):
         tri = ForeignTrigger(model=mod_src, msg=msg)
         TimeIndBehaviour.__init__(self, name, tri)

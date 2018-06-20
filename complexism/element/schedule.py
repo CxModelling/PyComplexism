@@ -39,6 +39,13 @@ class Disclosure:
         return self.Where[-1], Disclosure(self.What, self.Who, new_adr)
 
     @property
+    def Distance(self):
+        return len(self.Where) - 1
+
+    def is_sibling(self):
+        return self.Where[-1] == '^' and len(self.Where) is 3
+
+    @property
     def Address(self):
         return '@'.join(self.Where)
 
@@ -50,7 +57,7 @@ class Disclosure:
         return 'Disclosure({} did {} in {})'.format(self.Who, self.What, self.Address)
 
     def __str__(self):
-        return 'Disclose:\t{} by {} in {}'.format(self.What, self.Who, self.Address)
+        return 'Disclose:\t{} did {} in {}'.format(self.Who, self.What, self.Address)
 
 
 class Request:
@@ -88,7 +95,7 @@ class Request:
         return 'Request({} want to do {} in {} when t={:.3f})'.format(self.Who, self.Message, self.Address, self.When)
 
     def __str__(self):
-        return 'Request:\t{} by {} in {} when t={:.3f}'.format(self.Message, self.Who, self.Address, self.When)
+        return 'Request:\t{} want to do {} in {} when t={:.3f}'.format(self.Who, self.Message, self.Address, self.When)
 
     def up_scale(self, adr):
         """

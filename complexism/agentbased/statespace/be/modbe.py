@@ -2,7 +2,7 @@ from abc import ABCMeta, abstractmethod
 import numpy.random as rd
 from complexism.element import Event, Clock
 from ..modifier import GloRateModifier, LocRateModifier, BuffModifier, NerfModifier
-from .behaviour import TimeIndModBehaviour, TimeDepModBehaviour
+from .behaviour import PassiveModBehaviour, ActiveModBehaviour
 from .trigger import StateTrigger
 __author__ = 'TimeWz667'
 __all__ = ['FDShock', 'FDShockFast', 'DDShock', 'DDShockFast',
@@ -11,11 +11,11 @@ __all__ = ['FDShock', 'FDShockFast', 'DDShock', 'DDShockFast',
            'SwitchOn', 'SwitchOff']
 
 
-class GlobalShock(TimeIndModBehaviour, metaclass=ABCMeta):
+class GlobalShock(PassiveModBehaviour, metaclass=ABCMeta):
     def __init__(self, name, s_src, t_tar):
         tri = StateTrigger(s_src)
         mod = GloRateModifier(name, t_tar)
-        TimeIndModBehaviour.__init__(self, name, mod, tri)
+        PassiveModBehaviour.__init__(self, name, mod, tri)
         self.S_src = s_src
         self.T_tar = t_tar
         self.Value = 0
@@ -23,6 +23,9 @@ class GlobalShock(TimeIndModBehaviour, metaclass=ABCMeta):
     def initialise(self, ti, model, *args, **kwargs):
         self.Value = self._evaluate(model)
         self.__shock(model, ti)
+
+    def reset(self, ti, *args, **kwargs):
+        pass
 
     def impulse_change(self, model, ag, ti):
         self.Value = self._evaluate(model)
@@ -58,16 +61,16 @@ class GlobalShock(TimeIndModBehaviour, metaclass=ABCMeta):
             ag.modify(self.Name, ti)
 
 
-class GlobalShockFast(TimeDepModBehaviour):
+class GlobalShockFast(ActiveModBehaviour):
     def __init__(self, name, s_src, t_tar, dt):
         mod = GloRateModifier(name, t_tar)
-        TimeDepModBehaviour.__init__(self, name, Clock(dt=dt), mod)
+        ActiveModBehaviour.__init__(self, name, Clock(dt=dt), mod)
         self.S_src = s_src
         self.T_tar = t_tar
         self.Value = 0
 
     def initialise(self, ti, *args, **kwargs):
-        TimeDepModBehaviour.initialise(self, ti, *args, **kwargs)
+        ActiveModBehaviour.initialise(self, ti, *args, **kwargs)
         model = kwargs['model']
         self.Value = self._evaluate(model)
         self.__shock(model, ti)
@@ -79,7 +82,7 @@ class GlobalShockFast(TimeDepModBehaviour):
         self.__shock(model, ti)
 
     def compose_event(self, ti):
-        return Event(self.Name, ti)
+        return Event('update value', ti)
 
     def do_action(self, model, todo, ti):
         self.Value = self._evaluate(model)
@@ -97,6 +100,7 @@ class GlobalShockFast(TimeDepModBehaviour):
         self.ProtoModifier.Value = self.Value
         for ag in model.agents:
             ag.modify(self.Name, ti)
+        model.disclose('update value', self.Name)
 
     @abstractmethod
     def _evaluate(self, model):
@@ -249,11 +253,11 @@ class WeightAvgShock(GlobalShockFast):
         return 'WeightAvgShock({}, {} on {}, by={})'.format(*opt)
 
 
-class NetShock(TimeIndModBehaviour, metaclass=ABCMeta):
+class NetShock(PassiveModBehaviour, metaclass=ABCMeta):
     def __init__(self, name, s_src, t_tar, net):
         tri = StateTrigger(s_src)
         mod = LocRateModifier(name, t_tar)
-        TimeIndModBehaviour.__init__(self, name, mod, tri)
+        PassiveModBehaviour.__init__(self, name, mod, tri)
         self.S_src = s_src
         self.T_tar = t_tar
         self.Net = net
@@ -262,6 +266,9 @@ class NetShock(TimeIndModBehaviour, metaclass=ABCMeta):
         for ag in model.agents:
             val = model.Pop.count_neighbours(ag, st=self.S_src, net=self.Net)
             ag.shock(self.Name, val, ti)
+
+    def reset(self, ti, *args, **kwargs):
+        pass
 
     def impulse_change(self, model, ag, ti):
         self.__shock(ag, model, ti)
@@ -304,11 +311,11 @@ class NetShock(TimeIndModBehaviour, metaclass=ABCMeta):
         model.Behaviours[name] = NetShock(name, s_src, t_tar, kwargs['net'])
 
 
-class NetWeightShock(TimeIndModBehaviour, metaclass=ABCMeta):
+class NetWeightShock(PassiveModBehaviour, metaclass=ABCMeta):
     def __init__(self, name, s_src, t_tar, net, weight):
         tri = StateTrigger(s_src)
         mod = LocRateModifier(name, t_tar)
-        TimeIndModBehaviour.__init__(self, name, mod, tri)
+        PassiveModBehaviour.__init__(self, name, mod, tri)
         self.S_src = s_src
         self.T_tar = t_tar
         self.Net = net
@@ -368,11 +375,11 @@ class NetWeightShock(TimeIndModBehaviour, metaclass=ABCMeta):
         model.Behaviours[name] = NetWeightShock(name, s_src, t_tar, kwargs['net'], wt)
 
 
-class SwitchOn(TimeIndModBehaviour, metaclass=ABCMeta):
+class SwitchOn(PassiveModBehaviour, metaclass=ABCMeta):
     def __init__(self, name, s_src, t_tar, prob):
         tri = StateTrigger(s_src)
         mod = BuffModifier(name, t_tar)
-        TimeIndModBehaviour.__init__(self, name, mod, tri)
+        PassiveModBehaviour.__init__(self, name, mod, tri)
         self.S_src = s_src
         self.T_tar = t_tar
         self.Prob = prob
@@ -420,11 +427,11 @@ class SwitchOn(TimeIndModBehaviour, metaclass=ABCMeta):
             ag.shock(ti, self.Name, self.Name, False)
 
 
-class SwitchOff(TimeIndModBehaviour, metaclass=ABCMeta):
+class SwitchOff(PassiveModBehaviour, metaclass=ABCMeta):
     def __init__(self, name, s_src, t_tar, prob):
         tri = StateTrigger(s_src)
         mod = NerfModifier(name, t_tar)
-        TimeIndModBehaviour.__init__(self, name, mod, tri)
+        PassiveModBehaviour.__init__(self, name, mod, tri)
         self.S_src = s_src
         self.T_tar = t_tar
         self.Prob = prob
