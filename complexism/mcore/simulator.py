@@ -3,26 +3,26 @@ import numpy as np
 import logging
 
 __author__ = 'TimeWz667'
-
-log = logging.getLogger(__name__)
-log.setLevel(logging.INFO)
+__all__ = ['Simulator']
 
 
 class Simulator:
-    def __init__(self, model, seed=None, keep_log=True, history=log):
+    def __init__(self, model, seed=None, keep_log=True, new_log=True):
         self.Model = model
         if seed:
             rd.seed(seed)
         self.Time = 0
-        self.Logger = history
+        self.Logger = logging.getLogger(__name__)
 
         if keep_log:
-            file = '{}.log'.format(self.Model.Name)
-            with open(file, 'w'):
-                pass
-            fh = logging.FileHandler(file)
-            fh.setFormatter(logging.Formatter('%(asctime)s - %(message)s'))
-            self.Logger.addHandler(fh)
+            if new_log:
+                file = '{}.log'.format(self.Model.Name)
+                with open(file, 'w'):
+                    pass
+                self.Logger.setLevel(logging.INFO)
+                fh = logging.FileHandler(file)
+                fh.setFormatter(logging.Formatter('%(asctime)s - %(message)s'))
+                self.Logger.addHandler(fh)
 
     def simulate(self, y0, fr, to, dt):
         self.Time = fr
@@ -70,7 +70,7 @@ class Simulator:
         else:
             ds = list()
         ds += self.Model.collect_disclosure()
-        #ds = [d for d in ds if d.Where[0] != self.Model.Name]
+        ds = [d for d in ds if d.Where[0] != self.Model.Name]
         for d in ds:
             self.Logger.info(str(d))
 
@@ -80,6 +80,8 @@ class Simulator:
 
             ds = self.Model.collect_disclosure()
             ds = [d for d in ds if d.Where[0] != self.Model.Name]
+            for d in ds:
+                self.Logger.info(str(d))
 
     def _find_model(self, where):
         where = list(where[:-1])

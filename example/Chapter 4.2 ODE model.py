@@ -32,6 +32,9 @@ y0 = {
     'R': 0
 }
 
-out = cx.simulate(model, y0, 0, 30, 1)
+cx.simulate(model, y0, 0, 15, 1, log=True)
+model.impulse('del', y='S', n=500)
+model.impulse('add', y='I', n=100)
+out = cx.update(model, 30, 1)
 out.plot()
 plt.show()

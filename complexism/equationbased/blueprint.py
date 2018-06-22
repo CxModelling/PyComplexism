@@ -63,7 +63,7 @@ class BlueprintODE(AbsBlueprintMCore):
                                                dt=fdt,
                                                x=self.InternalVariables)
 
-        model = cx.GenericEquationBasedModel(self.Name, pc, eqs, dt=dt)
+        model = cx.GenericEquationBasedModel(name, dt=dt, eqs=eqs, env=pc)
 
         # Decide outputs
         for st in self.ObsStocks:

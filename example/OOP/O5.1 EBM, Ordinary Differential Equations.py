@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 __author__ = 'TimeWz667'
 
 
-model_name = 'EBM-ODE'
+model_name = 'TB'
 
 # Step 1 set a parameter core
 psc = """
@@ -33,7 +33,7 @@ eqs = cx.OrdinaryDifferentialEquations(SIR_ODE, ['S', 'I', 'R'], dt=.1, x={'dis'
 
 
 # Step 3 generate a model
-model = cx.GenericEquationBasedModel(model_name, pc, eqs, dt=.5)
+model = cx.GenericEquationBasedModel(model_name, dt=0.5, eqs=eqs, env=pc)
 
 
 # Step 4 decide outputs
@@ -58,7 +58,7 @@ ax = output.plot(ax=axes[0])
 ax.set_xlim([0, 30])
 
 # Internal intervention
-model.Equations.impulse('dis', 0.1)
+model.impulse('impulse', k='dis', v=0.1)
 output = cx.update(model, to=20, dt=1)
 ax = output.plot(ax=axes[1])
 ax.set_xlim([0, 30])

@@ -1,4 +1,4 @@
-from abc import ABCMeta, abstractmethod, abstractstaticmethod
+from abc import ABCMeta, abstractmethod
 from .trigger import *
 from complexism.mcore import ModelAtom
 from complexism.element import AbsTicker, Event

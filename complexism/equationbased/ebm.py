@@ -1,19 +1,15 @@
 import numpy as np
 from copy import deepcopy
-from collections import namedtuple
 from scipy.integrate import odeint
 from abc import ABCMeta, abstractmethod
 from complexism.misc.counter import count
 from complexism.mcore import Observer, LeafModel
-from complexism.element import Clock, Request, Event
+from complexism.element import Clock, Event
 
 
 __author__ = 'TimeWz667'
 __all__ = ['AbsEquations', 'OrdinaryDifferentialEquations',
            'ObsEBM', 'GenericEquationBasedModel']
-
-
-Links = namedtuple('Links', ('mod_src', 'message', 'par_src', 'par_tar', 'kwargs'))
 
 
 class AbsEquations(metaclass=ABCMeta):
@@ -29,8 +25,7 @@ class AbsEquations(metaclass=ABCMeta):
     def update(self, t0, t1, pars):
         pass
 
-    @abstractmethod
-    def impulse(self, k, v):
+    def execute_event(self, model, event, *args, **kwargs):
         pass
 
 
@@ -64,29 +59,47 @@ class OrdinaryDifferentialEquations(AbsEquations):
     def get_y_dict(self):
         return {v: self.Y[i] for v, i in self.IndicesY.items()}
 
-    def pop_y(self, y):
-        try:
-            n = self.Y[self.IndicesY[y]]
-            n = np.floor(n)
-            self.Y[self.IndicesY[y]] -= n
-            return n
-        except KeyError:
-            return 0
-
-    def add_y(self, y, n):
-        try:
-            self.Y[self.IndicesY[y]] += n
-        except KeyError as e:
-            raise e
-
     def update(self, t0, t1, pars):
         num = max(int((t1 - t0) / self.Dt) + 1, 2)
         ts = np.linspace(t0, t1, num)
         self.Y = odeint(self.Func, self.Y, ts, args=(pars, self.X))[-1]
         return self.get_y_dict()
 
-    def impulse(self, k, v):
-        self.X[k] = v
+    def execute_event(self, model, event, **kwargs):
+        if event == 'impulse':
+            try:
+                k, v1 = kwargs['k'], kwargs['v']
+                v0 = self.X[k]
+                self.X[k] = v1
+                model.disclose('change {} from {} to {}'.format(k, v0, v1), 'Equation')
+            except KeyError:
+                raise KeyError('Unmatched keywords')
+        elif event == 'add':
+            try:
+                y = kwargs['y']
+                if y not in self.IndicesY:
+                    raise KeyError('{} does not exist')
+                n = kwargs['n'] if 'n' in kwargs else 1
+                self.Y[self.IndicesY[y]] += n
+                model.disclose('add {} by {}'.format(y, n), 'Equation')
+            except KeyError:
+                raise KeyError('Unmatched keywords')
+        elif event == 'del':
+            try:
+                y = kwargs['y']
+                if y not in self.IndicesY:
+                    raise KeyError('{} does not exist')
+
+                n = kwargs['n'] if 'n' in kwargs else 1
+                n = min(n, np.floor(self.Y[self.IndicesY[y]]))
+                self.Y[self.IndicesY[y]] -= n
+                model.disclose('delete {} by {}'.format(y, n), 'Equation')
+            except KeyError:
+                raise KeyError('Unmatched keywords')
+        else:
+            raise ValueError('Non-identifiable event')
+
+        return self.get_y_dict()
 
 
 class ObsEBM(Observer):
@@ -124,9 +137,9 @@ class ObsEBM(Observer):
 
 
 class GenericEquationBasedModel(LeafModel):
-    def __init__(self, name, pc, eqs, dt, obs=None):
+    def __init__(self, name, eqs, dt, env=None, obs=None):
         obs = obs if obs else ObsEBM()
-        LeafModel.__init__(self, name, pc, obs)
+        LeafModel.__init__(self, name, env, obs)
         self.Clock = Clock(dt=dt)
         self.Y = None
         self.Equations = eqs
@@ -173,19 +186,8 @@ class GenericEquationBasedModel(LeafModel):
         evt = Event('update', self.Clock.Next, 'update')
         self.request(evt, 'Equation')
 
-    def listen(self, mod_src, message, par_src, par_tar, **kwargs):
-        self.ForeignLinks.append(Links(mod_src, message, par_src, par_tar, kwargs))
-
-    def impulse_foreign(self, fore, message, ti, **kwargs):
-        lks = [fl for fl in self.ForeignLinks if fl.mod_src == fore.Name]
-        if message != 'update':
-            lks = [fl for fl in lks if fl.message is None or message in fl.message]
-        if lks:
-            self.go_to(ti)
-            for _, _, par_src, par_tar, _ in lks:
-                val = fore.get_snapshot(par_src, ti)
-                self.Equations.impulse(par_tar, val)
-            self.exit_cycle()
+    def impulse(self, action, **kwargs):
+        self.Y = self.Equations.execute_event(self, action, **kwargs)
 
     def to_json(self):
         # todo
@@ -194,93 +196,13 @@ class GenericEquationBasedModel(LeafModel):
     def clone(self, **kwargs):
         core = self.Equations.clone(**kwargs)
         pc = kwargs['env'] if 'env' in kwargs else self.Environment
-        co = ODEModel(self.Name, core, pc, dt=self.Clock.By)
+        co = GenericEquationBasedModel(self.Name, dt=self.Clock.By, eqs=core, env=pc)
         co.Clock.Initial = self.Clock.Initial
         co.Clock.Last = self.Clock.Last
         co.TimeEnd = self.TimeEnd
         co.UpdateEnd = self.UpdateEnd
         co.Observer.TimeSeries = deepcopy(self.Observer.TimeSeries)
         co.Observer.Last = dict(self.Observer.Last.items())
-        co.Y = deepcopy(self.Y)
-        core.initialise(co, self.TimeEnd)
-        return co
-
-
-class ODEModel(LeafModel):
-    def __init__(self, name, core, pc=None, meta=None, dt=1, fdt=None):
-        LeafModel.__init__(self, name, ObsEBM())
-        self.Y = None
-        self.PCore = pc
-        self.ODE = core
-        self.UpdateEnd = 0
-        self.Clock = Clock(dt=dt)
-        self.ForeignLinks = list()
-        self.Fdt = min(dt, fdt) if fdt else dt
-
-    def add_obs_state(self, st):
-        self.Observer.add_obs_state(st)
-
-    def add_obs_transition(self, tr):
-        self.Observer.add_obs_transition(tr)
-
-    def add_obs_behaviour(self, be):
-        self.Observer.add_obs_behaviour(be)
-
-    def read_y0(self, y0, ti):
-        self.ODE.initialise(self, y0, ti)
-
-    def reset(self, ti):
-        self.Clock.initialise(ti)
-        self.UpdateEnd = self.TimeEnd = ti
-        self.ODE.update(self.Y, ti)
-
-    def go_to(self, ti):
-        f, t = self.UpdateEnd, ti
-        self.UpdateEnd = ti
-        num = int((t - f) / self.Fdt) + 1
-        ts = np.linspace(f, t, num)
-        self.Y = odeint(self.ODE, self.Y, ts)[-1]
-        self.ODE.set_Ys(self.Y)
-        self.Clock.update(ti)
-
-    def do_request(self, req):
-        if req.Time > self.TimeEnd:
-            self.go_to(req.Time)
-
-    def find_next(self):
-        self.Scheduler.append_request_from_source(Event('update', self.Clock.Next), 'Equation')
-
-    def listen(self, mod_src, par_src, tar, par_tar=None):
-        tar = (tar, par_tar) if par_tar else tar
-        self.ForeignLinks.append(Links(mod_src, par_src, tar, par_tar))
-
-    def listen_multi(self, mod_src_all, par_src, tar, par_tar=None):
-        tar = (tar, par_tar) if par_tar else tar
-        self.ForeignLinks.append(Links(mod_src_all, par_src, tar, par_tar))
-
-    def impulse_foreign(self, fore, ti):
-        lks = [fl for fl in self.ForeignLinks if fl.mod_src == fore.Name]
-        for _, par, tar, par_tar in lks:
-            val = fore[par]
-            if par_tar is None:
-                self.ODE[tar] = val
-            else:
-                self.ODE[tar, par_tar] = val
-
-    def to_json(self):
-        # todo
-        pass
-
-    def clone(self, **kwargs):
-        core = self.ODE.clone(**kwargs)
-        pc = kwargs['pc'] if 'pc' in kwargs else None
-        co = ODEModel(self.Name, core, pc, self.Meta, dt=self.Clock.By, fdt=self.Fdt)
-        co.Clock.Initial = self.Clock.Initial
-        co.Clock.Last = self.Clock.Last
-        co.TimeEnd = self.TimeEnd
-        co.UpdateEnd = self.UpdateEnd
-        co.Obs.TimeSeries = deepcopy(self.Obs.TimeSeries)
-        co.Obs.Last = dict(self.Obs.Last.items())
         co.Y = deepcopy(self.Y)
         core.initialise(co, self.TimeEnd)
         return co

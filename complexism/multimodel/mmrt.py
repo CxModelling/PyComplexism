@@ -32,8 +32,8 @@ class ObsMultiModel(Observer):
 
 
 class MultiModel(BranchModel):
-    def __init__(self, name, pc=None):
-        BranchModel.__init__(self, name, pc, ObsMultiModel())
+    def __init__(self, name, env=None):
+        BranchModel.__init__(self, name, env=env, obs=ObsMultiModel())
         self.Models = nx.MultiDiGraph()
 
     def add_observing_model(self, m):
