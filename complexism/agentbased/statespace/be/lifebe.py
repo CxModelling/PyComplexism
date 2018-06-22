@@ -199,8 +199,9 @@ class AgentImport(PassiveBehaviour):
         obs[self.Name] = self.BirthN
 
     def shock(self, ti, source, target, value):
-        target.birth(n=1, ti=ti, st=self.S_birth)
-        self.BirthN += 1
+        target.birth(n=value, ti=ti, st=self.S_birth.Name)
+        np.floor(value)
+        self.BirthN += value
 
     @staticmethod
     def decorate(name, model, **kwargs):

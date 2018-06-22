@@ -170,8 +170,8 @@ class GenericEquationBasedModel(LeafModel):
             self.go_to(req.When)
 
     def find_next(self):
-        evt = Event('Update Forward', self.Clock.Next, 'update')
-        self.Scheduler.append_request_from_source(evt, 'Equation')
+        evt = Event('update', self.Clock.Next, 'update')
+        self.request(evt, 'Equation')
 
     def listen(self, mod_src, message, par_src, par_tar, **kwargs):
         self.ForeignLinks.append(Links(mod_src, message, par_src, par_tar, kwargs))

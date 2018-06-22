@@ -40,10 +40,10 @@ class Disclosure:
 
     @property
     def Distance(self):
-        return len(self.Where) - 1
+        return len(self.Where)
 
     def is_sibling(self):
-        return self.Where[-1] == '^' and len(self.Where) is 3
+        return self.Where[-1] == '^' and len(self.Where) is 2
 
     @property
     def Address(self):
@@ -52,6 +52,10 @@ class Disclosure:
     @property
     def Group(self):
         return self.Where[-1]
+
+    @property
+    def Source(self):
+        return self.Where[0]
 
     def __repr__(self):
         return 'Disclosure({} did {} in {})'.format(self.Who, self.What, self.Address)

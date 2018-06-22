@@ -47,7 +47,7 @@ class AbsBehaviour(ModelAtom, metaclass=ABCMeta):
         pass
 
     @staticmethod
-    @abstractstaticmethod
+    @abstractmethod
     def decorate(name, model, **kwargs):
         pass
 

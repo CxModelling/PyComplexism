@@ -1,6 +1,6 @@
 from abc import ABCMeta, abstractmethod
 from complexism.element import Event, Schedule
-from complexism.mcore import Observer, DefaultObserver, ModelSelector
+from complexism.mcore import Observer, DefaultObserver, ModelSelector, EventListener
 from complexism.misc.counter import count
 
 __author__ = 'TimeWz667'
@@ -139,15 +139,20 @@ class AbsModel(metaclass=ABCMeta):
         self.Observer = obs if obs else DefaultObserver()
         self.Scheduler = Schedule(self.Name)
         self.Validator = None
-        self.Communicator = None
+        self.Listeners = list()
         self.Environment = env
         self.TimeEnd = None
+
+    def __getitem__(self, item):
+        try:
+            return self.Environment[item]
+        except KeyError as e:
+            raise e
 
     def initialise(self, ti=None, y0=None):
         if y0:
             self.read_y0(y0, ti)
         self.preset(ti)
-#        self.exit_cycle()
 
     def preset(self, ti):
         self.reset(ti)
@@ -197,12 +202,17 @@ class AbsModel(metaclass=ABCMeta):
     def fetch_disclosures(self, ds_ms, time):
         pass
 
-    @abstractmethod
-    def listen(self, model, *args, **kwargs):
-        pass
+    def add_listener(self, listener: EventListener):
+        self.Listeners.append(listener)
 
     def trigger_external_impulses(self, disclosure, model, time):
-        pass
+        shocked = False
+        for el in self.Listeners:
+            arg = el.needs(disclosure, self)
+            if arg:
+                el.apply_shock(disclosure, model, self, time, arg=arg)
+                shocked = True
+        return shocked
 
     def exit_cycle(self):
         if not self.Scheduler.waiting_for_validation():
@@ -347,7 +357,8 @@ class BranchModel(AbsModel, metaclass=ABCMeta):
 
     def fetch_disclosures(self, ds_ms, time):
         for d, m in ds_ms:
-            self.trigger_external_impulses(d, m, time)
+            if m is not self:
+                self.trigger_external_impulses(d, m, time)
         if not self.Scheduler.Disclosures:
             self.Scheduler.cycle_completed()
 

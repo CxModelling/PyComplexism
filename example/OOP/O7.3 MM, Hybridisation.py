@@ -3,6 +3,7 @@ from complexism.misc import start_counting, stop_counting, get_results
 import epidag as dag
 import complexism as cx
 import complexism.agentbased.statespace as ss
+from complexism.mcore import EventListener
 
 
 bn_scr = '''
@@ -61,9 +62,9 @@ model = cx.MultiModel(model_name, pc)
 
 mbp_ser = ss.BlueprintStSpABM('SER')
 mbp_ser.set_agent(prefix='Ag', group='ag_ser', dynamics='SER')
-mbp_ser.add_behaviour('FOI', 'ForeignShock', t_tar='Infect')
+# mbp_ser.add_behaviour('FOI', 'ForeignShock', t_tar='Infect')
 mbp_ser.add_behaviour('Activation', 'Cohort', s_death='Export')
-mbp_ser.add_behaviour('Recovery', 'Immigration', s_immigrant='Rec')
+mbp_ser.add_behaviour('Recovery', 'AgentImport', s_birth='Rec')
 mbp_ser.set_observations(states=['Sus', 'Lat', 'Rec'],
                          transitions=['Infect', 'Activate'],
                          behaviours=['Recovery', 'Activation', 'FOI'])
@@ -71,7 +72,7 @@ mbp_ser.set_observations(states=['Sus', 'Lat', 'Rec'],
 
 mbp_i = ss.BlueprintStSpABM('I')
 mbp_i.set_agent(prefix='Ag', group='ag_i', dynamics='I')
-mbp_i.add_behaviour('Activation', 'Immigration', s_immigrant='Inf')
+mbp_i.add_behaviour('Activation', 'AgentImport', s_birth='Inf')
 mbp_i.add_behaviour('Recovery', 'Cohort', s_death='Export')
 mbp_i.set_observations(states=['Inf'],
                        transitions=['Recover'],
@@ -83,12 +84,39 @@ model_i = mbp_i.generate('I', pc=pc.breed('I', 'abm_i'), dc=dbp_i)
 
 
 model.append(model_ser)
-
 model.append(model_i)
 
-model.link('I@Inf', 'SER@FOI', message=['Recover', 'Activation'])
-model.link('I@Recover', 'SER@Recovery', message='Recover')
-model.link('SER@Activate', 'I@Activation', message='Activate')
+
+class LisSER(EventListener):
+
+    def needs(self, disclosure, model_local):
+        if disclosure.is_sibling():
+            return True
+
+    def apply_shock(self, disclosure, model_foreign, model_local, ti, arg=None):
+        print('SEI', disclosure.What)
+        if disclosure.What == 'Recover':
+            model_local.Behaviours['Recovery'].shock(ti, model_foreign, model_local, 1)
+
+
+class LisI(EventListener):
+
+    def needs(self, disclosure, model_local):
+        if disclosure.is_sibling():
+            return True
+
+    def apply_shock(self, disclosure, model_foreign, model_local, ti, arg=None):
+        print('I', disclosure.What)
+        if disclosure.What == 'Activate':
+            model_local.Behaviours['Activation'].shock(ti, model_foreign, model_local, 1)
+
+
+model_ser.add_listener(LisSER())
+model_i.add_listener(LisI())
+
+# model.link('I@Inf', 'SER@FOI', message=['Recover', 'Activation'])
+# model.link('I@Recover', 'SER@Recovery', message='Recover')
+# model.link('SER@Activate', 'I@Activation', message='Activate')
 
 model.add_observing_model('I')
 model.add_observing_model('SER')

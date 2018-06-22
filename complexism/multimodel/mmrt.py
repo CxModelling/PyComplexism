@@ -20,15 +20,15 @@ class ObsMultiModel(Observer):
     def update_dynamic_observations(self, model, flow, ti):
         for m in self.ObservingModels:
             mod = model.get_model(m)
-            flow.update({'{}@{}'.format(m, k): v for k, v in mod.Obs.Flow.items() if k != 'Time'})
+            flow.update({'{}@{}'.format(m, k): v for k, v in mod.Observer.Flow.items() if k != 'Time'})
 
     def read_statics(self, model, tab, ti):
         for m in self.ObservingModels:
             mod = model.get_model(m)
             if tab is self.Last:
-                tab.update({'{}@{}'.format(m, k): v for k, v in mod.Obs.Last.items() if k != 'Time'})
+                tab.update({'{}@{}'.format(m, k): v for k, v in mod.Observer.Last.items() if k != 'Time'})
             elif self.ExtMid:
-                tab.update({'{}@{}'.format(m, k): v for k, v in mod.Obs.Mid.items() if k != 'Time'})
+                tab.update({'{}@{}'.format(m, k): v for k, v in mod.Observer.Mid.items() if k != 'Time'})
 
 
 class MultiModel(BranchModel):
