@@ -149,7 +149,7 @@ class GenericAgentBasedModel(LeafModel, metaclass=ABCMeta):
             n_birth += 1
 
         if n_birth:
-            self.disclose('Add {} agents'.format(n_birth), self.Name)
+            self.disclose('Add {} agents'.format(n_birth), self.Name, **kwargs)
 
         return ags
 

@@ -7,10 +7,11 @@ __all__ = ['Disclosure', 'Request', 'Schedule']
 
 
 class Disclosure:
-    def __init__(self, what, who, where):
+    def __init__(self, what, who, where, **kwargs):
         self.What = what
         self.Who = who
         self.Where = [where] if isinstance(where, str) else where
+        self.Arguments = dict(kwargs)
 
     def up_scale(self, adr):
         """
@@ -19,7 +20,7 @@ class Disclosure:
         :return: extended disclosure
         """
         new_adr = self.Where + [adr]
-        return Disclosure(self.What, self.Who, new_adr)
+        return Disclosure(self.What, self.Who, new_adr, **self.Arguments)
 
     def sibling_scale(self):
         """
@@ -27,7 +28,7 @@ class Disclosure:
         :return: extended disclosure
         """
         new_adr = self.Where + ['^']
-        return Disclosure(self.What, self.Who, new_adr)
+        return Disclosure(self.What, self.Who, new_adr, **self.Arguments)
 
     def down_scale(self):
         """
@@ -36,7 +37,7 @@ class Disclosure:
         :rtype: tuple
         """
         new_adr = self.Where[:-1]
-        return self.Where[-1], Disclosure(self.What, self.Who, new_adr)
+        return self.Where[-1], Disclosure(self.What, self.Who, new_adr, **self.Arguments)
 
     @property
     def Distance(self):
@@ -58,10 +59,19 @@ class Disclosure:
         return self.Where[0]
 
     def __repr__(self):
-        return 'Disclosure({} did {} in {})'.format(self.Who, self.What, self.Address)
+        if self.Arguments:
+            args = ', '.join(self.Arguments.keys())
+            return 'Disclosure({} did {} in {} with)'.format(
+                self.Who, self.What, self.Address, args)
+        else:
+            return 'Disclosure({} did {} in {})'.format(self.Who, self.What, self.Address)
 
     def __str__(self):
-        return 'Disclose:\t{} did {} in {}'.format(self.Who, self.What, self.Address)
+        res = 'Disclose:\t{} did {} in {}'.format(self.Who, self.What, self.Address)
+        if self.Arguments:
+            args = ', '.join(self.Arguments.keys())
+            res = '{} with {}'.format(res, args)
+        return res
 
 
 class Request:
@@ -195,8 +205,8 @@ class Schedule:
         """
         self.Disclosures.append(dss)
 
-    def append_disclosure_from_source(self, msg, who):
-        dss = Disclosure(msg, who, self.Location)
+    def append_disclosure_from_source(self, msg, who, **kwargs):
+        dss = Disclosure(msg, who, self.Location, **kwargs)
         self.append_disclosure(dss)
 
     def up_scale_requests(self, loc):

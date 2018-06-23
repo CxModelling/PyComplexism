@@ -191,8 +191,8 @@ class AbsModel(metaclass=ABCMeta):
     def execute_requests(self):
         pass
 
-    def disclose(self, msg, who):
-        self.Scheduler.append_disclosure_from_source(msg, who)
+    def disclose(self, msg, who, **kwargs):
+        self.Scheduler.append_disclosure_from_source(msg, who, **kwargs)
 
     @abstractmethod
     def collect_disclosure(self):

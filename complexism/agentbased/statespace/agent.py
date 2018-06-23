@@ -48,7 +48,7 @@ class StSpAgent(GenericAgent):
         ad = list(set(new_trs) - set(self.Transitions.keys()))
         self.Transitions = {k: v for k, v in self.Transitions.items() if k in new_trs}
         for tr in ad:
-            tte = tr.rand(self.Parameters, **self.Attributes)
+            tte = tr.rand(self.Parameters) # verify
             for mo in self.Modifiers.on(tr):
                 tte = mo.modify(tte)
             self.Transitions[tr] = tte + ti
