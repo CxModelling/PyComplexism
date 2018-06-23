@@ -68,13 +68,6 @@ class GenericAgentBasedModel(LeafModel, metaclass=ABCMeta):
         else:
             raise AttributeError('The population is not network-based')
 
-    def listen(self, mod_src, message, par_src, par_tar, **kwargs):
-        try:
-            be = self.Behaviours[par_tar]
-            be.set_source(mod_src, message, par_src)
-        except KeyError:
-            ForeignListener.decorate(par_tar, self, mod_src=mod_src, message=message, par_src=par_src, **kwargs)
-
     @abstractmethod
     def read_y0(self, y0, ti):
         pass
@@ -152,6 +145,7 @@ class GenericAgentBasedModel(LeafModel, metaclass=ABCMeta):
             bes = self.check_enter(ag)
             ag.initialise(ti)
             self.impulse_enter(bes, ag, ti)
+            self.request(ag.Next, ag.Name)
             n_birth += 1
 
         if n_birth:
@@ -164,7 +158,9 @@ class GenericAgentBasedModel(LeafModel, metaclass=ABCMeta):
         bes = self.check_exit(ag)
         self.Population.remove_agent(i)
         self.impulse_exit(bes, ag, ti)
+        #self.exit_cycle()
         self.disclose('Remove agent', ag.Name)
+
 
     def find_next(self):
         # to be parallel

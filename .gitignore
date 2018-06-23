@@ -67,6 +67,6 @@ docs/
 .log
 playground.ipynb
 .pytest_cache/
-
+try.py
 test/*.log
 example/*.log
