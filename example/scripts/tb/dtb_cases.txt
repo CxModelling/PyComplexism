@@ -1,0 +1,27 @@
+CTBN Active {
+    life[Alive | Dead]
+    tb[Act | Deact]
+    care[Out | In | Completed]
+
+    Alive{life:Alive}
+    Dead{life:Dead}
+
+    Act{life:Alive, tb:Act, care:Out}
+
+
+    PreCare{care: Out}
+    InCare{care: In}
+    PostCare{care: Completed}
+
+    Inf{tb:Act}
+    Safe{tb:Deact}
+    Treating{tb:Act, care:In}
+
+    Inf -- Cure -> Safe
+    Treating -- Recover -> Safe
+    PreCare -- SeekCare -> InCare
+    InCare -- Treat -> PostCare
+
+    Alive -- Die -> Dead # from transition Die to state Dead by distribution Die
+    Inf -- Die_TB -> Dead
+}

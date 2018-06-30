@@ -41,6 +41,12 @@ class OrdinaryDifferentialEquations(AbsEquations):
     def __getitem__(self, item):
         return self.X[item]
 
+    def set_external_variables(self, xs):
+        try:
+            self.X.update(xs)
+        except AttributeError as e:
+            raise e
+
     def set_y(self, y):
         n = len(self.NamesY)
         if len(y) is not n:

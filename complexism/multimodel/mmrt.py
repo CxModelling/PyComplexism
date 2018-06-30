@@ -1,6 +1,6 @@
 import networkx as nx
 from complexism.misc.counter import count
-from complexism.mcore import *
+from complexism.mcore import BranchModel, Observer
 from .entries import RelationEntry
 
 
@@ -63,13 +63,6 @@ class MultiModel(BranchModel):
             return
         for k, m in self.Models.nodes().data('model'):
             m.read_y0(y0=y0[k], ti=ti)
-
-    def reset_impulse(self, ti):
-        for s, nbd in self.Models.adjacency():
-            src = self.get_model(s)
-            for t in nbd.keys():
-                tar = self.get_model(t)
-                tar.impulse_foreign(src, 'update', ti)
 
     @count()
     def do_request(self, req):

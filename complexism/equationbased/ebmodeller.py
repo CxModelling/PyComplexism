@@ -1,13 +1,42 @@
-from . import *
 from complexism.mcore import AbsBlueprintMCore
 from copy import deepcopy
 from epidag.factory import get_workshop
-from collections import namedtuple
 
 __author__ = 'TimeWz667'
 
 
-MetaABM = namedtuple('MetaABM', ('PC', 'DC', 'Prototype'))
+class BlueprintODEEBM(AbsBlueprintMCore):
+    def __init__(self, name):
+        AbsBlueprintMCore.__init__(self, name)
+        self.DT = 0.1
+        self.ObsDT = 1
+        self.ODE = None
+        self.Measurements = list()
+        self.ObsStocks = list()
+
+    def set_fn_ode(self, fn):
+        self.ODE = fn
+
+    def add_fn_measure(self, mea):
+        pass
+
+    def
+
+
+    def get_parameter_hierarchy(self, **kwargs):
+        pass
+
+    def generate(self, name, **kwargs):
+        pass
+
+    def to_json(self):
+        pass
+
+    def clone(self, mod_src, **kwargs):
+        pass
+
+    def from_json(self, js):
+        pass
 
 
 class BlueprintCoreODE(AbsBlueprintMCore):

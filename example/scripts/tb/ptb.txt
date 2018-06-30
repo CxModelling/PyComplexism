@@ -1,0 +1,23 @@
+PCore pTB {
+    r_tr = 10
+    r_slat = 0.2
+
+    r_act = 0.073
+    r_ract = 0.0073
+    r_rel = 0.0073
+    r_death = 0.025
+
+    r_cure = 0.2
+
+    patient_delay = 5/12
+    SeekCare ~ exp(1/patient_delay)
+
+    treatment_period = 0.5
+    Treat ~ k(treatment_period)
+
+    Cure ~ exp(r_cure)
+    Recover ~ k(1/24)
+
+    Die_TB ~ exp(0.5)
+    Die ~ exp(r_death)
+}
