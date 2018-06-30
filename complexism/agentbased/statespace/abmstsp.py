@@ -1,6 +1,7 @@
+from collections import namedtuple, Counter
 from complexism.dcore import Transition
 from complexism.agentbased.abm import GenericAgentBasedModel, ObsABM
-from collections import namedtuple, Counter
+from complexism.mcore.y0 import LeafY0
 
 __author__ = 'TimeWz667'
 __all__ = ['StSpAgentBasedModel']
@@ -57,9 +58,33 @@ class ObsStSpABM(ObsABM):
         self.Records.append(Record(ag.Name, evt.Todo, ti))
 
 
+class StSpY0(LeafY0):
+    def __init__(self):
+        self.Values = list()
+
+    def __iter__(self):
+        return iter(self.Values)
+
+    def match_model(self, model):
+        pass
+
+    def define(self, n, st, **kwargs):
+        n = int(n)
+        if n > 0:
+            atr = {'st': st}
+            atr.update(kwargs)
+            self.Values.append({'n': n, 'attributes': atr})
+
+    @staticmethod
+    def from_source(src):
+        y0 = StSpY0()
+        y0.Values = list(src)
+        return y0
+
+
 class StSpAgentBasedModel(GenericAgentBasedModel):
     def __init__(self, name, pc, population):
-        GenericAgentBasedModel.__init__(self, name, pc, population, ObsStSpABM())
+        GenericAgentBasedModel.__init__(self, name, pc, population, ObsStSpABM(), StSpY0)
         self.DCore = population.Eve.DCore
 
     def read_y0(self, y0, ti):

@@ -46,9 +46,9 @@ class ObsABM(Observer):
 
 
 class GenericAgentBasedModel(LeafModel, metaclass=ABCMeta):
-    def __init__(self, name, env, population, obs=None):
+    def __init__(self, name, env, population, obs=None, y0_class=None):
         obs = obs if obs else ObsABM()
-        LeafModel.__init__(self, name, env=env, obs=obs)
+        LeafModel.__init__(self, name, env=env, obs=obs, y0_class=y0_class)
         self.Population = population
         self.Behaviours = OrderedDict()
 
@@ -161,9 +161,8 @@ class GenericAgentBasedModel(LeafModel, metaclass=ABCMeta):
         #self.exit_cycle()
         self.disclose('Remove agent', ag.Name)
 
-
     def find_next(self):
-        # to be parallel
+        # to be parallelised
         for k, be in self.Behaviours.items():
             self.request(be.Next, k)
 

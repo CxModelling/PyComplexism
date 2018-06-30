@@ -134,9 +134,10 @@ class ModelAtom(metaclass=ABCMeta):
 
 
 class AbsModel(metaclass=ABCMeta):
-    def __init__(self, name, env=None, obs: Observer=None):
+    def __init__(self, name, env=None, obs: Observer=None, y0_class=None):
         self.Name = name
         self.Observer = obs if obs else DefaultObserver()
+        self.ClassY0 = y0_class
         self.Scheduler = Schedule(self.Name)
         self.Validator = None
         self.Listeners = list()
@@ -151,6 +152,9 @@ class AbsModel(metaclass=ABCMeta):
 
     def initialise(self, ti=None, y0=None):
         if y0:
+            if self.ClassY0:
+                y0 = y0 if isinstance(y0, self.ClassY0) else self.ClassY0.from_source(y0)
+                y0.match_model(self)
             self.read_y0(y0, ti)
         self.preset(ti)
 
@@ -161,6 +165,7 @@ class AbsModel(metaclass=ABCMeta):
     def reset(self, ti):
         pass
 
+    @abstractmethod
     def read_y0(self, y0, ti):
         pass
 
@@ -252,8 +257,8 @@ class AbsModel(metaclass=ABCMeta):
 
 
 class LeafModel(AbsModel, metaclass=ABCMeta):
-    def __init__(self, name, env=None, obs: Observer=None):
-        AbsModel.__init__(self, name, env, obs)
+    def __init__(self, name, env=None, obs: Observer=None, y0_class=None):
+        AbsModel.__init__(self, name, env, obs, y0_class)
 
     def collect_requests(self):
         if self.Scheduler.waiting_for_collection():
@@ -291,8 +296,8 @@ class LeafModel(AbsModel, metaclass=ABCMeta):
 
 
 class BranchModel(AbsModel, metaclass=ABCMeta):
-    def __init__(self, name, env=None, obs=None):
-        AbsModel.__init__(self, name, env, obs)
+    def __init__(self, name, env=None, obs=None, y0_class=None):
+        AbsModel.__init__(self, name, env, obs, y0_class)
 
     def preset(self, ti):
         for v in self.all_models().values():
