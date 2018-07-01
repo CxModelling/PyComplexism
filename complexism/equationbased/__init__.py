@@ -2,8 +2,9 @@
 # from .statespace.eqbehaviour import *
 # from .statespace.odecore import *
 from .ebm import *
+from .odeebm import *
 from .ebmodeller import *
-from .blueprint import *
+from .builder import *
 from .fn import *
 
 __author__ = 'TimeWz667'

@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import complexism as cx
 import epidag as dag
 import complexism.agentbased.statespace as ss
+import complexism.equationbased as ebm
 from complexism.mcore import EventListener
 __author__ = 'TimeWz667'
 
@@ -13,8 +14,6 @@ sm = dag.as_simulation_core(bn, hie={'city': ['SER', 'I'], 'SER': [],
                                      'I': ['AgI'],
                                      'AgI': ['Cure', 'Recover',
                                              'SeekCare', 'Treat', 'Die_TB', 'Die']})
-pc = sm.generate('Taipei')
-
 
 # Step 2 define equations
 def TB_ODE(y, t, p, x):
@@ -23,7 +22,7 @@ def TB_ODE(y, t, p, x):
     slat = y[2]
     rec = y[4]
 
-    n = sum(y) + x['N_abm']
+    n = sus + flat + slat + rec + x['N_abm']
 
     infection = sus * x['Inf'] * p['r_tr']/n
     latent = flat * p['r_slat']
@@ -36,17 +35,24 @@ def TB_ODE(y, t, p, x):
                    latent - reactivation - slat * dr,
                    activation + reactivation + relapse,
                    - relapse - rec * dr])
-    dy[0] += 5000 - n
+    dy[0] += 50000 - n
     return dy
 
 
-def cal_N(m, tab, ti):
-    tab['N'] = sum(m.Y[k] for k in ['Sus', 'LatFast', 'LatSlow', 'Rec'])
+def TB_Measure(y, t, p, x):
+    return {
+        'N_ebm': sum(y),
+        'N': sum(y) + x['N_abm']
+    }
 
 
+mbp_ser = ebm.BlueprintODEEBM('SER')
 ys = ['Sus', 'LatFast', 'LatSlow', 'Inf_psu', 'Rec']
-
-eqs = cx.OrdinaryDifferentialEquations(TB_ODE, ys, dt=.1, x={'Inf': 0, 'N_abm': 0})
+mbp_ser.set_fn_ode(TB_ODE, ['Sus', 'LatFast', 'LatSlow', 'Inf_psu', 'Rec'])
+mbp_ser.set_external_variables({'Inf': 0, 'N_abm': 0})
+mbp_ser.set_dt(dt=0.01, odt=0.5)
+mbp_ser.add_observing_function(TB_Measure)
+mbp_ser.set_observations()
 
 
 # ABM
@@ -104,12 +110,10 @@ class LisI(EventListener):
                 model_local.birth(n, st='Act', ti=ti)
 
 
-model_ser = cx.GenericEquationBasedModel('SER', dt=0.5, eqs=eqs, env=pc.breed('SER', 'SER'))
-for st in ys:
-    model_ser.add_observing_stock(st)
-model_ser.add_observing_stock_function(cal_N)
+# Instantiation
+pc = sm.generate('Taipei')
 
-
+model_ser = mbp_ser.generate('SER', pc=pc.breed('SER', 'SER'))
 model_i = mbp_i.generate('I', pc=pc.breed('I', 'I'), dc=dbp_i)
 
 model_ser.add_listener(LisSER())
@@ -118,11 +122,11 @@ model_i.add_listener(LisI())
 
 # Step 5 simulate
 y0e = {
-    'Sus': 2900,
+    'Sus': 29000,
     'LatFast': 0,
-    'LatSlow': 1000,
-    'Inf_psu': 100,
-    'Rec': 1000
+    'LatSlow': 10000,
+    'Inf_psu': 1000,
+    'Rec': 10000
 }
 
 
@@ -137,7 +141,7 @@ model.append(model_i)
 model.add_observing_model('I')
 model.add_observing_model('SER')
 
-output = cx.simulate(model, {'SER': y0e, 'I': y0a}, 0, 100, 1)
+output = cx.simulate(model, {'SER': y0e, 'I': y0a}, 0, 10, 1)
 
 output.plot()
 

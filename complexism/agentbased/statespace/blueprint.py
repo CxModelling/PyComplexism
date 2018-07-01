@@ -132,6 +132,6 @@ class BlueprintStSpABM(AbsBlueprintMCore):
         pass
 
     @staticmethod
-    def from_json(self, js):
+    def from_json(js):
         # todo
         pass

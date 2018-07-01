@@ -158,7 +158,6 @@ class GenericAgentBasedModel(LeafModel, metaclass=ABCMeta):
         bes = self.check_exit(ag)
         self.Population.remove_agent(i)
         self.impulse_exit(bes, ag, ti)
-        #self.exit_cycle()
         self.disclose('Remove agent', ag.Name)
 
     def find_next(self):

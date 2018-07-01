@@ -70,3 +70,4 @@ playground.ipynb
 try.py
 test/*.log
 example/*.log
+example/**/*.log

@@ -1,4 +1,4 @@
-from abc import ABCMeta, abstractstaticmethod, abstractmethod
+from abc import ABCMeta, abstractmethod
 
 __author__ = 'TimeWz667'
 
@@ -48,6 +48,7 @@ class AbsBlueprintMCore(metaclass=ABCMeta):
     def clone(self, mod_src, **kwargs):
         pass
 
-    @abstractstaticmethod
-    def from_json(self, js):
+    @staticmethod
+    @abstractmethod
+    def from_json(js):
         pass

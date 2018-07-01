@@ -42,6 +42,11 @@ class OrdinaryDifferentialEquations(AbsEquations):
         return self.X[item]
 
     def set_external_variables(self, xs):
+        """
+        Set external variables by importing a dictionary
+        :param xs: external variables
+        :type xs: dict
+        """
         try:
             self.X.update(xs)
         except AttributeError as e:
@@ -143,14 +148,13 @@ class ObsEBM(Observer):
 
 
 class GenericEquationBasedModel(LeafModel):
-    def __init__(self, name, eqs, dt, env=None, obs=None):
+    def __init__(self, name, eqs, dt, env=None, obs=None, y0_class=None):
         obs = obs if obs else ObsEBM()
-        LeafModel.__init__(self, name, env, obs)
+        LeafModel.__init__(self, name, env, obs, y0_class=y0_class)
         self.Clock = Clock(dt=dt)
         self.Y = None
         self.Equations = eqs
         self.UpdateEnd = 0
-        self.ForeignLinks = list()
 
     def add_observing_stock(self, stock):
         self.Observer.add_observing_stock(stock)

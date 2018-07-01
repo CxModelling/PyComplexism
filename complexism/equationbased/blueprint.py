@@ -1,11 +1,105 @@
+from inspect import signature
 import epidag as dag
 import complexism as cx
 from complexism.mcore import AbsBlueprintMCore
+from .odeebm import OrdinaryDifferentialEquationModel
+
+
 __author__ = 'TimeWz667'
-__all__ = ['BlueprintODE']
+__all__ = ['BlueprintODEEBM']
 
 
-class BlueprintODE(AbsBlueprintMCore):
+class BlueprintODEEBM(AbsBlueprintMCore):
+    def __init__(self, name):
+        AbsBlueprintMCore.__init__(self, name)
+        self.Arguments['dt'] = 0.1
+        self.Arguments['odt'] = 1
+        self.ODE = None
+        self.Ys = None
+        self.Xs = None
+        self.ObsYs = None
+        self.Measurements = list()
+        self.ObsStocks = list()
+
+    def set_fn_ode(self, fn, ys):
+        for x, y in zip(signature(fn).parameters.keys(), ['y', 't', 'p', 'x']):
+            if x != y:
+                raise TypeError('Positional arguments should be y, t, p, and x')
+        self.ODE = fn
+        self.Ys = list(ys)
+
+    def set_external_variables(self, xs):
+        self.Xs = dict(xs)
+
+    def add_observing_function(self, fn):
+        for x, y in zip(signature(fn).parameters.keys(), ['y', 't', 'p', 'x']):
+            if x != y:
+                raise TypeError('Positional arguments should be y, t, p, and x')
+        self.Measurements.append(fn)
+
+    def set_observations(self, stocks='*'):
+        if stocks == '*':
+            self.ObsYs = list(self.Ys)
+        elif isinstance(stocks, list):
+            self.ObsYs = [s for s in stocks if s in self.Ys]
+
+    def set_dt(self, dt=0.1, odt=1):
+        if dt <= 0 or odt <= 0:
+            raise ValueError('Time differences must be positive numbers')
+        dt = min(dt, odt)
+        self.Arguments.update({
+            'dt': dt,
+            'odt': odt
+        })
+
+    def get_parameter_hierarchy(self, **kwargs):
+        return {self.Name: []}
+
+    def generate(self, name, **kwargs):
+        if not all([self.Ys, self.ODE, self.ObsYs]):
+            raise TypeError('Equation have not been assigned')
+
+        # Prepare PC, DC
+        dc = kwargs['dc']
+
+        if 'pc' in kwargs:
+            pc = kwargs['pc']
+        elif 'sm' in kwargs:
+            sm = kwargs['sm']
+            pc = sm.generate(name, exo=kwargs['exo'] if 'exo' in kwargs else None)
+        elif 'bn' in kwargs:
+            bn = kwargs['bn']
+            random = kwargs['random'] if 'random' in kwargs else []
+            hie = kwargs['hie'] if 'hie' in kwargs else self.get_parameter_hierarchy(dc=dc)
+            sm = dag.as_simulation_core(bn, hie=hie, random=random)
+            pc = sm.generate(name, exo=kwargs['exo'] if 'exo' in kwargs else None)
+        else:
+            raise KeyError('Parameter core not found')
+
+        dt, odt = self.Arguments['dt'], self.Arguments['odt']
+        model = OrdinaryDifferentialEquationModel(name, self.ODE, dt, odt, ys=self.Ys, xs=self.Xs, env=pc)
+
+        # Assign observations
+        for st in self.ObsYs:
+            model.add_observing_stock(st)
+
+        for fn in self.Measurements:
+            model.add_observing_function(fn)
+
+        return model
+
+    def to_json(self):
+        pass
+
+    def clone(self, mod_src, **kwargs):
+        pass
+
+    @staticmethod
+    def from_json(js):
+        pass
+
+
+class BlueprintEBM(AbsBlueprintMCore):
     def __init__(self, name):
         AbsBlueprintMCore.__init__(self, name)
         self.YNames = None
@@ -76,7 +170,7 @@ class BlueprintODE(AbsBlueprintMCore):
         return model
 
     @staticmethod
-    def from_json(self, js):
+    def from_json(js):
         # todo
         pass
 

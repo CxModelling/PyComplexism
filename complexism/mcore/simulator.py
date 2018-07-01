@@ -29,10 +29,10 @@ class Simulator:
         self.Model.initialise(ti=fr, y0=y0)
         self.Model.initialise_observations(fr)
         self.Model.push_observations(fr)
-        self.deal_with_disclosures(fr, None)
         self.update(to, dt)
 
     def update(self, forward, dt):
+        self.deal_with_disclosures(self.Time, None)
         num = int((forward - self.Time) / dt) + 1
         ts = list(np.linspace(self.Time, forward, num))
         if ts[-1] != forward:
