@@ -26,6 +26,9 @@ class BranchY0(AbsY0, metaclass=ABCMeta):
     def __init__(self):
         self.ChildrenY0 = dict()
 
+    def __getitem__(self, item):
+        return self.ChildrenY0[item]
+
     @abstractmethod
     def append_child(self, key, chd):
         self.ChildrenY0[key] = chd

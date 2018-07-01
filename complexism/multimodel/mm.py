@@ -20,15 +20,15 @@ class ObsMultiModel(Observer):
     def update_dynamic_observations(self, model, flow, ti):
         for m in self.ObservingModels:
             mod = model.get_model(m)
-            flow.update({'{}@{}'.format(m, k): v for k, v in mod.Observer.Flow.items() if k != 'Time'})
+            flow.update({'{}:{}'.format(m, k): v for k, v in mod.Observer.Flow.items() if k != 'Time'})
 
     def read_statics(self, model, tab, ti):
         for m in self.ObservingModels:
             mod = model.get_model(m)
             if tab is self.Last:
-                tab.update({'{}@{}'.format(m, k): v for k, v in mod.Observer.Last.items() if k != 'Time'})
+                tab.update({'{}:{}'.format(m, k): v for k, v in mod.Observer.Last.items() if k != 'Time'})
             elif self.ExtMid:
-                tab.update({'{}@{}'.format(m, k): v for k, v in mod.Observer.Mid.items() if k != 'Time'})
+                tab.update({'{}:{}'.format(m, k): v for k, v in mod.Observer.Mid.items() if k != 'Time'})
 
 
 class MultiModel(BranchModel):
@@ -66,11 +66,7 @@ class MultiModel(BranchModel):
 
     @count()
     def do_request(self, req):
-        src = self.get_model(req.Who)
-        for t, kb in self.Models[req.Who].items():
-            # for _, atr in kb.items():
-            tar = self.get_model(t)
-            tar.impulse_foreign(src, req.Message, req.When)
+        pass
 
     def find_next(self):
         pass

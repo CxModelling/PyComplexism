@@ -1,4 +1,4 @@
-from complexism.multimodel.mmrt import MultiModel
+from complexism.multimodel.mm import MultiModel
 from complexism.multimodel.entries import *
 
 __author__ = 'TimeWz667'

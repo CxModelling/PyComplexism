@@ -15,6 +15,7 @@ sm = dag.as_simulation_core(bn, hie={'city': ['SER', 'I'], 'SER': [],
                                      'AgI': ['Cure', 'Recover',
                                              'SeekCare', 'Treat', 'Die_TB', 'Die']})
 
+
 # Step 2 define equations
 def TB_ODE(y, t, p, x):
     sus = y[0]
