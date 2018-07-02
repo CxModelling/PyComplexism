@@ -11,7 +11,7 @@ __all__ = ['BlueprintStSpABM']
 class BlueprintStSpABM(AbsBlueprintMCore):
     def __init__(self, name):
         AbsBlueprintMCore.__init__(self, name)
-        self.Population = {'Agent': None, 'Networks': []}
+        self.Population = {'Agent': {}, 'Networks': []}
         self.Behaviours = list()
         self.ObsBehaviours = list()
         self.ObsStates = list()
@@ -20,13 +20,13 @@ class BlueprintStSpABM(AbsBlueprintMCore):
 
     def set_agent(self, prefix='Ag', group=None, exo=None, dynamics=None, **kwargs):
         self.Population['Agent'] = {
-            'Prefix': prefix,
-            'Group': group if group else 'agent',
-            'Type': 'stsp',
-            'Exo': dict(exo) if exo else dict(),
-            'Dynamics': dynamics if dynamics else None,
-            'Args': dict(kwargs)
-        }
+                                        'Prefix': prefix,
+                                        'Group': group if group else 'agent',
+                                        'Type': 'stsp',
+                                        'Exo': dict(exo) if exo else dict(),
+                                        'Dynamics': dynamics if dynamics else None,
+                                        'Args': dict(kwargs)
+                                    }
 
     def add_network(self, net_name, net_type, **kwargs):
         self.Population['Networks'].append({

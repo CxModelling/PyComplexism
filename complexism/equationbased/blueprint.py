@@ -1,8 +1,8 @@
 from inspect import signature
 import epidag as dag
-import complexism as cx
 from complexism.mcore import AbsBlueprintMCore
-from .odeebm import OrdinaryDifferentialEquationModel
+from .ebm import GenericEquationBasedModel
+from .odeebm import OrdinaryDifferentialEquationModel, OrdinaryDifferentialEquations
 
 
 __author__ = 'TimeWz667'
@@ -60,8 +60,6 @@ class BlueprintODEEBM(AbsBlueprintMCore):
             raise TypeError('Equation have not been assigned')
 
         # Prepare PC, DC
-        dc = kwargs['dc']
-
         if 'pc' in kwargs:
             pc = kwargs['pc']
         elif 'sm' in kwargs:
@@ -70,7 +68,7 @@ class BlueprintODEEBM(AbsBlueprintMCore):
         elif 'bn' in kwargs:
             bn = kwargs['bn']
             random = kwargs['random'] if 'random' in kwargs else []
-            hie = kwargs['hie'] if 'hie' in kwargs else self.get_parameter_hierarchy(dc=dc)
+            hie = kwargs['hie'] if 'hie' in kwargs else self.get_parameter_hierarchy()
             sm = dag.as_simulation_core(bn, hie=hie, random=random)
             pc = sm.generate(name, exo=kwargs['exo'] if 'exo' in kwargs else None)
         else:
@@ -152,12 +150,12 @@ class BlueprintEBM(AbsBlueprintMCore):
         # Generate model
         dt = self.Arguments['dt'] if 'dt' in self.Arguments else 0.5
         fdt = self.Arguments['fdt'] if 'fdt' in self.Arguments else dt
-        eqs = cx.OrdinaryDifferentialEquations(self.Equations,
-                                               self.YNames,
-                                               dt=fdt,
-                                               x=self.InternalVariables)
+        eqs = OrdinaryDifferentialEquations(self.Equations,
+                                            self.YNames,
+                                            dt=fdt,
+                                            x=self.InternalVariables)
 
-        model = cx.GenericEquationBasedModel(name, dt=dt, eqs=eqs, env=pc)
+        model = GenericEquationBasedModel(name, dt=dt, eqs=eqs, env=pc)
 
         # Decide outputs
         for st in self.ObsStocks:

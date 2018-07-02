@@ -59,25 +59,17 @@ class SingleIndividualABM(LeafModel):
         if be.Name not in self.Behaviours:
             self.Behaviours[be.Name] = be
 
-    def listen(self, mod_src, message, par_src, par_tar, **kwargs):
-        # todo
-        try:
-            be = self.Behaviours[par_tar]
-            be.set_source(mod_src, message, par_src)
-        except KeyError:
-            ForeignListener.decorate(par_tar, self, **kwargs)
-
     def read_y0(self, y0, ti):
         for be in self.Behaviours.values():
             be.register(self.Agent, ti)
 
     def preset(self, ti):
-        self.Agent.initialise(ti)
+        self.Agent.initialise(model=self, ti=ti)
         for be in self.Behaviours.values():
             be.initialise(self, ti)
 
     def reset(self, ti):
-        self.Agent.reset(ti)
+        self.Agent.reset(model=self, ti=ti)
         for be in self.Behaviours.values():
             be.initialise(self, ti)
 

@@ -108,21 +108,21 @@ class LisI(EventListener):
     def apply_shock(self, disclosure, model_foreign, model_local, ti, arg=None):
         if disclosure.What.startswith('update'):
             y = model_foreign.Y['LatFast']
-            lam = model_foreign['r_act'] * y
+            lam = model_foreign['r_act'] * y / 2
             n = rd.poisson(lam)
             n = min(n, y)
             if n >= 1:
                 model_local.birth(n, ti=ti, st='Act', type='New')
 
             y = model_foreign.Y['LatSlow']
-            lam = model_foreign['r_ract'] * y
+            lam = model_foreign['r_ract'] * y / 2
             n = rd.poisson(lam)
             n = min(n, y)
             if n >= 1:
                 model_local.birth(n, ti=ti, st='Act', type='Reactivate')
 
             y = model_foreign.Y['Rec']
-            lam = model_foreign['r_rel'] * y
+            lam = model_foreign['r_rel'] * y / 2
             n = rd.poisson(lam)
             n = min(n, y)
             if n >= 1:
@@ -155,9 +155,11 @@ model = cx.MultiLevelModel('TB_v2', env=pc)
 model.append(model_ser)
 model.append(model_i)
 
-
-output = cx.simulate(model, {'SER': y0e, 'I': y0a}, 0, 50, 1)
-
+from complexism.misc.counter import *
+start_counting('TB')
+output = cx.simulate(model, {'SER': y0e, 'I': y0a}, 0, 20, 1)
+stop_counting()
+print(get_results('TB'))
 output.plot()
 
 plt.show()

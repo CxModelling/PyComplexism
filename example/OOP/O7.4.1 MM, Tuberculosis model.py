@@ -31,12 +31,12 @@ def TB_ODE(y, t, p, x):
     reactivation = slat * p['r_ract']
     relapse = rec * p['r_rel']
     dr = p['r_death']
-    dy = np.array([-infection - sus * dr,
+    dy = np.array([-infection + (flat + slat + rec) * dr,
                    infection - latent - activation - flat * dr,
                    latent - reactivation - slat * dr,
                    activation + reactivation + relapse,
                    - relapse - rec * dr])
-    dy[0] += 50000 - n
+    # dy[0] += (sus + flat, + slat + rec) * dr
     return dy
 
 
@@ -123,11 +123,11 @@ model_i.add_listener(LisI())
 
 # Step 5 simulate
 y0e = {
-    'Sus': 29000,
+    'Sus': 2900,
     'LatFast': 0,
-    'LatSlow': 10000,
-    'Inf_psu': 1000,
-    'Rec': 10000
+    'LatSlow': 1000,
+    'Inf_psu': 100,
+    'Rec': 1000
 }
 
 
@@ -135,14 +135,18 @@ y0a = [
     {'n': 0, 'attributes': {'st': 'Act'}}
 ]
 
-model = cx.MultiModel('TB', env=pc)
+model = cx.MultiModel('TB_v1', env=pc)
 model.append(model_ser)
 model.append(model_i)
 
 model.add_observing_model('I')
 model.add_observing_model('SER')
 
-output = cx.simulate(model, {'SER': y0e, 'I': y0a}, 0, 10, 1)
+from complexism.misc.counter import *
+start_counting('TB')
+output = cx.simulate(model, {'SER': y0e, 'I': y0a}, 0, 20, 1)
+stop_counting()
+print(get_results('TB'))
 
 output.plot()
 
