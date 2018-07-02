@@ -120,14 +120,14 @@ model_i = mbp_i.generate('I', pc=pc.breed('I', 'I'), dc=dbp_i)
 model_ser.add_listener(LisSER())
 model_i.add_listener(LisI())
 
-
+scale = 3000
 # Step 5 simulate
 y0e = {
-    'Sus': 2900,
+    'Sus': 29*scale,
     'LatFast': 0,
-    'LatSlow': 1000,
-    'Inf_psu': 100,
-    'Rec': 1000
+    'LatSlow': 10*scale,
+    'Inf_psu': scale,
+    'Rec': 10*scale
 }
 
 
