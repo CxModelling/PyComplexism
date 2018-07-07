@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 
 setup(name='PyComplexism',
-      version='2.0.0',
+      version='3.0.0',
       packages= find_packages(),
       #['complexism',
       #          'complexism.misc',

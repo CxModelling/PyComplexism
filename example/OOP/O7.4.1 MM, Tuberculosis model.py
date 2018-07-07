@@ -120,7 +120,7 @@ model_i = mbp_i.generate('I', pc=pc.breed('I', 'I'), dc=dbp_i)
 model_ser.add_listener(LisSER())
 model_i.add_listener(LisI())
 
-scale = 3000
+scale = 200
 # Step 5 simulate
 y0e = {
     'Sus': 29*scale,
@@ -135,7 +135,7 @@ y0a = [
     {'n': 0, 'attributes': {'st': 'Act'}}
 ]
 
-model = cx.MultiModel('TB_v1', env=pc)
+model = cx.MultiLevelModel('TB_v1', env=pc)
 model.append(model_ser)
 model.append(model_i)
 
@@ -144,10 +144,15 @@ model.add_observing_model('SER')
 
 from complexism.misc.counter import *
 start_counting('TB')
-output = cx.simulate(model, {'SER': y0e, 'I': y0a}, 0, 20, 1)
+output = cx.simulate(model, {'SER': y0e, 'I': y0a}, 0, 10, 1)
 stop_counting()
 print(get_results('TB'))
 
-output.plot()
+fig, axes = plt.subplots(nrows=3, ncols=1)
+print(output.columns)
+output[['SER.N', 'SER.Sus', 'SER.LatFast', 'SER.LatSlow', 'SER.Rec']].plot(ax=axes[0])
+output[['I.PreCare', 'I.InCare', 'I.Alive']].plot(ax=axes[1])
+output[['I.Cure', 'I.Recover', 'I.SeekCare', 'I.Die_TB']].plot(ax=axes[2])
+
 
 plt.show()

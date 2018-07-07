@@ -44,6 +44,7 @@ class StSpAgent(GenericAgent):
             self.State = self.State.execute(nxt)
 
     def update_time(self, ti):
+        self.Transitions = {k: v for k, v in self.Transitions.items() if v >= ti}
         new_trs = self.State.next_transitions()
         ad = list(set(new_trs) - set(self.Transitions.keys()))
         self.Transitions = {k: v for k, v in self.Transitions.items() if k in new_trs}

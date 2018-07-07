@@ -13,6 +13,7 @@ class Simulator:
             rd.seed(seed)
         self.Time = 0
         self.Logger = logging.getLogger(__name__)
+        self.Models = dict()
 
         if keep_log:
             if new_log:
@@ -76,7 +77,7 @@ class Simulator:
             self.Logger.info(str(d))
 
         while len(ds) > 0:
-            ds_ms = [(d.down_scale()[1], self._find_model(d.Where)) for d in ds]
+            ds_ms = [(d.down_scale()[1], self._find_model(d)) for d in ds]
             self.Model.fetch_disclosures(ds_ms, time)
 
             ds = self.Model.collect_disclosure()
@@ -84,10 +85,16 @@ class Simulator:
             for d in ds:
                 self.Logger.info(str(d))
 
-    def _find_model(self, where):
-        where = list(where[:-1])
-        where.reverse()
-        mod = self.Model
-        for sel in where:
-            mod = mod.get_model(sel)
-        return mod
+    def _find_model(self, dis):
+        adr = dis.Address
+        try:
+            return self.Models[adr]
+        except KeyError:
+            where = dis.Where
+            where = list(where[:-1])
+            where.reverse()
+            mod = self.Model
+            for sel in where:
+                mod = mod.get_model(sel)
+            self.Models[adr] = mod
+            return mod
