@@ -87,7 +87,7 @@ class LisSER(EventListener):
 
         elif disclosure.What.startswith('Add'):
             model_local.go_to(ti)
-            n = re.match('Add (\d+) agents', disclosure.What).group(1)
+            n = re.match('add (\d+) agents', disclosure.What, re.I).group(1)
             model_local.impulse('del', y='Inf_psu', n=float(n))
 
         elif disclosure.What in ['Recover', 'Cure']:
@@ -120,7 +120,7 @@ model_i = mbp_i.generate('I', pc=pc.breed('I', 'I'), dc=dbp_i)
 model_ser.add_listener(LisSER())
 model_i.add_listener(LisI())
 
-scale = 200
+scale = 20
 # Step 5 simulate
 y0e = {
     'Sus': 29*scale,
@@ -142,11 +142,11 @@ model.append(model_i)
 model.add_observing_model('I')
 model.add_observing_model('SER')
 
-from complexism.misc.counter import *
-start_counting('TB')
+
+cx.start_counting('TB')
 output = cx.simulate(model, {'SER': y0e, 'I': y0a}, 0, 10, 1)
-stop_counting()
-print(get_results('TB'))
+cx.stop_counting()
+print(cx.get_results('TB'))
 
 fig, axes = plt.subplots(nrows=3, ncols=1)
 print(output.columns)

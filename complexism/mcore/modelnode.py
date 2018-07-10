@@ -1,6 +1,6 @@
 from abc import ABCMeta, abstractmethod
 from complexism.element import Event, Schedule
-from complexism.mcore import Observer, DefaultObserver, ModelSelector, EventListener
+from complexism.mcore import Observer, DefaultObserver, ModelSelector, EventListenerSet
 from complexism.misc.counter import count
 
 __author__ = 'TimeWz667'
@@ -140,7 +140,7 @@ class AbsModel(metaclass=ABCMeta):
         self.ClassY0 = y0_class
         self.Scheduler = Schedule(self.Name)
         self.Validator = None
-        self.Listeners = list()
+        self.Listeners = EventListenerSet()
         self.Environment = env
         self.TimeEnd = None
 
@@ -207,17 +207,14 @@ class AbsModel(metaclass=ABCMeta):
     def fetch_disclosures(self, ds_ms, time):
         pass
 
-    def add_listener(self, listener: EventListener):
-        self.Listeners.append(listener)
+    def add_listener(self, impulse, response):
+        self.Listeners.add_impulse_response(impulse, response)
 
     def trigger_external_impulses(self, disclosure, model, time):
-        shocked = False
-        for el in self.Listeners:
-            arg = el.needs(disclosure, self)
-            if arg:
-                el.apply_shock(disclosure, model, self, time, arg=arg)
-                shocked = True
-        return shocked
+        return self.Listeners.apply_shock(disclosure, model, self, time)
+
+    def get_all_impulse_checkers(self):
+        return self.Listeners.AllChecker
 
     def exit_cycle(self):
         if not self.Scheduler.waiting_for_validation():
@@ -381,6 +378,12 @@ class BranchModel(AbsModel, metaclass=ABCMeta):
     @abstractmethod
     def do_request(self, request):
         pass
+
+    def get_all_impulse_checkers(self):
+        cs = self.Listeners.AllChecker
+        for m in self.all_models().values():
+            cs += m.get_all_impulse_checkers()
+        return cs
 
     def exit_cycle(self):
         for v in self.all_models().values():

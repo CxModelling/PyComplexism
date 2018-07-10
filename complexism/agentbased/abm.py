@@ -123,22 +123,9 @@ class GenericAgentBasedModel(LeafModel, metaclass=ABCMeta):
         for be in bes:
             be.impulse_change(self, ag, ti)
 
-    def impulse_foreign(self, fore, message, ti, **kwargs):
-        res = False
-        req = list()
-        for be in self.Behaviours.values():
-            if be.check_foreign(fore, message):
-                res = True
-                msg = be.impulse_foreign(self, fore, message, ti, **kwargs)
-                if msg:
-                    req.append((msg, ti))
-        if res:
-            self.exit_cycle()
-        return res
-
     def birth(self, n, ti, **kwargs):
         ags = self.Population.add_agent(n, **kwargs)
-        n_birth = 0
+        n_birth = len(ags)
         for ag in ags:
             for be in self.Behaviours.values():
                 be.register(ag, ti)
@@ -146,10 +133,9 @@ class GenericAgentBasedModel(LeafModel, metaclass=ABCMeta):
             ag.initialise(ti)
             self.impulse_enter(bes, ag, ti)
             self.request(ag.Next, ag.Name)
-            n_birth += 1
 
         if n_birth:
-            self.disclose('Add {} agents'.format(n_birth), self.Name, **kwargs)
+            self.disclose('add {} agents'.format(n_birth), self.Name, **kwargs)
 
         return ags
 
@@ -158,7 +144,7 @@ class GenericAgentBasedModel(LeafModel, metaclass=ABCMeta):
         bes = self.check_exit(ag)
         self.Population.remove_agent(i)
         self.impulse_exit(bes, ag, ti)
-        self.disclose('Remove agent', ag.Name)
+        self.disclose('remove agent', ag.Name)
 
     def find_next(self):
         # to be parallelised
