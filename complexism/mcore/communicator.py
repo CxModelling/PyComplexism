@@ -98,7 +98,7 @@ class StartsWithChecker(ImpulseChecker):
 
 class RegexChecker(ImpulseChecker):
     def __init__(self, regex, flag=0):
-        self.Regex = regx
+        self.Regex = regex
         self.Flag = flag
         self.RegexF = re.compile(regex, flag)
 

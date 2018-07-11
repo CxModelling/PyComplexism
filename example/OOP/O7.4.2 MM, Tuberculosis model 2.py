@@ -140,10 +140,10 @@ model_i.add_listener(LisI())
 scale = 20
 # Step 5 simulate
 y0e = {
-    'Sus': 29*scale,
+    'Sus': 29 * scale,
     'LatFast': 0,
-    'LatSlow': 10*scale,
-    'Rec': 10*scale
+    'LatSlow': 10 * scale,
+    'Rec': 10 * scale
 }
 
 
