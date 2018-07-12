@@ -1,11 +1,10 @@
 import numpy as np
-import re
 import matplotlib.pyplot as plt
 import complexism as cx
 import epidag as dag
 import complexism.agentbased.statespace as ss
 import complexism.equationbased as ebm
-from complexism.mcore import EventListener
+
 __author__ = 'TimeWz667'
 
 
@@ -68,59 +67,67 @@ mbp_i.set_observations(states=['Inf', 'Alive', 'PreCare', 'InCare', 'PostCare'],
                        transitions=['Cure', 'Recover', 'SeekCare', 'Die_TB'])
 
 
-class LisSER(EventListener):
-
-    def needs(self, disclosure, model_local):
-        if disclosure.is_sibling():
-            return True
-
-    def apply_shock(self, disclosure, model_foreign, model_local, ti, arg=None):
-        if disclosure.What.startswith('initialise'):
-            pass
-        elif disclosure.What.startswith('Die'):
-            model_local.go_to(ti)
-            model_local.impulse('add', y='Sus', n=1)  # Reincarnation
-
-        elif disclosure.What.startswith('Treat'):
-            model_local.go_to(ti)
-            model_local.impulse('add', y='Rec', n=1)
-
-        elif disclosure.What.startswith('Add'):
-            model_local.go_to(ti)
-            n = re.match('add (\d+) agents', disclosure.What, re.I).group(1)
-            model_local.impulse('del', y='Inf_psu', n=float(n))
-
-        elif disclosure.What in ['Recover', 'Cure']:
-            model_local.go_to(ti)
-        else:
-            return
-        model_local.impulse('impulse', k='Inf', v=model_foreign.get_snapshot('Inf', ti))
-        model_local.impulse('impulse', k='N_abm', v=model_foreign.get_snapshot('Alive', ti))
-
-
-class LisI(EventListener):
-
-    def needs(self, disclosure, model_local):
-        if disclosure.is_sibling():
-            return True
-
-    def apply_shock(self, disclosure, model_foreign, model_local, ti, arg=None):
-        if disclosure.What.startswith('update'):
-            n = model_foreign.Y['Inf_psu']
-            if n >= 1:
-                model_local.birth(n, st='Act', ti=ti)
-
-
 # Instantiation
 pc = sm.generate('Taipei')
 
 model_ser = mbp_ser.generate('SER', pc=pc.breed('SER', 'SER'))
 model_i = mbp_i.generate('I', pc=pc.breed('I', 'I'), dc=dbp_i)
 
-model_ser.add_listener(LisSER())
-model_i.add_listener(LisI())
 
-scale = 20
+class UpdateSource(cx.ImpulseResponse):
+    def __call__(self, disclosure, model_foreign, model_local, ti):
+        model_local.impulse('impulse', k='Inf', v=model_foreign.get_snapshot('Inf', ti))
+        model_local.impulse('impulse', k='N_abm', v=model_foreign.get_snapshot('Alive', ti))
+
+
+class InfOut(cx.ImpulseResponse):
+    def __call__(self, disclosure, model_foreign, model_local, ti):
+        n = disclosure.Arguments['n']
+        model_local.impulse('del', y='Inf_psu', n=float(n))
+        model_local.impulse('impulse', k='Inf', v=model_local.Equations['Inf'] + 1)
+        model_local.impulse('impulse', k='N_abm', v=model_local.Equations['N_abm'] + 1)
+
+
+class SusSource(cx.ImpulseResponse):
+    def __call__(self, disclosure, model_foreign, model_local, ti):
+        model_local.impulse('add', y='Sus', n=1)
+        model_local.impulse('impulse', k='Inf', v=model_foreign.get_snapshot('Inf', ti))
+        model_local.impulse('impulse', k='N_abm', v=model_local.Equations['N_abm'] - 1)
+
+
+class RecSource(cx.ImpulseResponse):
+    def __call__(self, disclosure, model_foreign, model_local, ti):
+        model_local.impulse('add', y='Rec', n=1)
+        model_local.impulse('impulse', k='Inf', v=model_foreign.get_snapshot('Inf', ti))
+        model_local.impulse('impulse', k='N_abm', v=model_local.Equations['N_abm'] - 1)
+
+
+class TempRec(cx.ImpulseResponse):
+    def __call__(self, disclosure, model_foreign, model_local, ti):
+        model_local.impulse('add', y='Rec', n=1)
+        model_local.impulse('impulse', k='Inf', v=model_local.Equations['Inf'] - 1)
+
+
+model_ser.add_listener(cx.InitialChecker(), UpdateSource())
+model_ser.add_listener(cx.StartsWithChecker('add'), InfOut())
+model_ser.add_listener(cx.StartsWithChecker('Die'), SusSource())
+model_ser.add_listener(cx.StartsWithChecker('Treat'), RecSource())
+model_ser.add_listener(cx.InclusionChecker(['Recover', 'Cure']), TempRec())
+
+
+class InfIn(cx.ImpulseResponse):
+    def __call__(self, disclosure, model_foreign, model_local, ti):
+        n = model_foreign.Y['Inf_psu']
+        if n >= 1:
+            model_local.birth(n, st='Act', ti=ti)
+
+
+ii = InfIn()
+model_i.add_listener(cx.InitialChecker(), ii)
+model_i.add_listener(cx.StartsWithChecker('update'), ii)
+
+
+scale = 1500
 # Step 5 simulate
 y0e = {
     'Sus': 29*scale,

@@ -173,11 +173,13 @@ class GenericEquationBasedModel(LeafModel):
         self.Clock.initialise(ti)
         self.UpdateEnd = self.TimeEnd = ti
         self.Equations.set_y(self.Y)
+        self.disclose('initialise', '*')
 
     def reset(self, ti):
         self.Clock.initialise(ti)
         self.UpdateEnd = self.TimeEnd = ti
         self.Equations.set_y(self.Y)
+        self.disclose('initialise', '*')
 
     def go_to(self, ti):
         f, t = self.UpdateEnd, ti
@@ -186,6 +188,10 @@ class GenericEquationBasedModel(LeafModel):
         self.Y = self.Equations.update(t0=f, t1=t, pars=self.Environment)
         self.UpdateEnd = ti
         self.Clock.update(ti)
+
+    def fetch_disclosures(self, ds_ms, time):
+        self.go_to(time)
+        LeafModel.fetch_disclosures(self, ds_ms, time)
 
     @count()
     def do_request(self, req):

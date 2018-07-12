@@ -72,11 +72,11 @@ class Observer(metaclass=ABCMeta):
                 except KeyError:
                     pass
             elif key in self.StockNames:
-                try:
-                    if self.Snapshot['Time'] == ti:
-                        return self.Snapshot[key]
-                except KeyError:
-                    pass
+                #try:
+                #    if self.Snapshot['Time'] == ti:
+                #        return self.Snapshot[key]
+                #except KeyError:
+                #    pass
                 self.read_statics(model, self.Snapshot, ti)
                 self.Snapshot['Time'] = ti
                 return self.Snapshot[key]

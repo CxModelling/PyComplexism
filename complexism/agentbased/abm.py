@@ -134,6 +134,7 @@ class GenericAgentBasedModel(LeafModel, metaclass=ABCMeta):
             self.impulse_enter(bes, ag, ti)
             self.request(ag.Next, ag.Name)
 
+        kwargs['n'] = n_birth
         if n_birth:
             self.disclose('add {} agents'.format(n_birth), self.Name, **kwargs)
 

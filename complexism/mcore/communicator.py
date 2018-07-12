@@ -4,7 +4,8 @@ from collections import OrderedDict
 
 __author__ = 'TimeWz667'
 __all__ = ['EventListenerSet', 'ImpulseChecker', 'ImpulseResponse',
-           'StartsWithChecker', 'RegexChecker']
+           'StartsWithChecker', 'RegexChecker', 'InclusionChecker',
+           'InitialChecker']
 
 # The job of EventListener
 # 1. Check if an external event have impact
@@ -20,6 +21,10 @@ class EventListenerSet:
     def add_impulse_response(self, checker, event):
         self.Listeners[checker] = event
 
+    def add_impulse_response_from_json(self, ck_j, re_j):
+        # todo
+        pass
+
     @property
     def AllChecker(self):
         return self.Listeners.keys()
@@ -27,12 +32,12 @@ class EventListenerSet:
     def apply_shock(self, disclosure, model_foreign, model_local, ti):
         shocked = False
         for k, v in self.Listeners.items():
-            if k.needs(disclosure):
-                v.apply_shock(disclosure, model_foreign, model_local, ti)
+            if k(disclosure):
+                v(disclosure, model_foreign, model_local, ti)
                 shocked = True
         return shocked
 
-    def is_jsonable(self):
+    def is_jsonifiable(self):
         for k, v in self.Listeners.items():
             if not isinstance(k, ImpulseChecker):
                 return False
@@ -45,8 +50,10 @@ class EventListenerSet:
 
     @staticmethod
     def from_json(js):
-        #todo
-        pass
+        els = EventListenerSet()
+        for d in js:
+            els.add_impulse_response_from_json(d['Impulse'], d['Response'])
+        return els
 
 
 class ImpulseChecker(metaclass=ABCMeta):
@@ -54,28 +61,25 @@ class ImpulseChecker(metaclass=ABCMeta):
     def __call__(self, disclosure):
         pass
 
-    @abstractmethod
     def to_json(self):
-        pass
+        raise AttributeError('Not jsonifiable')
 
     @staticmethod
-    @abstractmethod
     def from_json(js):
-        pass
+        raise AttributeError('Not jsonifiable')
 
 
 class ImpulseResponse(metaclass=ABCMeta):
     @abstractmethod
-    def __ceil__(self, disclosure, model_foreign, model_local, ti):
+    def __call__(self, disclosure, model_foreign, model_local, ti):
         pass
 
     def to_json(self):
-        pass
+        raise AttributeError('Not jsonifiable')
 
     @staticmethod
-    @abstractmethod
     def from_json(js):
-        pass
+        raise AttributeError('Not jsonifiable')
 
 
 class StartsWithChecker(ImpulseChecker):
@@ -83,7 +87,7 @@ class StartsWithChecker(ImpulseChecker):
         self.Start = s
 
     def __call__(self, disclosure):
-        return disclosure.What.startsWith(self.Start)
+        return disclosure.What.startswith(self.Start)
 
     def to_json(self):
         return {
@@ -100,7 +104,7 @@ class RegexChecker(ImpulseChecker):
     def __init__(self, regex, flag=0):
         self.Regex = regex
         self.Flag = flag
-        self.RegexF = re.compile(regex, flag)
+        self.RegexF = re.compile(regex, flags=flag)
 
     def __call__(self, disclosure):
         return bool(self.RegexF.match(disclosure.What))
@@ -117,11 +121,24 @@ class RegexChecker(ImpulseChecker):
         return RegexChecker(js['Regex'], js['Flag'])
 
 
-class EventListener(metaclass=ABCMeta):
-    @abstractmethod
-    def needs(self, disclosure, model_local):
-        pass
+class InclusionChecker(ImpulseChecker):
+    def __init__(self, included):
+        self.Inclusion = list(included)
 
-    @abstractmethod
-    def apply_shock(self, disclosure, model_foreign, model_local, ti, arg=None):
-        pass
+    def __call__(self, disclosure):
+        return disclosure.What in self.Inclusion
+
+    def to_json(self):
+        return {
+            'Type': 'Inclusion',
+            'Inclusion': self.Inclusion
+        }
+
+    @staticmethod
+    def from_json(js):
+        return InclusionChecker(js['Inclusion'])
+
+
+class InitialChecker(StartsWithChecker):
+    def __init__(self):
+        StartsWithChecker.__init__(self, 'initialise')
