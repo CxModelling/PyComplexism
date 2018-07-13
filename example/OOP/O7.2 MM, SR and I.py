@@ -83,8 +83,7 @@ class InfOut(cx.ImpulseResponse):
     def __call__(self, disclosure, model_foreign, model_local, ti):
         n = disclosure.Arguments['n']
         model_local.impulse('del', y='Sus', n=float(n))
-        model_local.impulse('impulse', k='Inf', v=model_local.Equations['Inf'] + 1)
-        # model_local.impulse('impulse', k='Inf', v=model_foreign.get_snapshot('Inf', ti))
+        model_local.impulse('impulse', k='Inf', v=model_local.Equations['Inf'] + n)
 
 
 class InfIn(cx.ImpulseResponse):
@@ -111,7 +110,6 @@ class RecSource(cx.ImpulseResponse):
     def __call__(self, disclosure, model_foreign, model_local, ti):
         model_local.impulse('add', y='Rec', n=1)
         model_local.impulse('impulse', k='Inf', v=model_local.Equations['Inf'] - 1)
-        # model_local.impulse('impulse', k='Inf', v=model_foreign.get_snapshot('Inf', ti))
 
 
 class UpdateSource(cx.ImpulseResponse):

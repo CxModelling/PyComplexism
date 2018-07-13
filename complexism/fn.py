@@ -128,24 +128,26 @@ def simulate(model, y0, fr, to, dt=1, seed=None, mid=False, log=True):
     :param dt: observation interval
     :param seed: seed for random number generation
     :param mid: output middle point observation
+    :param log: keep log or not
     :return: data of simulation
     """
     if model.TimeEnd:
         return model.output(mid=mid)
-    sim = Simulator(model, seed=seed, keep_log=True)
+    sim = Simulator(model, seed=seed, keep_log=log)
     sim.simulate(y0, fr, to, dt)
     return model.output(mid=mid)
 
 
-def update(model, to, dt=1):
+def update(model, to, dt=1, log=True):
     """
     Update a dynamic to a certain time point
     :param model: dynamic model which has been initialised
     :param to: end time
     :param dt: observation interval
+    :param log: keep log or not
     :return: data of simulation
     """
-    sim = Simulator(model, keep_log=True, new_log=False)
+    sim = Simulator(model, keep_log=log, new_log=False)
     sim.Time = model.TimeEnd
     if to > sim.Time:
         sim.update(to, dt)

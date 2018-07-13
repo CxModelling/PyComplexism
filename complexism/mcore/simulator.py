@@ -6,16 +6,22 @@ __author__ = 'TimeWz667'
 __all__ = ['Simulator']
 
 
+class PseudoLogger:
+    def info(self, msg):
+        pass
+
+
 class Simulator:
     def __init__(self, model, seed=None, keep_log=True, new_log=True):
         self.Model = model
         if seed:
             rd.seed(seed)
         self.Time = 0
-        self.Logger = logging.getLogger(__name__)
+
         self.Models = dict()
 
         if keep_log:
+            self.Logger = logging.getLogger(__name__)
             if new_log:
                 file = '{}.log'.format(self.Model.Name)
                 with open(file, 'w'):
@@ -24,6 +30,8 @@ class Simulator:
                 fh = logging.FileHandler(file)
                 fh.setFormatter(logging.Formatter('%(asctime)s - %(message)s'))
                 self.Logger.addHandler(fh)
+        else:
+            self.Logger = PseudoLogger()
 
     def simulate(self, y0, fr, to, dt):
         self.Time = fr
