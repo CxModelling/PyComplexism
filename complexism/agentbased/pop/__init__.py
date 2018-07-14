@@ -1,4 +1,3 @@
-from .community import *
 from .network import *
 from .population import *
 

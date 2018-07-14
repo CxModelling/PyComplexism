@@ -3,7 +3,6 @@ from collections import namedtuple, OrderedDict
 from complexism.misc.counter import count
 from complexism.mcore import Observer, LeafModel
 from complexism.element import Request
-from .pop import Community
 
 
 __author__ = 'TimeWz667'

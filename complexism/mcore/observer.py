@@ -98,6 +98,7 @@ class Observer(metaclass=ABCMeta):
         self.StockNames = list(self.Last.keys())
         self.FlowNames = list(self.Flow.keys())
 
+
     def observe_routinely(self, model, ti):
         self.read_statics(model, self.Last, ti)
         self.update_dynamic_observations(model, self.Flow, ti)

@@ -14,6 +14,7 @@ class ObsStSpABM(ObsABM):
         ObsABM.__init__(self)
         self.States = list()
         self.Transitions = list()
+        self.LazySnapshot = dict()
 
     def add_observing_state(self, st):
         self.States.append(st)
@@ -53,6 +54,44 @@ class ObsStSpABM(ObsABM):
 
         for fn in self.Functions:
             fn(model, tab, ti)
+
+    def get_snapshot(self, model, key, ti):
+        try:
+            ty, src = self.LazySnapshot[key]
+            if ty == 'St':
+                return model.Population.count(st=src)
+            elif ty == 'Be':
+                tab = dict()
+                model.Behaviours[src].fill(tab, model, ti)
+                return tab[key]
+            elif ty == 'Fn':
+                tab = dict()
+                src(model, tab, ti)
+                return tab[key]
+            raise AttributeError('Non-identifiable request')
+        except KeyError:
+            return ObsABM.get_snapshot(self, model, key, ti)
+
+    def initialise_observations(self, model, ti):
+        ObsABM.initialise_observations(self, model, ti)
+        self._find_lazy_stats(model, ti)
+
+    def _find_lazy_stats(self, model, ti):
+        self.LazySnapshot = dict()
+        for st in self.States:
+            self.LazySnapshot[st] = ('St', st)
+
+        for be in self.Behaviours:
+            tab = dict()
+            model.Behaviours[be].fill(tab, model, ti)
+            for k, v in tab.items():
+                self.LazySnapshot[k] = ('Be', be)
+
+        for fn in self.Functions:
+            tab = dict()
+            fn(model, tab, ti)
+            for k, v in tab.items():
+                self.LazySnapshot[k] = ('Fn', fn)
 
     def record(self, ag, evt, ti):
         self.Records.append(Record(ag.Name, evt.Todo, ti))
@@ -107,15 +146,6 @@ class StSpAgentBasedModel(GenericAgentBasedModel):
             self.Observer.add_observing_state(st)
         else:
             raise KeyError('State {} does not exist'.format(st))
-
-    def listen(self, mod_src, message, par_src, par_tar, **kwargs):
-        try:
-            be = self.Behaviours[par_tar]
-            be.set_source(mod_src, message, par_src)
-        except KeyError:
-            # name = par_tar
-            name = '{}-{}'.format(par_src, par_tar)
-            #ForeignShock.decorate(name, self, mod_src=mod_src, message=message, par_src=par_src, t_tar=par_tar, **kwargs)
 
     def clone(self, **kwargs):
         pass

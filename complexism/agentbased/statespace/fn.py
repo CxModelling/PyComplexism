@@ -1,6 +1,6 @@
 import epidag as dag
 from epidag.factory import get_workshop
-from .. import Community, Population
+from .. import Population
 from .breeder import StSpBreeder
 from .abmstsp import StSpAgentBasedModel
 
@@ -14,10 +14,9 @@ def form_resources(model):
     pc, dc = model.Environment, model.DCore
     resources = {
         'states': dc.States,
-        'transitions': dc.Transitions
+        'transitions': dc.Transitions,
+        'networks': model.Population.Networks.list()
     }
-    if isinstance(model.Population, Community):
-        resources['networks'] = model.Population.Networks.list()
     resources.update(pc.Locus)
     return resources
 
@@ -49,7 +48,7 @@ def prepare_pc(model_name, ag_group, dbp, **kwargs):
 def generate_plain_model(model_name, dbp, pc, prefix='Ag', group=None, have_network=False):
     group = group if group else prefix
     eve = StSpBreeder(prefix, group, pc, dbp)
-    pop = Community(eve) if have_network else Population(eve)
+    pop = Population(eve)
     return StSpAgentBasedModel(model_name, pc, pop)
 
 
