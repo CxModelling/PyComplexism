@@ -35,6 +35,7 @@ class Simulator:
 
     def simulate(self, y0, fr, to, dt):
         self.Time = fr
+        self.Model.set_observation_interval(dt)
         self.Model.initialise(ti=fr, y0=y0)
         self.deal_with_disclosures(fr, None)
         self.Model.initialise_observations(fr)

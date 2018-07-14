@@ -23,6 +23,6 @@ y0 = [
 ]
 
 cx.start_counting()
-print(cx.simulate(model, y0, 0, 10, 1))
+print(cx.simulate(model, y0, 0, 10, 0.5))
 cx.stop_counting()
 print(cx.get_results())

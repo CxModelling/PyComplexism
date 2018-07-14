@@ -240,6 +240,9 @@ class AbsModel(metaclass=ABCMeta):
     def push_observations(self, ti):
         self.Observer.push_observations(ti)
 
+    def set_observation_interval(self, dt):
+        self.Observer.ObservationalInterval = dt
+
     def get_snapshot(self, key, ti):
         return self.Observer.get_snapshot(self, key, ti)
 
@@ -414,3 +417,8 @@ class BranchModel(AbsModel, metaclass=ABCMeta):
         for m in self.all_models().values():
             m.push_observations(ti)
         AbsModel.push_observations(self, ti)
+
+    def set_observation_interval(self, dt):
+        for m in self.all_models().values():
+            m.set_observation_interval(dt)
+        AbsModel.set_observation_interval(self, dt)
