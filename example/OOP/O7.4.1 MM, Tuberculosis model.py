@@ -84,8 +84,8 @@ class InfOut(cx.ImpulseResponse):
     def __call__(self, disclosure, model_foreign, model_local, ti):
         n = disclosure.Arguments['n']
         model_local.impulse('del', y='Inf_psu', n=float(n))
-        model_local.impulse('impulse', k='Inf', v=model_local.Equations['Inf'] + 1)
-        model_local.impulse('impulse', k='N_abm', v=model_local.Equations['N_abm'] + 1)
+        model_local.impulse('impulse', k='Inf', v=model_local.Equations['Inf'] + n)
+        model_local.impulse('impulse', k='N_abm', v=model_local.Equations['N_abm'] + n)
 
 
 class SusSource(cx.ImpulseResponse):
@@ -127,7 +127,7 @@ model_i.add_listener(cx.InitialChecker(), ii)
 model_i.add_listener(cx.StartsWithChecker('update'), ii)
 
 
-scale = 500
+scale = 1000
 # Step 5 simulate
 y0e = {
     'Sus': 29*scale,
@@ -151,7 +151,7 @@ model.add_observing_model('SER')
 
 
 cx.start_counting('TB')
-output = cx.simulate(model, {'SER': y0e, 'I': y0a}, 0, 10, 1)
+output = cx.simulate(model, {'SER': y0e, 'I': y0a}, 0, 10, 1, log=False)
 cx.stop_counting()
 print(cx.get_results('TB'))
 

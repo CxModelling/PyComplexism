@@ -264,8 +264,8 @@ class NetShock(PassiveModBehaviour, metaclass=ABCMeta):
 
     def initialise(self, ti, model, *args, **kwargs):
         for ag in model.agents:
-            val = model.Pop.count_neighbours(ag, st=self.S_src, net=self.Net)
-            ag.shock(self.Name, val, ti)
+            val = model.Population.count_neighbours(ag, st=self.S_src, net=self.Net)
+            ag.shock(ti, None, self.Name, val)
 
     def reset(self, ti, *args, **kwargs):
         pass
@@ -287,18 +287,18 @@ class NetShock(PassiveModBehaviour, metaclass=ABCMeta):
     def fill(self, obs, model, ti):
         vs = 0
         for ag in model.agents:
-            vs += ag.Mods[self.Name].Val
+            vs += ag.Modifiers[self.Name].Value
         try:
             obs[self.Name] = vs / len(model.agents)
         except ZeroDivisionError:
             obs[self.Name] = 0
 
     def __shock(self, ag, model, ti):
-        val = model.Pop.count_neighbours(ag, st=self.S_src, net=self.Net)
-        ag.shock(self.Name, val, ti)
-        for nei in model.Pop.neighbours(ag, net=self.Net):
-            val = model.Pop.count_neighbours(nei, st=self.S_src, net=self.Net)
-            nei.shock(self.Name, val, ti)
+        val = model.Population.count_neighbours(ag, st=self.S_src, net=self.Net)
+        ag.shock(ti, None, self.Name, val)
+        for nei in model.Population.neighbours(ag, net=self.Net):
+            val = model.Population.count_neighbours(nei, st=self.S_src, net=self.Net)
+            nei.shock(ti, None, self.Name, val)
 
     def __repr__(self):
         opt = self.Name, self.S_src.Name, self.T_tar.Name, self.Net
@@ -324,7 +324,7 @@ class NetWeightShock(PassiveModBehaviour, metaclass=ABCMeta):
     def initialise(self, ti, model, *args, **kwargs):
         for ag in model.agents:
             val = self.__foi(ag, model)
-            ag.shock(self.Name, val, ti)
+            ag.shock(ti, None, self.Name, val)
 
     def impulse_change(self, model, ag, ti):
         self.__shock(ag, model, ti)
@@ -343,7 +343,7 @@ class NetWeightShock(PassiveModBehaviour, metaclass=ABCMeta):
     def fill(self, obs, model, ti):
         vs = 0
         for ag in model.agents:
-            vs += ag.Mods[self.Name].Val
+            vs += ag.Mods[self.Name].Value
         try:
             obs[self.Name] = vs / len(model.agents)
         except ZeroDivisionError:
@@ -352,13 +352,13 @@ class NetWeightShock(PassiveModBehaviour, metaclass=ABCMeta):
     def __foi(self, ag, model):
         val = 0
         for k, v in self.Weight.items():
-            model.Pop.count_neighbours(ag, st=k, net=self.Net) * v
+            model.Population.count_neighbours(ag, st=k, net=self.Net) * v
         return val
 
     def __shock(self, ag, model, ti):
         val = self.__foi(ag, model)
         ag.shock(ti, self.Name, self.Name, val)
-        for nei in model.Pop.neighbours(ag, net=self.Net):
+        for nei in model.Population.neighbours(ag, net=self.Net):
             val = self.__foi(nei, model)
             nei.shock(ti, self.Name, self.Name, val)
 
