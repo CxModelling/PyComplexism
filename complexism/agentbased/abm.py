@@ -63,10 +63,7 @@ class GenericAgentBasedModel(LeafModel, metaclass=ABCMeta):
         self.Observer.add_observing_function(func)
 
     def add_network(self, net):
-        if isinstance(self.Population, Community):
-            self.Population.add_network(net)
-        else:
-            raise AttributeError('The population is not network-based')
+        self.Population.add_network(net)
 
     @abstractmethod
     def read_y0(self, y0, ti):

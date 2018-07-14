@@ -88,7 +88,7 @@ class BlueprintStSpABM(AbsBlueprintMCore):
         resources = {
             'states': model.DCore.States,
             'transitions': model.DCore.Transitions,
-            'networks': [net[0] for net in self.Population['Networks']]
+            'networks': [net['Name'] for net in self.Population['Networks']]
         }
         resources.update(pc.Locus)
 
