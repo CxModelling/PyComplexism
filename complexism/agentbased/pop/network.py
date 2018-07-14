@@ -332,22 +332,6 @@ if __name__ == '__main__':
         ns3.add_agent('Ag{}'.format(nod))
 
     # ns1.reform()
-    import matplotlib.pyplot as plt
-    plt.figure(1)
-    plt.subplot(2, 2, 1)
-    nx.draw_circular(ns1.Graph)
-
-    plt.subplot(2, 2, 2)
-    nx.draw_circular(ns3.Graph)
-    #
-    plt.subplot(2, 2, 3)
-    plt.hist(list(ns1.Graph.degree().values()))
-    #
-    plt.subplot(2, 2, 4)
-    plt.hist(list(ns3.Graph.degree().values()))
-    #
-    plt.show()
-
     ag1 = ns1['Ag1']
     nsc = NetworkSet()
     nsc['N1'] = NetworkBA('ns1', m=2)
