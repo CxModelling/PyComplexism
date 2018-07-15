@@ -5,10 +5,47 @@ from ..modifier import GloRateModifier, LocRateModifier, BuffModifier, NerfModif
 from .behaviour import PassiveModBehaviour, ActiveModBehaviour
 from .trigger import StateTrigger
 __author__ = 'TimeWz667'
-__all__ = ['FDShock', 'FDShockFast', 'DDShock', 'DDShockFast',
+__all__ = ['ExternalShock',
+           'FDShock', 'FDShockFast', 'DDShock', 'DDShockFast',
            'WeightSumShock', 'WeightAvgShock',
            'NetShock', 'NetWeightShock',
            'SwitchOn', 'SwitchOff']
+
+
+class ExternalShock(PassiveModBehaviour):
+    def __init__(self, name, t_tar):
+        mod = GloRateModifier(name, t_tar)
+        PassiveModBehaviour.__init__(self, name, mod)
+        self.T_tar = t_tar
+        self.Value = 1
+
+    def initialise(self, ti, model, *args, **kwargs):
+        self.__shock(model, ti)
+
+    def reset(self, ti, *args, **kwargs):
+        pass
+
+    def shock(self, ti, source, target, value):
+        self.Value = value
+        self.__shock(target, ti)
+
+    def match(self, be_src, ags_src, ags_new, ti):
+        self.Value = be_src.Value
+        for ag in ags_new.values():
+            self.register(ag, ti)
+
+    def fill(self, obs, model, ti):
+        obs[self.Name] = self.Value
+
+    def __shock(self, model, ti):
+        self.ProtoModifier.Value = self.Value
+        for ag in model.agents:
+            ag.modify(self.Name, ti)
+
+    @staticmethod
+    def decorate(name, model, **kwargs):
+        t_tar = model.DCore.Transitions[kwargs['t_tar']]
+        model.Behaviours[name] = ExternalShock(name, t_tar)
 
 
 class GlobalShock(PassiveModBehaviour, metaclass=ABCMeta):

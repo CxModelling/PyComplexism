@@ -1,12 +1,11 @@
 import numpy as np
 import numpy.random as rd
-import re
 import matplotlib.pyplot as plt
 import complexism as cx
 import epidag as dag
 import complexism.agentbased.statespace as ss
 import complexism.equationbased as ebm
-from complexism.mcore import EventListener
+
 __author__ = 'TimeWz667'
 
 
@@ -63,70 +62,71 @@ mbp_i.set_observations(states=['Inf', 'Alive', 'PreCare', 'InCare', 'PostCare'],
                        transitions=['Cure', 'Recover', 'SeekCare', 'Die_TB'])
 
 
-class LisSER(EventListener):
-
-    def needs(self, disclosure, model_local):
-        if disclosure.is_sibling():
-            return True
-
-    def apply_shock(self, disclosure, model_foreign, model_local, ti, arg=None):
-        if disclosure.What.startswith('initialise'):
-            pass
-        elif disclosure.What.startswith('Die'):
-            model_local.go_to(ti)
-            model_local.impulse('add', y='Sus', n=1)  # Reincarnation
-
-        elif disclosure.What.startswith('Treat'):
-            model_local.go_to(ti)
-            model_local.impulse('add', y='Rec', n=1)
-
-        elif disclosure.What.startswith('Add'):
-            model_local.go_to(ti)
-            n = re.match('add (\d+) agents', disclosure.What).group(1)
-            if disclosure.Arguments['type'] == 'New':
-                model_local.impulse('del', y='LatFast', n=float(n))
-            elif disclosure.Arguments['type'] == 'Reactivate':
-                model_local.impulse('del', y='LatSlow', n=float(n))
-            elif disclosure.Arguments['type'] == 'Relapse':
-                model_local.impulse('del', y='Rec', n=float(n))
-            else:
-                raise ValueError('Unknown type')
-        elif disclosure.What in ['Recover', 'Cure']:
-            model_local.go_to(ti)
-        else:
-            return
+class UpdateSource(cx.ImpulseResponse):
+    def __call__(self, disclosure, model_foreign, model_local, ti):
         model_local.impulse('impulse', k='Inf', v=model_foreign.get_snapshot('Inf', ti))
         model_local.impulse('impulse', k='N_abm', v=model_foreign.get_snapshot('Alive', ti))
 
 
-class LisI(EventListener):
+class InfOut(cx.ImpulseResponse):
+    def __call__(self, disclosure, model_foreign, model_local, ti):
+        n = disclosure.Arguments['n']
+        tp = disclosure.Arguments['type']
+        if tp == 'New':
+            model_local.impulse('del', y='LatFast', n=float(n))
+        elif tp == 'Reactivate':
+            model_local.impulse('del', y='LatSlow', n=float(n))
+        elif tp == 'Relapse':
+            model_local.impulse('del', y='Rec', n=float(n))
+        else:
+            raise ValueError('Unknown type')
 
-    def needs(self, disclosure, model_local):
-        if disclosure.is_sibling():
-            return True
+        model_local.impulse('impulse', k='Inf', v=model_local.Equations['Inf'] + n)
+        model_local.impulse('impulse', k='N_abm', v=model_local.Equations['N_abm'] + n)
 
-    def apply_shock(self, disclosure, model_foreign, model_local, ti, arg=None):
-        if disclosure.What.startswith('update'):
-            y = model_foreign.Y['LatFast']
-            lam = model_foreign['r_act'] * y / 2
-            n = rd.poisson(lam)
-            n = min(n, y)
-            if n >= 1:
-                model_local.birth(n, ti=ti, st='Act', type='New')
 
-            y = model_foreign.Y['LatSlow']
-            lam = model_foreign['r_ract'] * y / 2
-            n = rd.poisson(lam)
-            n = min(n, y)
-            if n >= 1:
-                model_local.birth(n, ti=ti, st='Act', type='Reactivate')
+class SusSource(cx.ImpulseResponse):
+    def __call__(self, disclosure, model_foreign, model_local, ti):
+        model_local.impulse('add', y='Sus', n=1)
+        model_local.impulse('impulse', k='Inf', v=model_foreign.get_snapshot('Inf', ti))
+        model_local.impulse('impulse', k='N_abm', v=model_local.Equations['N_abm'] - 1)
 
-            y = model_foreign.Y['Rec']
-            lam = model_foreign['r_rel'] * y / 2
-            n = rd.poisson(lam)
-            n = min(n, y)
-            if n >= 1:
-                model_local.birth(n, ti=ti, st='Act', type='Relapse')
+
+class RecSource(cx.ImpulseResponse):
+    def __call__(self, disclosure, model_foreign, model_local, ti):
+        model_local.impulse('add', y='Rec', n=1)
+        model_local.impulse('impulse', k='Inf', v=model_foreign.get_snapshot('Inf', ti))
+        model_local.impulse('impulse', k='N_abm', v=model_local.Equations['N_abm'] - 1)
+
+
+class TempRec(cx.ImpulseResponse):
+    def __call__(self, disclosure, model_foreign, model_local, ti):
+        model_local.impulse('add', y='Rec', n=1)
+        model_local.impulse('impulse', k='Inf', v=model_local.Equations['Inf'] - 1)
+
+
+class InfIn(cx.ImpulseResponse):
+    def __call__(self, disclosure, model_foreign, model_local, ti):
+        y = model_foreign.Y['LatFast']
+        lam = model_foreign['r_act'] * y / 2
+        n = rd.poisson(lam)
+        n = min(n, y)
+        if n >= 1:
+            model_local.birth(n, ti=ti, st='Act', type='New')
+
+        y = model_foreign.Y['LatSlow']
+        lam = model_foreign['r_ract'] * y / 2
+        n = rd.poisson(lam)
+        n = min(n, y)
+        if n >= 1:
+            model_local.birth(n, ti=ti, st='Act', type='Reactivate')
+
+        y = model_foreign.Y['Rec']
+        lam = model_foreign['r_rel'] * y / 2
+        n = rd.poisson(lam)
+        n = min(n, y)
+        if n >= 1:
+            model_local.birth(n, ti=ti, st='Act', type='Relapse')
 
 
 pc = sm.generate('Taipei')
@@ -134,8 +134,15 @@ pc = sm.generate('Taipei')
 model_ser = mbp_ser.generate('SER', pc=pc.breed('SER', 'SER'))
 model_i = mbp_i.generate('I', pc=pc.breed('I', 'I'), dc=dbp_i)
 
-model_ser.add_listener(LisSER())
-model_i.add_listener(LisI())
+model_ser.add_listener(cx.InitialChecker(), UpdateSource())
+model_ser.add_listener(cx.StartsWithChecker('add'), InfOut())
+model_ser.add_listener(cx.StartsWithChecker('Die'), SusSource())
+model_ser.add_listener(cx.StartsWithChecker('Treat'), RecSource())
+model_ser.add_listener(cx.InclusionChecker(['Recover', 'Cure']), TempRec())
+
+ii = InfIn()
+model_i.add_listener(cx.InitialChecker(), ii)
+model_i.add_listener(cx.StartsWithChecker('update'), ii)
 
 scale = 20
 # Step 5 simulate
@@ -160,7 +167,6 @@ cx.start_counting('TB')
 output = cx.simulate(model, {'SER': y0e, 'I': y0a}, 0, 20, 1)
 cx.stop_counting()
 print(cx.get_results('TB'))
-output.plot()
 
 
 fig, axes = plt.subplots(nrows=3, ncols=1)

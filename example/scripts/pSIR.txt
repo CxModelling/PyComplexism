@@ -2,6 +2,6 @@ PCore pSIR {
     beta = 1.5
     gamma = 0.2
     Infect ~ exp(beta)
-    Recov ~ exp(0.5)
+    Recov ~ exp(gamma)
     Die ~ exp(0.02)
 }

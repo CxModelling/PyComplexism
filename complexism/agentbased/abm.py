@@ -151,6 +151,12 @@ class GenericAgentBasedModel(LeafModel, metaclass=ABCMeta):
         for k, ag in self.Population.Agents.items():
             self.request(ag.Next, k)
 
+    def shock(self, ti, model_foreign, at, value):
+        try:
+            self.Behaviours[at].shock(ti, model_foreign, self, value)
+        except KeyError:
+            raise KeyError('Non-identifiable location')
+
     @count()
     def do_request(self, req: Request):
         nod, evt, time = req.Who, req.Event, req.When

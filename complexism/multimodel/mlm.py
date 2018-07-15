@@ -87,7 +87,7 @@ class MultiLevelModel(BranchModel):
             act = self.Actors[nod]
             act.approve_event(evt)
             act.operate(self)
-            act.append(self)
+            # act.append(self)
         except KeyError as e:
             raise e
 

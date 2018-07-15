@@ -10,6 +10,7 @@ from .lifebe import *
 __author__ = 'TimeWz667'
 __all__ = ['PassiveModBehaviour', 'ActiveModBehaviour',
            'TransitionTrigger', 'StateTrigger', 'StateEnterTrigger', 'StateExitTrigger',
+           'ExternalShock',
            'FDShock', 'FDShockFast', 'DDShock', 'DDShockFast',
            'WeightSumShock', 'WeightAvgShock', 'NetShock', 'NetWeightShock',
            'SwitchOn', 'SwitchOff',
@@ -29,6 +30,9 @@ StSpBeLibrary.register('LifeS', LifeS,
                        [vld.Options('s_death', 'states'), vld.Options('s_birth', 'states'),
                         vld.PositiveFloat('rate'), vld.PositiveFloat('cap'),
                         vld.PositiveFloat('dt', opt=True, default=0.5)])
+
+StSpBeLibrary.register('ExternalShock', ExternalShock,
+                       [vld.Options('t_tar', 'transitions')])
 
 StSpBeLibrary.register('FDShock', FDShock,
                        [vld.Options('t_tar', 'transitions'), vld.Options('s_src', 'states')])

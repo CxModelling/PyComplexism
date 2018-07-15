@@ -67,8 +67,10 @@ CTMC SIR {
 mbp_i = ss.BlueprintStSpABM('I')
 mbp_i.set_agent(prefix='Ag', group='agent', dynamics='SIR')
 mbp_i.add_behaviour('Recovery', 'Cohort', s_death='Rec')
+mbp_i.add_behaviour('InfIn', 'AgentImport', s_birth='Inf')
 mbp_i.set_observations(states=['Inf', 'Rec'],
-                       transitions=['Recov'])
+                       transitions=['Recov'],
+                       behaviours=['InfIn'])
 
 
 dbp = cx.read_dbp_script(dsc)
@@ -100,8 +102,7 @@ class InfIn(cx.ImpulseResponse):
                 lam = model_foreign['beta'] * sus * inf * dt / (sus + inf + rec)
                 n = rd.poisson(lam)
                 n = min(n, sus)
-                if n >= 1:
-                    model_local.birth(n, ti=ti, st='Inf')
+                model_local.shock(ti, model_foreign, 'InfIn', value=n)
 
         self.Last = ti
 

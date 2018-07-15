@@ -1,3 +1,4 @@
+import matplotlib.pyplot as plt
 import complexism as cx
 import complexism.agentbased.statespace as ss
 import epidag as dag
@@ -61,8 +62,9 @@ if __name__ == '__main__':
         {'n': 2, 'attributes': {'st': 'Inf'}},
     ]
 
-    from complexism.misc.counter import *
-    start_counting('SIR')
-    print(cx.simulate(model, y0, 0, 10, 1))
-    stop_counting()
-    print(get_results('SIR'))
+    cx.start_counting('SIR')
+    output = cx.simulate(model, y0, 0, 30, 1)
+    cx.stop_counting()
+    print(cx.get_results('SIR'))
+    output.plot()
+    plt.show()
