@@ -1,4 +1,5 @@
 from itertools import groupby
+import heapq
 from enum import Enum, auto
 from .event import Event
 
@@ -143,7 +144,7 @@ class Request:
         return self.When == ot.When
 
 
-Request.NullRequest = Request(Event('', float('inf')), 'Nobody', 'Nowhere')
+Request.NullRequest = Request(Event(None, float('inf')), 'Nobody', 'Nowhere')
 
 
 class Status(Enum):
@@ -161,6 +162,87 @@ class Schedule:
         self.Time = float('inf')
         self.Status = Status.TO_COLLECT
 
+        self.Actors = dict()
+        self.WaitingActors = list()
+        self.Queue = list()
+
+    def add_actor(self, actor):
+        self.Actors[actor] = None
+        self.WaitingActors.append(actor)
+
+    def remove_actor(self, actor):
+        try:
+            self.Actors[actor][-1].cancel()
+            del self.Actors[actor]
+            self.WaitingActors.remove(actor)
+        except (KeyError, ValueError):
+            pass
+
+    def reschedule_actor(self, actor, ti):
+        try:
+            self.Actors[actor][-1].cancel()
+        except TypeError:
+            pass
+
+        actor.update_time(ti)
+        event = actor.Next
+        tte = event.Time
+        entry = [tte, actor, event]
+        self.Actors[actor] = entry
+        heapq.heappush(self.Queue, entry)
+
+        try:
+            self.WaitingActors.remove(actor)
+        except ValueError:
+            pass
+
+    def add_schedule_actor(self, actor, ti):
+        self.Actors[actor] = None
+        self.reschedule_actor(actor, ti)
+
+    def reschedule_all_actors(self, ti):
+        self.Queue = list()
+        for actor, entry in self.Actors.items():
+            self.reschedule_actor(actor, ti)
+        self.WaitingActors = list()
+
+    def reschedule_waiting_actors(self, ti):
+        while self.WaitingActors:
+            actor = self.WaitingActors.pop()
+            self.reschedule_actor(actor, ti)
+
+    def clean_cancelled(self):
+        self.Queue = [q for q in self.Queue if not q[-1].is_cancelled()]
+
+    def pop_event(self):
+        while self.Queue:
+            tte, actor, event = heapq.heappop(self.Queue)
+            if actor.Next is not event:  # if the next event have been updated
+                event.cancel()
+
+            if not event.is_cancelled():
+                self.WaitingActors.append(actor)
+                return actor, event
+
+            if actor in self.WaitingActors:
+                self.reschedule_actor(actor, tte)
+        raise KeyError('pop from an empty priority queue')
+
+    def remove_event_until(self, ti):
+        while self.Queue:
+            tte = self.Queue[0][0]
+            if tte > ti:
+                return
+
+            tte, actor, event = heapq.heappop(self.Queue)
+
+            if actor not in self.Actors:
+                continue
+
+            _, _, e = self.Actors[actor]
+            if event is e:
+                self.reschedule_actor(actor, ti)
+
     def __gt__(self, ot):
         return self.Time > ot.Time
 
@@ -177,26 +259,17 @@ class Schedule:
         return iter(self.Disclosures + self.Requests)
 
     # Collection stage
-
-    def append_request(self, req: Request):
-        """
-        Append a request
-        :param req: request to be execute
-        :return: true if the request is the nearest
-        """
-        ti = req.When
-        if ti < self.Time:
-            self.Requests = [req]
-            self.Time = ti
-            return True
-        elif ti == self.Time:
-            self.Requests.append(req)
-            return True
-        return False
+    def find_next(self):
+        try:
+            ti, actor, event = min(self.Queue)
+            if ti < self.Time:
+                self.Requests = [Request(e, a.Name, self.Location) for t, a, e in self.Queue if t is ti]
+                self.Time = ti
+        except ValueError:
+            pass
 
     def append_request_from_source(self, event, who):
-        req = Request(event, who, self.Location)
-        return self.append_request(req)
+        self.Requests.append(Request(event, who, self.Location))
 
     def append_disclosure(self, dss: Disclosure):
         """
@@ -281,12 +354,17 @@ class Schedule:
     def execution_completed(self):
         self.Status = Status.TO_FINISH
         self.Requests.clear()
+        self.remove_event_until(self.Time)
+        self.reschedule_waiting_actors(self.Time)
         self.Time = float('inf')
 
     def cycle_completed(self):
         self.Status = Status.TO_COLLECT
         self.Disclosures.clear()
-        self.Requests.clear()
+        if self.Requests:
+            self.Requests.clear()
+            self.remove_event_until(self.Time)
+            self.reschedule_waiting_actors(self.Time)
         self.Time = float('inf')
 
     def cycle_broke(self):

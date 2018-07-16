@@ -60,7 +60,7 @@ class Simulator:
         while tx < end:
             self.Model.collect_requests()
             requests = self.Model.Scheduler.Requests
-            ti = requests[0].When
+            ti = self.Model.Scheduler.Time
             if ti > end:
                 break
             tx = ti

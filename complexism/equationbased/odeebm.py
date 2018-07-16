@@ -1,9 +1,10 @@
 import numpy as np
 from scipy.integrate import odeint
-from .ebm import AbsEquations, GenericEquationBasedModel
 from complexism.mcore import Observer, LeafY0
+from .ebm import AbsEquations, GenericEquationBasedModel
 
 __author__ = 'TimeWz667'
+__all__ = ['ObsODE', 'ODEY0', 'OrdinaryDifferentialEquations', 'OrdinaryDifferentialEquationModel']
 
 
 class ObsODE(Observer):
@@ -34,23 +35,27 @@ class ObsODE(Observer):
 
         y = model.Equations.Y
         p = model.Environment
-        x = model.Equations.X
+        x = model.Equations.Attributes
 
         for func in self.Functions:
             tab.update(func(y=y, t=tiu, p=p, x=x))
 
 
 class OrdinaryDifferentialEquations(AbsEquations):
-    def __init__(self, fn, y_names, dt, x=None):
-        self.Dt = dt
+    def __init__(self, name, fn, y_names, dt, fdt, pars, x=None):
+        AbsEquations.__init__(self, name, dt, pars, x)
         self.Y = np.zeros(len(y_names))
-        self.X = x if x else dict()
         self.NamesY = y_names
         self.IndicesY = {v: i for i, v in enumerate(y_names)}
         self.Func = fn
+        self.Fdt = fdt
+        self.Last = None
 
-    def __getitem__(self, item):
-        return self.X[item]
+    def initialise(self, ti, model, *args, **kwargs):
+        self.Last = ti
+
+    def reset(self, ti, model, *args, **kwargs):
+        self.Last = ti
 
     def set_external_variables(self, xs):
         """
@@ -59,17 +64,15 @@ class OrdinaryDifferentialEquations(AbsEquations):
         :type xs: dict
         """
         try:
-            self.X.update(xs)
+            self.Attributes.update(xs)
         except AttributeError as e:
             raise e
 
     def set_y(self, y):
-        if isinstance(y, ODEY0):
-            self.Y = np.zeros(len(y.Ys))
-            for k, v in y:
-                self.Y[self.IndicesY[k]] = v
-            return
-
+        try:
+            y = y.Ys
+        except AttributeError:
+            pass
         n = len(self.NamesY)
         if len(y) is not n:
             raise AttributeError
@@ -87,41 +90,44 @@ class OrdinaryDifferentialEquations(AbsEquations):
     def get_y_dict(self):
         return {v: self.Y[i] for v, i in self.IndicesY.items()}
 
-    def update(self, t0, t1, pars):
-        num = max(int((t1 - t0) / self.Dt) + 1, 2)
+    def go_to(self, ti):
+        t0, t1 = self.Last, ti
+        if t0 == t1:
+            return
+        num = max(int((t1 - t0) / self.Fdt) + 1, 2)
         ts = np.linspace(t0, t1, num)
-        self.Y = odeint(self.Func, self.Y, ts, args=(pars, self.X))[-1]
-        return self.get_y_dict()
+        self.Y = odeint(self.Func, self.Y, ts, args=(self.Parameters, self.Attributes))[-1]
+        self.Last = t1
 
-    def execute_event(self, model, event, **kwargs):
-        if event == 'impulse':
+    def shock(self, ti, src, tar, value):
+        if src == 'impulse':
             try:
-                k, v1 = kwargs['k'], kwargs['v']
-                v0 = self.X[k]
-                self.X[k] = v1
-                model.disclose('change {} from {} to {}'.format(k, v0, v1), 'Equation')
+                k, v1 = value['k'], value['v']
+                v0 = self[k]
+                self[k] = v1
+                tar.disclose('change {} from {} to {}'.format(k, v0, v1), 'Equation')
             except KeyError:
                 raise KeyError('Unmatched keywords')
-        elif event == 'add':
+        elif src == 'add':
             try:
-                y = kwargs['y']
+                y = value['y']
                 if y not in self.IndicesY:
                     raise KeyError('{} does not exist')
-                n = kwargs['n'] if 'n' in kwargs else 1
+                n = value['n'] if 'n' in value else 1
                 self.Y[self.IndicesY[y]] += n
-                model.disclose('add {} by {}'.format(y, n), 'Equation')
+                tar.disclose('add {} by {}'.format(y, n), 'Equation')
             except KeyError:
                 raise KeyError('Unmatched keywords')
-        elif event == 'del':
+        elif src == 'del':
             try:
-                y = kwargs['y']
+                y = value['y']
                 if y not in self.IndicesY:
                     raise KeyError('{} does not exist')
 
-                n = kwargs['n'] if 'n' in kwargs else 1
+                n = value['n'] if 'n' in value else 1
                 n = min(n, np.floor(self.Y[self.IndicesY[y]]))
                 self.Y[self.IndicesY[y]] -= n
-                model.disclose('delete {} by {}'.format(y, n), 'Equation')
+                tar.disclose('delete {} by {}'.format(y, n), 'Equation')
             except KeyError:
                 raise KeyError('Unmatched keywords')
         else:
@@ -157,8 +163,8 @@ class ODEY0(LeafY0):
 class OrdinaryDifferentialEquationModel(GenericEquationBasedModel):
     def __init__(self, name, fn, dt, odt, ys, xs=None, env=None):
         dt = min(dt, odt)
-        eqs = OrdinaryDifferentialEquations(fn, ys, dt, x=xs)
-        GenericEquationBasedModel.__init__(self, name, eqs, odt, env=env, obs=ObsODE(), y0_class=ODEY0)
+        eqs = OrdinaryDifferentialEquations(name, fn, ys, odt, fdt=dt, pars=env, x=xs)
+        GenericEquationBasedModel.__init__(self, name, eqs, env=env, obs=ObsODE(), y0_class=ODEY0)
 
     def add_observing_flow_function(self, func):
         raise TypeError('Depreciated method in ODE model, try add_observing_function')

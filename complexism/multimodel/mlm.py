@@ -78,6 +78,7 @@ class MultiLevelModel(BranchModel):
     def append_actor(self, act):
         if act.Name not in self.Actors:
             self.Actors[act.Name] = act
+            self.Scheduler.add_actor(act)
         else:
             raise AttributeError('Duplicated actor name')
 
@@ -96,7 +97,3 @@ class MultiLevelModel(BranchModel):
             return
         for k, m in self.SubModels.items():
             m.read_y0(y0[k], ti=ti)
-
-    def find_next(self):
-        for k, be in self.Actors.items():
-            self.request(be.Next, k)

@@ -1,4 +1,5 @@
 import complexism as cx
+import complexism.equationbased as ebm
 import epidag as dag
 import matplotlib.pyplot as plt
 __author__ = 'TimeWz667'
@@ -29,11 +30,9 @@ def SIR_ODE(y, t, p, x):
     return [-inf, inf-rec, rec]
 
 
-eqs = cx.OrdinaryDifferentialEquations(SIR_ODE, ['S', 'I', 'R'], dt=.1, x={'dis': 0.5})
-
-
 # Step 3 generate a model
-model = cx.GenericEquationBasedModel(model_name, dt=0.5, eqs=eqs, env=pc)
+model = ebm.OrdinaryDifferentialEquationModel(model_name, SIR_ODE, 0.1, 0.5,
+                                              ['S', 'I', 'R'], {'dis': 0.5}, pc)
 
 
 # Step 4 decide outputs
@@ -48,7 +47,7 @@ y0 = {
     'R': 0
 }
 
-output = cx.simulate(model, y0, 0, 10, 1)
+output = cx.simulate(model, y0, 0, 10, 0.5, log=True)
 
 
 # Step 6 inference, draw figures, and manage outputs
