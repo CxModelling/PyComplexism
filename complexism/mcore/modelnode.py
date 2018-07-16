@@ -106,6 +106,9 @@ class ModelAtom(metaclass=ABCMeta):
                 return False
         return True
 
+    def __lt__(self, other):
+        return self.Name < other.Name
+
     def to_json(self):
         js = dict()
         js['Name'] = self.Name
@@ -163,22 +166,18 @@ class AbsModel(metaclass=ABCMeta):
 
     @abstractmethod
     def reset(self, ti):
-        pass
+        self.Scheduler.reschedule_all_actors(ti)
 
     @abstractmethod
     def read_y0(self, y0, ti):
         pass
 
+    def request(self, event, key):
+        self.Scheduler.append_request_from_source(event, key)
+
     @abstractmethod
     def collect_requests(self):
         pass
-
-    @abstractmethod
-    def find_next(self):
-        pass
-
-    def request(self, event, who):
-        self.Scheduler.append_request_from_source(event, who)
 
     @abstractmethod
     def do_request(self, request):
@@ -262,7 +261,7 @@ class LeafModel(AbsModel, metaclass=ABCMeta):
 
     def collect_requests(self):
         if self.Scheduler.waiting_for_collection():
-            self.find_next()
+            self.Scheduler.find_next()
             self.Scheduler.collection_completed()
             return self.Scheduler.Requests
         elif self.Scheduler.waiting_for_validation():
@@ -323,7 +322,7 @@ class BranchModel(AbsModel, metaclass=ABCMeta):
 
     def collect_requests(self):
         if self.Scheduler.waiting_for_collection():
-            self.find_next()
+            self.Scheduler.find_next()
             for v in self.all_models().values():
                 v.collect_requests()
                 self.Scheduler.append_lower_schedule(v.Scheduler)

@@ -28,6 +28,12 @@ class Event:
     def __eq__(self, ot):
         return self.Time == ot.Time
 
+    def cancel(self):
+        self.Todo = None
+
+    def is_cancelled(self):
+        return self.Todo is None
+
     @property
     def Message(self):
         return self.__message
@@ -39,4 +45,4 @@ class Event:
         return '{}: {}'.format(self.Todo, self.Time)
 
 
-Event.NullEvent = Event('Nothing', float('inf'))
+Event.NullEvent = Event(None, float('inf'))

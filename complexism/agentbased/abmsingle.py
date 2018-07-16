@@ -46,6 +46,7 @@ class SingleIndividualABM(LeafModel):
     def __init__(self, name, agent: GenericAgent, pc=None):
         LeafModel.__init__(self, name, env=pc, obs=ObsSingleAgent())
         self.Agent = agent
+        self.Scheduler.add_actor(agent)
         self.Behaviours = OrderedDict()
 
     def add_observing_attribute(self, atr):
@@ -58,6 +59,7 @@ class SingleIndividualABM(LeafModel):
     def add_behaviour(self, be):
         if be.Name not in self.Behaviours:
             self.Behaviours[be.Name] = be
+            self.Scheduler.add_actor(be)
 
     def read_y0(self, y0, ti):
         for be in self.Behaviours.values():
@@ -67,11 +69,13 @@ class SingleIndividualABM(LeafModel):
         self.Agent.initialise(model=self, ti=ti)
         for be in self.Behaviours.values():
             be.initialise(self, ti)
+        self.Scheduler.reschedule_all_actors(ti)
 
     def reset(self, ti):
         self.Agent.reset(model=self, ti=ti)
         for be in self.Behaviours.values():
             be.initialise(self, ti)
+        self.Scheduler.reschedule_all_actors(ti)
 
     def trigger_external_impulses(self, disclosure, model, time):
         res = False
@@ -90,15 +94,6 @@ class SingleIndividualABM(LeafModel):
     def impulse_tr(self, bes, ag, ti):
         for be in bes:
             be.impulse_tr(self, ag, ti)
-
-    def find_next(self):
-        # to be parallel
-        for k, be in self.Behaviours.items():
-            nxt = be.next
-            self.Scheduler.append_request_from_source(nxt, k)
-
-        nxt = self.Agent.Next
-        self.Scheduler.append_request_from_source(nxt, who=self.Agent.Name)
 
     @count()
     def do_request(self, req: Request):

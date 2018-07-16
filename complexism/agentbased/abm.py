@@ -71,14 +71,19 @@ class GenericAgentBasedModel(LeafModel, metaclass=ABCMeta):
     def _make_agent(self, n, ti, **kwargs):
         ags = self.Population.add_agent(n, **kwargs)
         for ag in ags:
+            self.Scheduler.add_actor(ag)
             for be in self.Behaviours.values():
                 be.register(ag, ti)
 
     def preset(self, ti):
         for be in self.Behaviours.values():
+            self.Scheduler.add_actor(be)
             be.initialise(ti=ti, model=self)
         for ag in self.Population.Agents.values():
+            self.Scheduler.add_actor(ag)
             ag.initialise(ti=ti, model=self)
+
+        self.Scheduler.reschedule_all_actors(ti)
         self.disclose('initialise', '*')
 
     def reset(self, ti):
@@ -86,6 +91,7 @@ class GenericAgentBasedModel(LeafModel, metaclass=ABCMeta):
             be.reset(ti=ti, model=self)
         for ag in self.Population.Agents.values():
             ag.reset(ti=ti, model=self)
+        self.Scheduler.reschedule_all_actors(ti)
         self.disclose('initialise', '*')
 
     def check_enter(self, ag):
@@ -128,7 +134,7 @@ class GenericAgentBasedModel(LeafModel, metaclass=ABCMeta):
             bes = self.check_enter(ag)
             ag.initialise(ti)
             self.impulse_enter(bes, ag, ti)
-            self.request(ag.Next, ag.Name)
+            self.Scheduler.add_schedule_actor(ag, ti)
 
         kwargs['n'] = n_birth
         if n_birth:
@@ -139,23 +145,10 @@ class GenericAgentBasedModel(LeafModel, metaclass=ABCMeta):
     def kill(self, i, ti):
         ag = self.Population[i]
         bes = self.check_exit(ag)
+        self.Scheduler.remove_actor(ag)
         self.Population.remove_agent(i)
         self.impulse_exit(bes, ag, ti)
         self.disclose('remove agent', ag.Name)
-
-    def find_next(self):
-        # to be parallelised
-        for k, be in self.Behaviours.items():
-            self.request(be.Next, k)
-
-        for k, ag in self.Population.Agents.items():
-            self.request(ag.Next, k)
-
-    def shock(self, ti, model_foreign, at, value):
-        try:
-            self.Behaviours[at].shock(ti, model_foreign, self, value)
-        except KeyError:
-            raise KeyError('Non-identifiable location')
 
     @count()
     def do_request(self, req: Request):
