@@ -144,7 +144,7 @@ ii = InfIn()
 model_i.add_listener(cx.InitialChecker(), ii)
 model_i.add_listener(cx.StartsWithChecker('update'), ii)
 
-scale = 20
+scale = 2000
 # Step 5 simulate
 y0e = {
     'Sus': 29 * scale,
@@ -164,7 +164,7 @@ model.append(model_i)
 
 
 cx.start_counting('TB')
-output = cx.simulate(model, {'SER': y0e, 'I': y0a}, 0, 20, 1)
+output = cx.simulate(model, {'SER': y0e, 'I': y0a}, 0, 20, 1, log=False)
 cx.stop_counting()
 print(cx.get_results('TB'))
 
