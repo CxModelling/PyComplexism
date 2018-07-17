@@ -160,97 +160,85 @@ class Schedule:
         self.Requests = list()
         self.Disclosures = list()
         self.Time = float('inf')
+        self.OwnTime = float('inf')
         self.Status = Status.TO_COLLECT
 
-        self.Actors = dict()
         self.Queue = list()
         self.WaitingActors = set()
         self.CurrentRequests = dict()
 
     def add_actor(self, actor):
-        self.Actors[actor] = None
+        self.WaitingActors.add(actor)
+        actor.set_scheduler(self)
 
     def remove_actor(self, actor):
         try:
-            self.Actors[actor][-1].cancel()
-            del self.Actors[actor]
+            actor.drop_next()
+            actor.detach_scheduler()
+            self.WaitingActors.remove(actor)
         except KeyError:
             pass
 
-    def reschedule_actor(self, actor, ti):
-        actor.drop_next()
-        actor.update_time(ti)
+    def reschedule_actor(self, actor):
         event = actor.Next
         tte = event.Time
         entry = [tte, actor, event]
-        self.Actors[actor] = entry
         heapq.heappush(self.Queue, entry)
+        if tte < self.OwnTime:
+            self.put_requests_back()
 
-    def add_schedule_actor(self, actor, ti):
+    def add_schedule_actor(self, actor):
         self.add_actor(actor)
-        self.reschedule_actor(actor, ti)
+        self.reschedule_actor(actor)
 
-    def reschedule_all_actors(self, ti):
+    def reschedule_all_actors(self):
+        self.WaitingActors.update(a for _, a, _ in self.Queue)
         self.Queue = list()
-        for actor, entry in self.Actors.items():
-            self.reschedule_actor(actor, ti)
+        self.reschedule_waiting_actors()
 
-    def reschedule_out_actors(self, ti):
-        for actor, entry in self.Actors.items():
-            if entry[-1].is_cancelled():
-                self.reschedule_actor(actor, ti)
-
-    def reschedule_waiting_actors(self, ti):
+    def reschedule_waiting_actors(self):
         for actor in self.WaitingActors:
-            self.reschedule_actor(actor, ti)
+            self.reschedule_actor(actor)
         self.WaitingActors.clear()
 
-    def clean_cancelled(self):
-        self.Queue = [q for q in self.Queue if not q[-1].is_cancelled()]
-        heapq.heapify(self.Queue)
+    def requeue_actor(self, actor):
+        self.WaitingActors.add(actor)
 
-    def pop_event(self):
+    def find_min_t(self):
         while self.Queue:
-            tte, actor, event = heapq.heappop(self.Queue)
-            nxt = actor.Next
-            if nxt is not event:  # if the next event have been updated
-                event.cancel()
-
-                if self.Actors[actor][-1] is event:
-                    self.reschedule_actor(actor, tte)
-
-            if not event.is_cancelled():
-                self.WaitingActors.add(actor)
-                return actor, event
-
-        raise KeyError('pop from an empty priority queue')
+            t, _, e = min(self.Queue)
+            if e.is_cancelled():
+                heapq.heappop(self.Queue)
+            else:
+                return t
+        else:
+            return float('inf')
 
     def extract_nearest(self):
-        while True:
+        while self.Queue:
             try:
-                a, e = self.pop_event()
-                if e.Time < self.Time:
+                t = self.find_min_t()
+                if t < self.OwnTime:
+                    t, a, e = heapq.heappop(self.Queue)
+                    self.requeue_actor(a)
                     self.CurrentRequests[a] = Request(e, a.Name, self.Location)
-                    self.Time = e.Time
+                    self.OwnTime = e.Time
                 else:
-                    heapq.heappush(self.Queue, [e.Time, a, e])
                     break
             except KeyError:
                 break
+        self.Time = min(self.Time, self.OwnTime)
 
     def put_requests_back(self):
         for a, r in self.CurrentRequests.items():
             e = r.Event
-            try:
-                self.WaitingActors.remove(a)
-            except KeyError:
-                pass
-            if e.is_cancelled:
-                self.reschedule_actor(a, e.Time)
+
+            if e.is_cancelled():
+                self.reschedule_actor(a)
             else:
-                heapq.heappush(self.Queue, [e.Time, a, e])
+                self.reschedule_actor(a)
         self.CurrentRequests.clear()
-        self.Time = float('inf')
+        self.OwnTime = float('inf')
 
     def __gt__(self, ot):
         return self.Time > ot.Time
@@ -269,12 +257,13 @@ class Schedule:
 
     # Collection stage
     def find_next(self):
+        self.reschedule_waiting_actors()
         self.extract_nearest()
         self.Requests = list(self.CurrentRequests.values())
+        self.Time = min(self.Time, self.OwnTime)
 
     def append_request_from_source(self, event, who):
         if event.Time < self.Time:
-            self.put_requests_back()
             self.Requests = [Request(event, who, self.Location)]
             self.Time = event.Time
         elif event.Time == self.Time:
@@ -295,19 +284,18 @@ class Schedule:
         return [req.up_scale(loc) for req in self.Requests]
 
     def append_lower_schedule(self, lower):
+        if not lower.Requests:
+            return
+
         ti = lower.Time
         if ti < self.Time:
-            self.put_requests_back()
-            if lower.Requests:
-                self.Requests = lower.up_scale_requests(self.Location)
+            self.Requests = lower.up_scale_requests(self.Location)
             self.Time = ti
         elif ti == self.Time:
             if self.Requests:
                 self.Requests += lower.up_scale_requests(self.Location)
         else:
-            lower.put_requests_back()
-
-    # After sending back
+            return
 
     def fetch_requests(self, rs):
         self.Requests = rs
@@ -364,16 +352,18 @@ class Schedule:
     def execution_completed(self):
         self.Status = Status.TO_FINISH
         self.Requests.clear()
-        self.reschedule_waiting_actors(self.Time)
+        if self.Time == self.OwnTime:
+            self.CurrentRequests = dict()
+            self.OwnTime = float('inf')
         self.Time = float('inf')
 
     def cycle_completed(self):
         self.Status = Status.TO_COLLECT
         self.Disclosures.clear()
+        self.reschedule_waiting_actors()
         self.Time = float('inf')
 
     def cycle_broke(self):
-        self.put_requests_back()
         self.cycle_completed()
         self.collection_completed()
 

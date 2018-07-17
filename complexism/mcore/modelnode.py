@@ -15,6 +15,7 @@ class ModelAtom(metaclass=ABCMeta):
         self.Parameters = pars
         self.Attributes = dict()
         self.__next = Event.NullEvent
+        self.__scheduler = None
 
     def __getitem__(self, item):
         try:
@@ -29,6 +30,12 @@ class ModelAtom(metaclass=ABCMeta):
 
     def __setitem__(self, key, value):
         self.Attributes[key] = value
+
+    def set_scheduler(self, sc):
+        self.__scheduler = sc
+
+    def detach_scheduler(self):
+        self.__scheduler = None
 
     @property
     def Next(self):
@@ -59,6 +66,10 @@ class ModelAtom(metaclass=ABCMeta):
         Drop the next event and reset it to the null event
         """
         self.__next.cancel()
+        try:
+            self.__scheduler.requeue_actor(self)
+        except AttributeError:
+            pass
 
     def approve_event(self, evt):
         """
@@ -304,12 +315,12 @@ class BranchModel(AbsModel, metaclass=ABCMeta):
     def preset(self, ti):
         for v in self.all_models().values():
             v.preset(ti)
-        self.Scheduler.reschedule_all_actors(ti)
+        self.Scheduler.reschedule_all_actors()
 
     def reset(self, ti):
         for v in self.all_models().values():
             v.reset(ti)
-        self.Scheduler.reschedule_all_actors(ti)
+        self.Scheduler.reschedule_all_actors()
 
     @abstractmethod
     def all_models(self) -> dict:

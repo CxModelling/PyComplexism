@@ -99,13 +99,13 @@ class GenericEquationBasedModel(LeafModel):
         self.Equations.set_y(self.Y)
         self.Equations.initialise(ti, self)
         self.disclose('initialise', '*')
-        self.Scheduler.reschedule_all_actors(ti)
+        self.Scheduler.reschedule_all_actors()
 
     def reset(self, ti):
         self.Equations.reset(ti, self)
         self.Equations.set_y(self.Y)
         self.disclose('initialise', '*')
-        self.Scheduler.reschedule_all_actors(ti)
+        self.Scheduler.reschedule_all_actors()
 
     def go_to(self, ti):
         self.Equations.update_time(ti)

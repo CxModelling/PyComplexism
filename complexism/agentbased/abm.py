@@ -87,7 +87,7 @@ class GenericAgentBasedModel(LeafModel, metaclass=ABCMeta):
             self.Scheduler.add_actor(ag)
             ag.initialise(ti=ti, model=self)
 
-        self.Scheduler.reschedule_all_actors(ti)
+        self.Scheduler.reschedule_all_actors()
         self.disclose('initialise', '*')
 
     def reset(self, ti):
@@ -95,7 +95,7 @@ class GenericAgentBasedModel(LeafModel, metaclass=ABCMeta):
             be.reset(ti=ti, model=self)
         for ag in self.Population.Agents.values():
             ag.reset(ti=ti, model=self)
-        self.Scheduler.reschedule_all_actors(ti)
+        self.Scheduler.reschedule_all_actors()
         self.disclose('initialise', '*')
 
     def check_enter(self, ag):
@@ -138,7 +138,7 @@ class GenericAgentBasedModel(LeafModel, metaclass=ABCMeta):
             bes = self.check_enter(ag)
             ag.initialise(ti)
             self.impulse_enter(bes, ag, ti)
-            self.Scheduler.add_schedule_actor(ag, ti)
+            self.Scheduler.add_schedule_actor(ag)
 
         kwargs['n'] = n_birth
         if n_birth:

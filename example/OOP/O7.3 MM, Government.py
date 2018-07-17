@@ -14,12 +14,11 @@ class ValuePassing(abm.ActiveBehaviour):
         return Event('action', self.Clock.Next)
 
     def do_action(self, model, todo, ti):
-        print(todo)
         if ti is 3:
-            model.get_model('ABM').shock(ti, todo, 'd_rec', 100)
+            model.get_model('ABM').shock(ti, todo, 'd_rec', 8)
             self.Clock.update(ti)
         elif ti is 6:
-            model.get_model('ABM').shock(ti, todo, 'd_rec', 1)
+            model.get_model('ABM').shock(ti, todo, 'd_rec', 100)
             self.Clock.update(ti)
 
     def register(self, ag, ti):
@@ -77,7 +76,7 @@ model.append(sub_model)
 # Step 6 simulate
 y0 = {
     'ABM': [
-        {'n': 290, 'attributes': {'st': 'Sus'}},
+        {'n': 90, 'attributes': {'st': 'Sus'}},
         {'n': 10, 'attributes': {'st': 'Inf'}}
     ]
 }
