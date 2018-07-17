@@ -88,6 +88,16 @@ class SingleIndividualABM(LeafModel):
             self.exit_cycle()
         return res
 
+    def shock(self, time, action, target, value):
+        if action == 'impulse':
+            try:
+                be = self.Behaviours[target]
+                be.shock(time, self, target, value)
+            except KeyError:
+                raise KeyError('Unknown target')
+            except AttributeError as e:
+                raise e
+
     def check_tr(self, ag, tr):
         return [be for be in self.Behaviours.values() if be.check_tr(ag, tr)]
 

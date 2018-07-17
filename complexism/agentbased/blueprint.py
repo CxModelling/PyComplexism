@@ -181,16 +181,6 @@ def install_behaviour(abm, be_name, be_type, log=None, **kwargs):
     ws.clear_resources()
 
 
-def install_trait(abm, trt_name, trt_type, log=None, **kwargs):
-    js = {'Name': trt_name, 'Type': trt_type, 'Args': dict(kwargs)}
-    ws = get_workshop('Traits')
-    ws.renew_resources(form_resources(abm))
-    if ws.validate(js, logger=log):
-        trt = ws.create(js, logger=log)
-        abm.add_trait(trt)
-    ws.clear_resources()
-
-
 def install_network(abm, net_name, net_type, log=None, **kwargs):
     js = {'Name': net_name, 'Type': net_type, 'Args': dict(kwargs)}
     ws = get_workshop('Networks')

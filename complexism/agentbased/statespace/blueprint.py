@@ -105,7 +105,7 @@ class BlueprintStSpABM(AbsBlueprintMCore):
         ws.renew_resources(resources)
         for be in self.Behaviours:
             be = ws.create(be)
-            model.Behaviours[be.Name] = be
+            model.add_behaviour(be)
         ws.clear_resources()
 
         # Assign observations

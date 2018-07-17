@@ -201,7 +201,7 @@ class AgentImport(PassiveBehaviour):
     def shock(self, ti, source, target, value):
         value = np.floor(value)
         if value > 0:
-            target.birth(n=value, ti=ti, st=self.S_birth.Name)
+            source.birth(n=value, ti=ti, st=self.S_birth.Name)
             self.BirthN += value
 
     @staticmethod

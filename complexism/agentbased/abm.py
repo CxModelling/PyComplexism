@@ -75,6 +75,10 @@ class GenericAgentBasedModel(LeafModel, metaclass=ABCMeta):
             for be in self.Behaviours.values():
                 be.register(ag, ti)
 
+    def add_behaviour(self, be):
+        self.Behaviours[be.Name] = be
+        self.Scheduler.add_actor(be)
+
     def preset(self, ti):
         for be in self.Behaviours.values():
             self.Scheduler.add_actor(be)
@@ -173,6 +177,14 @@ class GenericAgentBasedModel(LeafModel, metaclass=ABCMeta):
                 ag.update_time(time)
             except KeyError:
                 pass
+
+    def shock(self, time, action, target, value):
+        try:
+            be = self.Behaviours[target]
+            be.shock(time, self, target, value)
+        except KeyError as e:
+            raise e
+
 
     def __len__(self):
         return len(self.Population.Agents)

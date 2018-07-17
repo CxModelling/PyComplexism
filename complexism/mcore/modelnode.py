@@ -97,8 +97,8 @@ class ModelAtom(metaclass=ABCMeta):
     def reset(self, ti, model, *args, **kwargs):
         pass
 
-    def shock(self, ti, source, target, value):
-        pass
+    def shock(self, ti, model, target, value):
+        raise AttributeError('Undefined external shock')
 
     def is_compatible(self, **kwargs):
         for k, v in kwargs.items():
@@ -211,6 +211,9 @@ class AbsModel(metaclass=ABCMeta):
 
     def trigger_external_impulses(self, disclosure, model, time):
         return self.Listeners.apply_shock(disclosure, model, self, time)
+
+    def shock(self, time, action, target, value):
+        pass
 
     def get_all_impulse_checkers(self):
         return self.Listeners.AllChecker

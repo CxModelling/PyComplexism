@@ -38,7 +38,8 @@ def SIR_Meas(y, t, p, x):
     n = sum(y) + inf
     return {
         'n': n,
-        'inc': inf / n
+        'incR': inf / n,
+        'inc': inf
     }
 
 
@@ -67,10 +68,11 @@ CTMC SIR {
 mbp_i = ss.BlueprintStSpABM('I')
 mbp_i.set_agent(prefix='Ag', group='agent', dynamics='SIR')
 mbp_i.add_behaviour('Recovery', 'Cohort', s_death='Rec')
+mbp_i.add_behaviour('StInf', 'StateTrack', s_src='Inf')
 mbp_i.add_behaviour('InfIn', 'AgentImport', s_birth='Inf')
 mbp_i.set_observations(states=['Inf', 'Rec'],
                        transitions=['Recov'],
-                       behaviours=['InfIn'])
+                       behaviours=['InfIn', 'StInf'])
 
 
 dbp = cx.read_dbp_script(dsc)
@@ -85,7 +87,7 @@ class InfOut(cx.ImpulseResponse):
     def __call__(self, disclosure, model_foreign, model_local, ti):
         n = disclosure.Arguments['n']
         model_local.impulse('del', y='Sus', n=float(n))
-        model_local.impulse('impulse', k='Inf', v=model_local.Equations['Inf'] + n)
+        model_local.impulse('impulse', k='Inf', v=model_foreign.get_snapshot('StInf', ti))
 
 
 class InfIn(cx.ImpulseResponse):
@@ -110,12 +112,12 @@ class InfIn(cx.ImpulseResponse):
 class RecSource(cx.ImpulseResponse):
     def __call__(self, disclosure, model_foreign, model_local, ti):
         model_local.impulse('add', y='Rec', n=1)
-        model_local.impulse('impulse', k='Inf', v=model_local.Equations['Inf'] - 1)
+        model_local.impulse('impulse', k='Inf', v=model_foreign.get_snapshot('StInf', ti))
 
 
 class UpdateSource(cx.ImpulseResponse):
     def __call__(self, disclosure, model_foreign, model_local, ti):
-        model_local.impulse('impulse', k='Inf', v=model_foreign.get_snapshot('Inf', ti))
+        model_local.impulse('impulse', k='Inf', v=model_foreign.get_snapshot('StInf', ti))
 
 
 model_sr.add_listener(cx.InitialChecker(), UpdateSource())
@@ -135,18 +137,18 @@ model.append(model_sr)
 
 y0 = {
     'I': [
-        {'n': 10*5, 'attributes': {'st': 'Inf'}}
+        {'n': 10, 'attributes': {'st': 'Inf'}}
     ],
-    'SR': {'Sus': 990*5, 'Rec': 0}
+    'SR': {'Sus': 990, 'Rec': 0}
 }
 
 
 cx.start_counting('MM')
 output = cx.simulate(model, y0, 0, 10, 1)
 cx.stop_counting()
-print(output)
+print(output['I.StInf'])
 print()
 print(cx.get_results('MM'))
 
-output[['SR.Sus', 'I.Inf', 'SR.Rec']].plot()
+output[['SR.Sus', 'I.Inf', 'SR.Rec', 'I.StInf', 'SR.inc']].plot()
 plt.show()

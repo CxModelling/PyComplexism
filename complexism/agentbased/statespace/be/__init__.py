@@ -5,6 +5,7 @@ from .trigger import *
 from .behaviour import *
 from .modbe import *
 from .lifebe import *
+from .publisher import *
 # from .listener import *
 
 __author__ = 'TimeWz667'
@@ -15,6 +16,7 @@ __all__ = ['PassiveModBehaviour', 'ActiveModBehaviour',
            'WeightSumShock', 'WeightAvgShock', 'NetShock', 'NetWeightShock',
            'SwitchOn', 'SwitchOff',
            'Reincarnation', 'Cohort', 'LifeRate', 'LifeS', 'AgentImport',
+           'StateTrack',
            'StSpBeLibrary']
 
 
@@ -30,6 +32,9 @@ StSpBeLibrary.register('LifeS', LifeS,
                        [vld.Options('s_death', 'states'), vld.Options('s_birth', 'states'),
                         vld.PositiveFloat('rate'), vld.PositiveFloat('cap'),
                         vld.PositiveFloat('dt', opt=True, default=0.5)])
+
+StSpBeLibrary.register('StateTrack', StateTrack,
+                       [vld.Options('s_src', 'states')])
 
 StSpBeLibrary.register('ExternalShock', ExternalShock,
                        [vld.Options('t_tar', 'transitions')])
