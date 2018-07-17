@@ -19,7 +19,7 @@ def SIR_ODE(y, t, p, x):
     return [-inf, inf-rec, rec]
 
 
-model = ebm.generate_ode_model(model_name, SIR_ODE, pc, ['S', 'I', 'R'], x={'dis': 1})
+model = ebm.generate_ode_model(model_name, SIR_ODE, pc, ['S', 'I', 'R'], {'dis': 1}, 0.1, 1)
 
 
 ebm.set_observations(model, stocks=['S', 'I', 'R'])

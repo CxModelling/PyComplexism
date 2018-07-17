@@ -144,7 +144,8 @@ class ModelAtom(metaclass=ABCMeta):
         return dat
 
     def clone(self, *args, **kwargs):
-        self.__class__.__init__(self, self.Name, self.Parameters)
+        clo = self.__class__.__init__(self, self.Name, self.Parameters)
+        clo.Attributes.update(self.Attributes)
 
 
 class AbsModel(metaclass=ABCMeta):

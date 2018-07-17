@@ -94,11 +94,11 @@ class ActiveBehaviour(AbsBehaviour, metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def do_action(self, model, todo, ti):
+    def do_action(self, model, td, ti):
         """
         Let an event occur
         :param model: source model
-        :param todo: action to be done
+        :param td: action to be done
         :param ti: time
         :type: double
         :return:

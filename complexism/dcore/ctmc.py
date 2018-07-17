@@ -16,8 +16,21 @@ class ModelCTMC(AbsStateSpaceModel):
         return self.States
 
     def get_reachable(self, sts):
-        # todo
-        return self.States
+        sts = [self[st] for st in sts]
+        to_check = list(sts)
+        checked = set()
+        reachable = {st.Name: st for st in sts}
+
+        while to_check:
+            st = to_check.pop()
+            for tr in st.next_transitions():
+                st_new = st.exec(tr)
+                reachable[st_new.Name] = st_new
+                if st_new not in checked:
+                    to_check.append(st_new)
+
+            checked.add(st)
+        return reachable
 
     def get_transitions(self, fr):
         return self.Targets[fr]

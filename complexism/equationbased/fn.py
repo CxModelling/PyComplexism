@@ -1,5 +1,5 @@
 import epidag as dag
-from complexism.equationbased import OrdinaryDifferentialEquations, GenericEquationBasedModel
+from complexism.equationbased import OrdinaryDifferentialEquationModel
 
 __author__ = 'TimeWz667'
 __all__ = ['prepare_pc', 'generate_ode_model', 'set_observations']
@@ -24,8 +24,7 @@ def prepare_pc(model_name, **kwargs):
 
 def generate_ode_model(model_name, ode, pc, y_names, x=None, fdt=0.1, dt=0.5):
     fdt = min([fdt, dt])
-    eqs = OrdinaryDifferentialEquations(ode, y_names, dt=fdt, x=x)
-    model = GenericEquationBasedModel(model_name, pc, eqs, dt=dt)
+    model = OrdinaryDifferentialEquationModel(model_name, ode, ys=y_names, dt=fdt, odt=dt, xs=x, env=pc)
     return model
 
 
