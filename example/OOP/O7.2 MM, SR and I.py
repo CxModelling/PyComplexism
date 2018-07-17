@@ -146,7 +146,7 @@ y0 = {
 cx.start_counting('MM')
 output = cx.simulate(model, y0, 0, 10, 1)
 cx.stop_counting()
-print(output['I.StInf'])
+print(output[['SR.Sus', 'I.Inf', 'SR.Rec', 'I.StInf', 'SR.inc']])
 print()
 print(cx.get_results('MM'))
 

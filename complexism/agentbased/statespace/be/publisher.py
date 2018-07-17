@@ -22,12 +22,15 @@ class StateTrack(PassiveBehaviour):
             self.Value += 1
         else:
             self.Value -= 1
+        model.disclose('update value', self.Name, v=self.Value)
 
     def impulse_enter(self, model, ag, ti):
         self.Value += 1
+        model.disclose('update value', self.Name, v=self.Value)
 
     def impulse_exit(self, model, ag, ti):
         self.Value -= 1
+        model.disclose('update value', self.Name, v=self.Value)
 
     def match(self, be_src, ags_src, ags_new, ti):
         self.Value = be_src.Value
