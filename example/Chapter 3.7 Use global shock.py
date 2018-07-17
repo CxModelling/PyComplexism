@@ -58,7 +58,7 @@ if __name__ == '__main__':
     model.add_observing_behaviour('FOI')
 
     y0 = [
-        {'n': 98, 'attributes': {'st': 'Sus'}},
+        {'n': 598, 'attributes': {'st': 'Sus'}},
         {'n': 2, 'attributes': {'st': 'Inf'}},
     ]
 

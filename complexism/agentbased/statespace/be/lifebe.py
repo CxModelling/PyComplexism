@@ -35,7 +35,7 @@ class Reincarnation(PassiveBehaviour):
     @staticmethod
     def decorate(name, model, **kwargs):
         s_death = model.DCore.States[kwargs['s_death']]
-        model.Behaviours[name] = Reincarnation(name, s_death, kwargs['s_birth'])
+        model.add_behaviour(Reincarnation(name, s_death, kwargs['s_birth']))
 
     def match(self, be_src, ags_src, ags_new, ti):
         self.BirthN = be_src.BirthN
@@ -70,7 +70,7 @@ class Cohort(PassiveBehaviour):
     @staticmethod
     def decorate(name, model, **kwargs):
         s_death = model.DCore.States[kwargs['s_death']]
-        model.Behaviours[name] = Cohort(name, s_death)
+        model.add_behaviour(Cohort(name, s_death))
 
     def match(self, be_src, ags_src, ags_new, ti):
         self.DeathN = be_src.DeathN
@@ -116,7 +116,7 @@ class LifeRate(ActiveBehaviour):
     def decorate(name, model, *args, **kwargs):
         s_death = model.DCore.States[kwargs['s_death']]
         dt = kwargs['dt'] if 'dt' in kwargs else 1
-        model.Behaviours[name] = LifeRate(name, kwargs['s_birth'], s_death, kwargs['rate'], dt)
+        model.add_behaviour(LifeRate(name, kwargs['s_birth'], s_death, kwargs['rate'], dt))
 
     def __repr__(self):
         return 'BDbyRate({}, BirthRate={})'.format(self.Name, self.BirthRate)
@@ -168,7 +168,7 @@ class LifeS(ActiveBehaviour):
     def decorate(name, model, *args, **kwargs):
         s_death = model.DCore.States[kwargs['s_death']]
         dt = kwargs['dt'] if 'dt' in kwargs else 1
-        model.Behaviours[name] = LifeS(name, kwargs['s_birth'], s_death, kwargs['cap'], kwargs['rate'], dt)
+        model.add_behaviour(LifeS(name, kwargs['s_birth'], s_death, kwargs['cap'], kwargs['rate'], dt))
 
     def __repr__(self):
         return 'S-shape({}, K={}, R={})'.format(self.Name, self.Cap, self.Rate)
@@ -206,7 +206,7 @@ class AgentImport(PassiveBehaviour):
 
     @staticmethod
     def decorate(name, model, **kwargs):
-        model.Behaviours[name] = AgentImport(name, kwargs['s_birth'])
+        model.add_behaviour(AgentImport(name, kwargs['s_birth']))
 
     def match(self, be_src, ags_src, ags_new, ti):
         self.BirthN = be_src.BirthN

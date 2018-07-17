@@ -1,300 +1,210 @@
-from complexism.agentbased import PassiveBehaviour
-from complexism.element import Clock, Event
-from complexism.util import DemographySimplified
 import numpy as np
-import pandas as pd
 import numpy.random as rd
-
+from complexism.element import Clock, Event
+from complexism.agentbased import ActiveBehaviour, PassiveBehaviour
+from .trigger import AttributeEnterTrigger
 
 __author__ = 'TimeWz667'
+__all__ = ['Reincarnation', 'Cohort', 'LifeRate', 'LifeS', 'AgentImport']
 
 
-class Reincarnation(RealTimeBehaviour):
-    def __init__(self, name, s_death, s_birth):
-        RealTimeBehaviour.__init__(self, name, StateInTrigger(s_death))
-        self.S_death = s_death
-        self.S_birth = s_birth
-        self.N_birth = 0
+class Reincarnation(PassiveBehaviour):
+    def __init__(self, name, a_death, a_birth):
+        PassiveBehaviour.__init__(self, name, AttributeEnterTrigger(a_death))
+        self.Atr_death = a_death
+        self.Atr_birth = a_birth
+        self.BirthN = 0
 
-    def initialise(self, model, ti):
+    def initialise(self, ti, *args, **kwargs):
+        pass
+
+    def reset(self, ti, *args, **kwargs):
         pass
 
     def register(self, ag, ti):
         pass
 
-    def impulse_tr(self, model, ag, ti):
+    def impulse_change(self, model, ag, ti):
         model.kill(ag.Name, ti)
-        model.birth(self.S_birth, ti)
-        self.N_birth += 1
+        model.birth(n=1, ti=ti, **self.Atr_birth)
+        self.BirthN += 1
+
+    def fill(self, obs, model, ti):
+        obs[self.Name] = self.BirthN
+
+    @staticmethod
+    def decorate(name, model, **kwargs):
+        model.add_behaviour(Reincarnation(name, **kwargs))
+
+    def match(self, be_src, ags_src, ags_new, ti):
+        self.BirthN = be_src.BirthN
 
     def __repr__(self):
-        opt = self.Name, self.S_death.Name, self.S_birth, self.N_birth
+        opt = self.Name, self.Atr_death, self.Atr_birth, self.BirthN
         return 'Reincarnation({}, Death:{}, Birth:{}, NBir:{})'.format(*opt)
 
-    @staticmethod
-    def decorate(name, model, **kwargs):
-        s_death = model.DCore.States[kwargs['s_death']]
-        model.Behaviours[name] = Reincarnation(name, s_death, kwargs['s_birth'])
 
-    def fill(self, obs, model, ti):
-        obs[self.Name] = self.N_birth
+class Cohort(PassiveBehaviour):
+    def __init__(self, name, a_death):
+        PassiveBehaviour.__init__(self, name, AttributeEnterTrigger(a_death))
+        self.Atr_death = a_death
+        self.DeathN = 0
 
-    def match(self, be_src, ags_src, ags_new, ti):
-        self.N_birth = be_src.N_birth
+    def initialise(self, ti, *args, **kwargs):
+        pass
 
-
-class Cohort(RealTimeBehaviour):
-    def __init__(self, name, s_death):
-        RealTimeBehaviour.__init__(self, name, StateInTrigger(s_death))
-        self.S_death = s_death
-        self.N_dead = 0
-
-    def initialise(self, model, ti):
+    def reset(self, ti, *args, **kwargs):
         pass
 
     def register(self, ag, ti):
         pass
 
-    def impulse_tr(self, model, ag, ti):
+    def impulse_change(self, model, ag, ti):
         model.kill(ag.Name, ti)
-        self.N_dead += 1
+        self.DeathN += 1
+
+    def fill(self, obs, model, ti):
+        obs[self.Name] = self.DeathN
+
+    @staticmethod
+    def decorate(name, model, **kwargs):
+        model.Behaviours[name] = Cohort(name, **kwargs)
+
+    def match(self, be_src, ags_src, ags_new, ti):
+        self.DeathN = be_src.DeathN
 
     def __repr__(self):
-        opt = self.Name, self.S_death.Name, self.N_dead
-        return 'Cohort({}, Death:{}, NDea:{})'.format(*opt)
-
-    @staticmethod
-    def decorate(name, model, **kwargs):
-        s_death = model.DCore.States[kwargs['s_death']]
-        model.Behaviours[name] = Cohort(name, s_death)
-
-    def fill(self, obs, model, ti):
-        obs[self.Name] = self.N_dead
-
-    def match(self, be_src, ags_src, ags_new, ti):
-        self.N_dead = be_src.N_dead
+        opt = self.Name, self.Atr_death, self.DeathN
+        return 'Cohort({}, Death:{}, NDeath:{})'.format(*opt)
 
 
-class LifeRate(TimeBe):
-    def __init__(self, name, s_birth, s_death, rate, dt=1):
-        TimeBe.__init__(self, name, Clock(dt), StateInTrigger(s_death))
-        self.S_death = s_death.Name
-        self.S_birth = s_birth
+class LifeRate(ActiveBehaviour):
+    def __init__(self, name, a_birth, a_death, rate, dt=1):
+        ActiveBehaviour.__init__(self, name, Clock(dt), AttributeEnterTrigger(a_death))
+        self.Atr_death = a_death
+        self.Atr_birth = a_birth
         self.BirthRate = rate
         self.Dt = dt
-        self.N_birth = 0
-
-    def register(self, ag, ti):
-        pass
-
-    def impulse_tr(self, model, ag, ti):
-        model.kill(ag.Name, ti)
-
-    def do_request(self, model, evt, ti):
-        n = model.Pop.count()
-
-        if n <= 0:
-            return
-        prob = 1 - np.exp(-self.BirthRate*self.Dt)
-        n = rd.binomial(n, prob)
-
-        self.N_birth += n
-        for _ in range(n):
-            model.birth(self.S_birth, ti)
+        self.BirthN = 0
 
     def compose_event(self, ti):
         return Event(self.Name, ti)
 
+    def do_action(self, model, todo, ti):
+        n = len(model)
+
+        if n <= 0:
+            return
+        prob = 1 - np.exp(-self.BirthRate * self.Dt)
+        n = rd.binomial(n, prob)
+
+        self.BirthN += n
+        model.birth(n=n, ti=ti, **self.Atr_birth)
+
+    def register(self, ag, ti):
+        pass
+
+    def impulse_change(self, model, ag, ti):
+        model.kill(ag.Name, ti)
+
     def fill(self, obs, model, ti):
-        obs[self.Name] = self.N_birth
+        obs[self.Name] = self.BirthN
 
     @staticmethod
     def decorate(name, model, *args, **kwargs):
-        s_death = model.DCore.States[kwargs['s_death']]
-        dt = kwargs['dt'] if 'dt' in kwargs else 1
-        model.Behaviours[name] = LifeRate(name, kwargs['s_birth'], s_death, kwargs['rate'], dt)
+        model.add_behaviour(LifeRate(name, **kwargs))
 
     def __repr__(self):
         return 'BDbyRate({}, BirthRate={})'.format(self.Name, self.BirthRate)
 
     def match(self, be_src, ags_src, ags_new, ti):
-        self.N_birth = be_src.N_birth
+        self.BirthN = be_src.BirthN
+
+    def clone(self, *args, **kwargs):
+        pass
 
 
-class LifeS(TimeBe):
-    def __init__(self, name, s_birth, s_death, cap, rate, dt=1):
-        TimeBe.__init__(self, name, Clock(dt), StateInTrigger(s_death))
-        self.S_death = s_death.Name
-        self.S_birth = s_birth
+class LifeS(ActiveBehaviour):
+    def __init__(self, name, a_birth, a_death, cap, rate, dt=1):
+        ActiveBehaviour.__init__(self, name, Clock(dt), AttributeEnterTrigger(a_death))
+        self.Atr_death = a_death
+        self.Atr_birth = a_birth
         self.Cap = cap
         self.Rate = rate
         self.Dt = dt
-        self.N_birth = 0
-
-    def register(self, ag, ti):
-        pass
-
-    def impulse_tr(self, model, ag, ti):
-        model.kill(ag.Name, ti)
-
-    def do_request(self, model, evt, ti):
-        n = model.Pop.count()
-
-        if n <= 0:
-            return
-        rate = self.Rate * (1 - n / self.Cap)
-
-        n = rd.binomial(n, 1 - np.exp(-rate*self.Dt))
-
-        self.N_birth += n
-        for _ in range(n):
-            model.birth(self.S_birth, ti)
+        self.BirthN = 0
 
     def compose_event(self, ti):
         return Event(self.Name, ti)
 
+    def do_action(self, model, todo, ti):
+        n = len(model)
+
+        if n <= 0:
+            return
+
+        rate = self.Rate * (1 - n / self.Cap)
+        prob = 1 - np.exp(-rate * self.Dt)
+
+        n = rd.binomial(n, prob)
+
+        self.BirthN += n
+        model.birth(n=n, ti=ti, **self.Atr_birth)
+
+    def register(self, ag, ti):
+        pass
+
+    def impulse_change(self, model, ag, ti):
+        model.kill(ag.Name, ti)
+
     def fill(self, obs, model, ti):
-        obs[self.Name] = self.N_birth
+        obs[self.Name] = self.BirthN
 
     @staticmethod
     def decorate(name, model, *args, **kwargs):
-        s_death = model.DCore.States[kwargs['s_death']]
-        dt = kwargs['dt'] if 'dt' in kwargs else 1
-        model.Behaviours[name] = LifeS(name, kwargs['s_birth'], s_death, kwargs['cap'], kwargs['rate'], dt)
+        model.add_behaviour(LifeS(name, **kwargs))
 
     def __repr__(self):
         return 'S-shape({}, K={}, R={})'.format(self.Name, self.Cap, self.Rate)
 
     def match(self, be_src, ags_src, ags_new, ti):
-        self.N_birth = be_src.N_birth
+        self.BirthN = be_src.BirthN
+
+    def clone(self, *args, **kwargs):
+        pass
 
 
-class LifeLeeCarter(TimeModBe):
-    def __init__(self, name, demo, s_birth, s_death, t_death):
-        mod = DirectModifier(name, t_death)
-        TimeModBe.__init__(self, name, Clock(dt=1), mod, StateTrigger(s_death))
-        self.Demography = demo
-        self.S_death = s_death.Name
-        self.S_birth = s_birth
-        self.T_death = t_death.Name
-        self.Pop0 = 0
-        self.Rec_Death = list()
-        # value
+class AgentImport(PassiveBehaviour):
+    def __init__(self, name, a_birth):
+        PassiveBehaviour.__init__(self, name)
+        self.Atr_birth = a_birth
+        self.BirthN = 0
 
-    def initialise(self, model, ti):
-        self.Clock.initialise(ti)
-        for ag in model.agents:
-            ag.shock(self.Name, self.Demography.sample_time_to_death(ag.Info, ti)[0], ti)
+    def initialise(self, ti, *args, **kwargs):
+        pass
 
-        self.Pop0 = model.Pop.count()
+    def reset(self, ti, *args, **kwargs):
+        pass
 
-    def impulse_tr(self, model, ag, ti):
-        self.Rec_Death.append(ag.Info)
-        model.kill(ag.Name, ti)
+    def register(self, ag, ti):
+        pass
 
-    def do_request(self, model, evt, ti):
-        to_kill = []
-        for ag in model.agents:
-            if ag.Info['Age'] >= 99:
-                to_kill.append(ag)
-            else:
-                ag.Info['Age'] += 1
+    def fill(self, obs, model, ti):
+        obs[self.Name] = self.BirthN
 
-        for ag in to_kill:
-            self.Rec_Death.append(ag.Info)
-            model.kill(ag.Name, ti)
-
-        nb = rd.poisson(self.Demography.get_n_birth(np.floor(ti), self.Pop0))
-        # nb = self.Demography.get_n_birth(np.floor(ti), self.Pop0)
-        nb = round(nb)
-        ags = model.birth(self.S_birth, ti, n=nb, info={'Age': 0})
-        for ag in ags:
-            ag.shock(self.Name, self.Demography.sample_time_to_death(ag.Info, ti)[0], ti)
-
-    def compose_event(self, ti):
-        return Event(self.Name, ti)
-
-    def __repr__(self):
-        opt = self.Name, self.T_death, self.Demography.StartYear
-        return 'LeeCarterModel({} on {}, from {})'.format(*opt)
+    def shock(self, ti, source, target, value):
+        value = np.floor(value)
+        if value > 0:
+            source.birth(n=value, ti=ti, **self.Atr_birth)
+            self.BirthN += value
 
     @staticmethod
     def decorate(name, model, **kwargs):
-        s_death = model.DCore.States[kwargs['s_death']]
-        t_death = model.DCore.Transitions[kwargs['t_death']]
-        demo = kwargs['demo']
-        model.Pop.append_fill(demo.get_fill_age_sex())
-        model.Behaviours[name] = LifeLeeCarter(name, demo, kwargs['s_birth'], s_death, t_death)
-
-    def fill(self, obs, model, ti):
-        dat = pd.DataFrame.from_records(self.Rec_Death)
-        if not self.Rec_Death:
-            return
-        for k, v in dat.groupby('Sex').mean().iterrows():
-            obs['{}.DeaAge{}'.format(self.Name, k[0])] = float(v)
-
-        for k, v in dat.groupby('Sex').count().iterrows():
-            obs['{}.DeaNum{}'.format(self.Name, k[0])] = float(v)
-        self.Rec_Death.clear()
+        model.add_behaviour(AgentImport(name, **kwargs))
 
     def match(self, be_src, ags_src, ags_new, ti):
-        for ag in ags_new.values():
-            self.register(ag, ti)
-
-
-class TimeSeriesLife(TimeModBe):
-    def __init__(self, name, demo, s_birth, s_death, t_death):
-        mod = GloRateModifier(name, t_death)
-        TimeModBe.__init__(self, name, Clock(dt=0.5), mod, StateTrigger(s_death))
-        self.Demography = demo
-        self.S_death = s_death.Name
-        self.S_birth = s_birth.Name
-        self.T_death = t_death.Name
-        self.NDeath = 0
-        self.NBirth = 0
-        self.LastUpdate = 0
-
-    def initialise(self, model, ti):
-        self.Clock.initialise(ti)
-        nb = rd.binomial(model.Pop.count(), self.Demography.RateBirth(ti))
-        # nb = self.Demography.get_n_birth(np.floor(ti), self.Pop0)
-        self.NBirth += nb
-        model.birth(self.S_birth, ti, n=nb)
-        self.ModPrototype.Val = self.Demography.RateDeath(ti)
-        for ag in model.agents:
-            ag.modify(self.Name, ti)
-
-    def impulse_tr(self, model, ag, ti):
-        self.NDeath += 1
-        model.kill(ag.Name, ti)
-
-    def do_request(self, model, evt, ti):
-        nb = rd.binomial(model.Pop.count(), self.Demography.RateBirth(ti))
-        # nb = self.Demography.get_n_birth(np.floor(ti), self.Pop0)
-        self.NBirth += nb
-        model.birth(self.S_birth, ti, n=nb)
-        self.ModPrototype.Val = self.Demography.RateDeath(ti)
-        for ag in model.agents:
-            ag.modify(self.Name, ti)
-
-    def compose_event(self, ti):
-        return Event(self.Name, ti)
+        self.BirthN = be_src.BirthN
 
     def __repr__(self):
-        opt = self.Name, self.T_death, self.Demography.StartYear
-        return 'TimeSeriesLife({} on {}, from {})'.format(*opt)
-
-    @staticmethod
-    def decorate(name, model, **kwargs):
-        s_death = model.DCore.States[kwargs['s_death']]
-        t_death = model.DCore.Transitions[kwargs['t_death']]
-
-        model.Behaviours[name] = TimeSeriesLife(name, kwargs['demo'], kwargs['s_birth'], s_death, t_death)
-
-    def fill(self, obs, model, ti):
-        obs['{}.DeaNum'.format(self.Name)] = self.NDeath
-        obs['{}.BirNum'.format(self.Name)] = self.NBirth
-
-    def match(self, be_src, ags_src, ags_new, ti):
-        for ag in ags_new.values():
-            self.register(ag, ti)
+        opt = self.Name, self.Atr_birth, self.BirthN
+        return 'AgentImport({}, Birth:{}, NBir:{})'.format(*opt)

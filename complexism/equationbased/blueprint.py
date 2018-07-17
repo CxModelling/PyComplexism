@@ -150,12 +150,15 @@ class BlueprintEBM(AbsBlueprintMCore):
         # Generate model
         dt = self.Arguments['dt'] if 'dt' in self.Arguments else 0.5
         fdt = self.Arguments['fdt'] if 'fdt' in self.Arguments else dt
-        eqs = OrdinaryDifferentialEquations(self.Equations,
+        eqs = OrdinaryDifferentialEquations(name,
+                                            self.Equations,
                                             self.YNames,
-                                            dt=fdt,
+                                            fdt=fdt,
+                                            dt=dt,
+                                            pars=pc,
                                             x=self.InternalVariables)
 
-        model = GenericEquationBasedModel(name, dt=dt, eqs=eqs, env=pc)
+        model = GenericEquationBasedModel(name, eqs=eqs, env=pc)
 
         # Decide outputs
         for st in self.ObsStocks:

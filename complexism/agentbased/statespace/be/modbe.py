@@ -45,7 +45,7 @@ class ExternalShock(PassiveModBehaviour):
     @staticmethod
     def decorate(name, model, **kwargs):
         t_tar = model.DCore.Transitions[kwargs['t_tar']]
-        model.Behaviours[name] = ExternalShock(name, t_tar)
+        model.add_behaviour(ExternalShock(name, t_tar))
 
 
 class GlobalShock(PassiveModBehaviour, metaclass=ABCMeta):
@@ -155,7 +155,7 @@ class FDShock(GlobalShock):
     def decorate(name, model, **kwargs):
         s_src = model.DCore.States[kwargs['s_src']]
         t_tar = model.DCore.Transitions[kwargs['t_tar']]
-        model.Behaviours[name] = FDShock(name, s_src, t_tar)
+        model.add_behaviour(FDShock(name, s_src, t_tar))
 
     def __repr__(self):
         opt = self.Name, self.S_src.Name, self.T_tar.Name, self.Value
@@ -171,7 +171,7 @@ class FDShockFast(GlobalShockFast):
         s_src = model.DCore.States[kwargs['s_src']]
         t_tar = model.DCore.Transitions[kwargs['t_tar']]
         dt = kwargs['dt'] if 'dt' in kwargs else 1
-        model.Behaviours[name] = FDShockFast(name, s_src, t_tar, dt)
+        model.add_behaviour(FDShockFast(name, s_src, t_tar, dt))
 
     def clone(self, *args, **kwargs):
         pass
@@ -192,7 +192,7 @@ class DDShock(GlobalShock):
     def decorate(name, model, **kwargs):
         s_src = model.DCore.States[kwargs['s_src']]
         t_tar = model.DCore.Transitions[kwargs['t_tar']]
-        model.Behaviours[name] = DDShock(name, s_src, t_tar)
+        model.add_behaviour(DDShock(name, s_src, t_tar))
 
     def __repr__(self):
         opt = self.Name, self.S_src.Name, self.T_tar.Name, self.Value
@@ -208,7 +208,7 @@ class DDShockFast(GlobalShockFast):
         s_src = model.DCore.States[kwargs['s_src']]
         t_tar = model.DCore.Transitions[kwargs['t_tar']]
         dt = kwargs['dt'] if 'dt' in kwargs else 1
-        model.Behaviours[name] = DDShockFast(name, s_src, t_tar, dt)
+        model.add_behaviour(DDShockFast(name, s_src, t_tar, dt))
 
     def clone(self, *args, **kwargs):
         pass
@@ -236,7 +236,7 @@ class WeightSumShock(GlobalShockFast):
         dt = kwargs['dt'] if 'dt' in kwargs else 1
         wt = kwargs['weight']
         wt = {model.DCore.States[k]: v for k, v in wt.items()}
-        model.Behaviours[name] = WeightSumShock(name, s_src, t_tar, wt, dt)
+        model.add_behaviour(WeightSumShock(name, s_src, t_tar, wt, dt))
 
     def fill(self, obs, model, ti):
         obs[self.Name] = self.Value
@@ -272,7 +272,7 @@ class WeightAvgShock(GlobalShockFast):
         dt = kwargs['dt'] if 'dt' in kwargs else 1
         wt = kwargs['weight']
         wt = {model.DCore.States[k]: v for k, v in wt.items()}
-        model.Behaviours[name] = WeightAvgShock(name, s_src, t_tar, wt, dt)
+        model.add_behaviour(WeightAvgShock(name, s_src, t_tar, wt, dt))
 
     def fill(self, obs, model, ti):
         obs[self.Name] = self.Value
@@ -345,7 +345,7 @@ class NetShock(PassiveModBehaviour, metaclass=ABCMeta):
     def decorate(name, model, **kwargs):
         s_src = model.DCore.States[kwargs['s_src']]
         t_tar = model.DCore.Transitions[kwargs['t_tar']]
-        model.Behaviours[name] = NetShock(name, s_src, t_tar, kwargs['net'])
+        model.add_behaviour(NetShock(name, s_src, t_tar, kwargs['net']))
 
 
 class NetWeightShock(PassiveModBehaviour, metaclass=ABCMeta):
@@ -409,7 +409,7 @@ class NetWeightShock(PassiveModBehaviour, metaclass=ABCMeta):
         t_tar = model.DCore.Transitions[kwargs['t_tar']]
         wt = kwargs['weight']
         wt = {model.DCore.States[k]: v for k, v in wt.items()}
-        model.Behaviours[name] = NetWeightShock(name, s_src, t_tar, kwargs['net'], wt)
+        model.add_behaviour(NetWeightShock(name, s_src, t_tar, kwargs['net'], wt))
 
 
 class SwitchOn(PassiveModBehaviour, metaclass=ABCMeta):
@@ -441,7 +441,7 @@ class SwitchOn(PassiveModBehaviour, metaclass=ABCMeta):
     def decorate(name, model, **kwargs):
         s_src = model.DCore.States[kwargs['s_src']]
         t_tar = model.DCore.Transitions[kwargs['t_tar']]
-        model.Behaviours[name] = SwitchOn(name, s_src, t_tar, kwargs['prob'])
+        model.add_behaviour(SwitchOn(name, s_src, t_tar, kwargs['prob']))
 
     def match(self, be_src, ags_src, ags_new, ti):
         for ag_new, ag_src in zip(ags_new.values(), ags_src.values()):
@@ -493,7 +493,7 @@ class SwitchOff(PassiveModBehaviour, metaclass=ABCMeta):
     def decorate(name, model, **kwargs):
         s_src = model.DCore.States[kwargs['s_src']]
         t_tar = model.DCore.Transitions[kwargs['t_tar']]
-        model.Behaviours[name] = SwitchOff(name, s_src, t_tar, kwargs['prob'])
+        model.add_behaviour(SwitchOff(name, s_src, t_tar, kwargs['prob']))
 
     def match(self, be_src, ags_src, ags_new, ti):
         for ag_new, ag_src in zip(ags_new.values(), ags_src.values()):

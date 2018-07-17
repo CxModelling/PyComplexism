@@ -35,7 +35,7 @@ def TB_ODE(y, t, p, x):
                    latent - reactivation - slat * dr,
                    activation + reactivation + relapse,
                    - relapse - rec * dr])
-    # dy[0] += (sus + flat, + slat + rec) * dr
+
     return dy
 
 

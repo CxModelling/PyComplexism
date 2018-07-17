@@ -381,9 +381,3 @@ class Schedule:
 
     def print(self):
         print(self.Location, ':', repr(self))
-        # print('\t- Request')
-        # for req in self.Requests:
-        #    print('\t\t', req)
-        # print('\t- Disclosure')
-        # for dss in self.Disclosures:
-        #    print('\t\t', dss)
