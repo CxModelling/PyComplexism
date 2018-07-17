@@ -177,7 +177,7 @@ class AbsModel(metaclass=ABCMeta):
 
     @abstractmethod
     def reset(self, ti):
-        self.Scheduler.reschedule_all_actors(ti)
+        self.Scheduler.reschedule_all_actors()
 
     @abstractmethod
     def read_y0(self, y0, ti):

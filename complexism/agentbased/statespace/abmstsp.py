@@ -81,11 +81,11 @@ class ObsStSpABM(ObsABM):
         for st in self.States:
             self.LazySnapshot[st] = ('St', st)
 
-        for be in self.Behaviours:
+        for bk, be in model.Behaviours.items():
             tab = dict()
-            model.Behaviours[be].fill(tab, model, ti)
+            be.fill(tab, model, ti)
             for k, v in tab.items():
-                self.LazySnapshot[k] = ('Be', be)
+                self.LazySnapshot[k] = ('Be', bk)
 
         for fn in self.Functions:
             tab = dict()

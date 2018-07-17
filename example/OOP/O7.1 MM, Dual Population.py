@@ -92,9 +92,7 @@ mbp.set_observations(states=['Sus', 'Inf', 'Rec'],
 m_abm = mbp.generate(abm_name, pc=p_abm, dc=dbp)
 
 model.append(m_ebm)
-model.add_observing_model(ebm_name)
 model.append(m_abm)
-model.add_observing_model(abm_name)
 
 model.link('{}@Inf'.format(abm_name), '{}@fI'.format(ebm_name))
 model.link('{}@N'.format(abm_name), '{}@fN'.format(ebm_name))

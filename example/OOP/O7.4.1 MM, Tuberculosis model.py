@@ -63,7 +63,8 @@ mbp_i = ss.BlueprintStSpABM('I')
 mbp_i.set_agent(prefix='Ag', group='AgI', dynamics='I')
 mbp_i.add_behaviour('Dead', 'Cohort', s_death='Dead')
 mbp_i.add_behaviour('Recovery', 'Cohort', s_death='PostCare')
-mbp_i.set_observations(states=['Inf', 'Alive', 'PreCare', 'InCare', 'PostCare'],
+mbp_i.add_behaviour('StInf', 'StateTrack', s_src='Inf')
+mbp_i.set_observations(states=['Alive', 'PreCare', 'InCare', 'PostCare'],
                        transitions=['Cure', 'Recover', 'SeekCare', 'Die_TB'])
 
 
@@ -76,7 +77,7 @@ model_i = mbp_i.generate('I', pc=pc.breed('I', 'I'), dc=dbp_i)
 
 class UpdateSource(cx.ImpulseResponse):
     def __call__(self, disclosure, model_foreign, model_local, ti):
-        model_local.impulse('impulse', k='Inf', v=model_foreign.get_snapshot('Inf', ti))
+        model_local.impulse('impulse', k='Inf', v=model_foreign.get_snapshot('StInf', ti))
         model_local.impulse('impulse', k='N_abm', v=model_foreign.get_snapshot('Alive', ti))
 
 
@@ -84,28 +85,30 @@ class InfOut(cx.ImpulseResponse):
     def __call__(self, disclosure, model_foreign, model_local, ti):
         n = disclosure.Arguments['n']
         model_local.impulse('del', y='Inf_psu', n=float(n))
-        model_local.impulse('impulse', k='Inf', v=model_local.Equations['Inf'] + n)
+        # model_local.impulse('impulse', k='Inf', v=model_local.Equations['Inf'] + n)
+        model_local.impulse('impulse', k='Inf', v=model_foreign.get_snapshot('StInf', ti))
         model_local.impulse('impulse', k='N_abm', v=model_local.Equations['N_abm'] + n)
 
 
 class SusSource(cx.ImpulseResponse):
     def __call__(self, disclosure, model_foreign, model_local, ti):
         model_local.impulse('add', y='Sus', n=1)
-        model_local.impulse('impulse', k='Inf', v=model_foreign.get_snapshot('Inf', ti))
+        model_local.impulse('impulse', k='Inf', v=model_foreign.get_snapshot('StInf', ti))
         model_local.impulse('impulse', k='N_abm', v=model_local.Equations['N_abm'] - 1)
 
 
 class RecSource(cx.ImpulseResponse):
     def __call__(self, disclosure, model_foreign, model_local, ti):
         model_local.impulse('add', y='Rec', n=1)
-        model_local.impulse('impulse', k='Inf', v=model_foreign.get_snapshot('Inf', ti))
+        model_local.impulse('impulse', k='Inf', v=model_foreign.get_snapshot('StInf', ti))
         model_local.impulse('impulse', k='N_abm', v=model_local.Equations['N_abm'] - 1)
 
 
 class TempRec(cx.ImpulseResponse):
     def __call__(self, disclosure, model_foreign, model_local, ti):
         model_local.impulse('add', y='Rec', n=1)
-        model_local.impulse('impulse', k='Inf', v=model_local.Equations['Inf'] - 1)
+        # model_local.impulse('impulse', k='Inf', v=model_local.Equations['Inf'] - 1)
+        model_local.impulse('impulse', k='Inf', v=model_foreign.get_snapshot('StInf', ti))
 
 
 model_ser.add_listener(cx.InitialChecker(), UpdateSource())

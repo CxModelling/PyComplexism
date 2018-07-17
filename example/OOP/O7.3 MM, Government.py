@@ -2,16 +2,16 @@ import matplotlib.pyplot as plt
 import epidag as dag
 import complexism as cx
 from complexism.element import ScheduleTicker, Event
-import complexism.agentbased as abm
 import complexism.agentbased.statespace as ss
+import complexism.multimodel as mm
 
 
-class ValuePassing(abm.ActiveBehaviour):
+class ValuePassing(mm.ActiveActor):
     def __init__(self, name):
-        abm.ActiveBehaviour.__init__(self, name, ScheduleTicker(name, ts=[3, 6]), None)
+        mm.ActiveActor.__init__(self, name, ScheduleTicker(name, ts=[3, 6]))
 
     def compose_event(self, ti):
-        return Event('action', self.Clock.Next)
+        return Event('pass down value', self.Clock.Next)
 
     def do_action(self, model, todo, ti):
         if ti is 3:
@@ -21,7 +21,7 @@ class ValuePassing(abm.ActiveBehaviour):
             model.get_model('ABM').shock(ti, todo, 'd_rec', 100)
             self.Clock.update(ti)
 
-    def register(self, ag, ti):
+    def register(self, sub_model, ti):
         pass
 
     @staticmethod

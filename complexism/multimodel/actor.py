@@ -7,8 +7,8 @@ __all__ = ['AbsActor', 'PassiveActor', 'ActiveActor']
 
 
 class AbsActor(ModelAtom, metaclass=ABCMeta):
-    def __init__(self, name):
-        ModelAtom.__init__(self, name)
+    def __init__(self, name, pars=None):
+        ModelAtom.__init__(self, name, pars=pars)
 
     @abstractmethod
     def register(self, sub_model, ti):
@@ -28,8 +28,8 @@ class AbsActor(ModelAtom, metaclass=ABCMeta):
 
 
 class ActiveActor(AbsActor, metaclass=ABCMeta):
-    def __init__(self, name, clock: AbsTicker):
-        AbsActor.__init__(self, name)
+    def __init__(self, name, clock: AbsTicker, pars=None):
+        AbsActor.__init__(self, name, pars=pars)
         self.Clock = clock
 
     def find_next(self):
@@ -78,8 +78,8 @@ class ActiveActor(AbsActor, metaclass=ABCMeta):
 
 
 class PassiveActor(AbsActor, metaclass=ABCMeta):
-    def __init__(self, name):
-        AbsActor.__init__(self, name)
+    def __init__(self, name, pars=None):
+        AbsActor.__init__(self, name, pars=pars)
 
     @property
     def Next(self):
