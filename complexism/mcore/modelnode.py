@@ -32,7 +32,7 @@ class ModelAtom(metaclass=ABCMeta):
 
     @property
     def Next(self):
-        if self.__next is Event.NullEvent:
+        if self.__next.is_cancelled():
             self.__next = self.find_next()
         return self.__next
 
@@ -58,7 +58,7 @@ class ModelAtom(metaclass=ABCMeta):
         """
         Drop the next event and reset it to the null event
         """
-        self.__next = Event.NullEvent
+        self.__next.cancel()
 
     def approve_event(self, evt):
         """
@@ -304,10 +304,12 @@ class BranchModel(AbsModel, metaclass=ABCMeta):
     def preset(self, ti):
         for v in self.all_models().values():
             v.preset(ti)
+        self.Scheduler.reschedule_all_actors(ti)
 
     def reset(self, ti):
         for v in self.all_models().values():
             v.reset(ti)
+        self.Scheduler.reschedule_all_actors(ti)
 
     @abstractmethod
     def all_models(self) -> dict:

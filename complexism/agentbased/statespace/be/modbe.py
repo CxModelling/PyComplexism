@@ -27,7 +27,7 @@ class ExternalShock(PassiveModBehaviour):
 
     def shock(self, ti, source, target, value):
         self.Value = value
-        self.__shock(target, ti)
+        self.__shock(source, ti)
 
     def match(self, be_src, ags_src, ags_new, ti):
         self.Value = be_src.Value

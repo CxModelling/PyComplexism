@@ -149,11 +149,11 @@ class LifeS(ActiveBehaviour):
 
         rate = self.Rate * (1 - n / self.Cap)
         prob = 1 - np.exp(-rate * self.Dt)
+        if prob > 0:
+            n = rd.binomial(n, prob)
 
-        n = rd.binomial(n, prob)
-
-        self.BirthN += n
-        model.birth(n=n, ti=ti, st=self.S_birth)
+            self.BirthN += n
+            model.birth(n=n, ti=ti, st=self.S_birth)
 
     def register(self, ag, ti):
         pass

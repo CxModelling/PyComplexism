@@ -163,27 +163,22 @@ class Schedule:
         self.Status = Status.TO_COLLECT
 
         self.Actors = dict()
-        self.WaitingActors = list()
         self.Queue = list()
+        self.WaitingActors = set()
+        self.CurrentRequests = dict()
 
     def add_actor(self, actor):
         self.Actors[actor] = None
-        self.WaitingActors.append(actor)
 
     def remove_actor(self, actor):
         try:
             self.Actors[actor][-1].cancel()
             del self.Actors[actor]
-            self.WaitingActors.remove(actor)
-        except (KeyError, ValueError):
+        except KeyError:
             pass
 
     def reschedule_actor(self, actor, ti):
-        try:
-            self.Actors[actor][-1].cancel()
-        except TypeError:
-            pass
-
+        actor.drop_next()
         actor.update_time(ti)
         event = actor.Next
         tte = event.Time
@@ -191,57 +186,71 @@ class Schedule:
         self.Actors[actor] = entry
         heapq.heappush(self.Queue, entry)
 
-        try:
-            self.WaitingActors.remove(actor)
-        except ValueError:
-            pass
-
     def add_schedule_actor(self, actor, ti):
-        self.Actors[actor] = None
+        self.add_actor(actor)
         self.reschedule_actor(actor, ti)
 
     def reschedule_all_actors(self, ti):
         self.Queue = list()
         for actor, entry in self.Actors.items():
             self.reschedule_actor(actor, ti)
-        self.WaitingActors = list()
+
+    def reschedule_out_actors(self, ti):
+        for actor, entry in self.Actors.items():
+            if entry[-1].is_cancelled():
+                self.reschedule_actor(actor, ti)
 
     def reschedule_waiting_actors(self, ti):
-        while self.WaitingActors:
-            actor = self.WaitingActors.pop()
+        for actor in self.WaitingActors:
             self.reschedule_actor(actor, ti)
+        self.WaitingActors.clear()
 
     def clean_cancelled(self):
         self.Queue = [q for q in self.Queue if not q[-1].is_cancelled()]
+        heapq.heapify(self.Queue)
 
     def pop_event(self):
         while self.Queue:
             tte, actor, event = heapq.heappop(self.Queue)
-            if actor.Next is not event:  # if the next event have been updated
+            nxt = actor.Next
+            if nxt is not event:  # if the next event have been updated
                 event.cancel()
 
+                if self.Actors[actor][-1] is event:
+                    self.reschedule_actor(actor, tte)
+
             if not event.is_cancelled():
-                self.WaitingActors.append(actor)
+                self.WaitingActors.add(actor)
                 return actor, event
 
-            if actor in self.WaitingActors:
-                self.reschedule_actor(actor, tte)
         raise KeyError('pop from an empty priority queue')
 
-    def remove_event_until(self, ti):
-        while self.Queue:
-            tte = self.Queue[0][0]
-            if tte > ti:
-                return
+    def extract_nearest(self):
+        while True:
+            try:
+                a, e = self.pop_event()
+                if e.Time < self.Time:
+                    self.CurrentRequests[a] = Request(e, a.Name, self.Location)
+                    self.Time = e.Time
+                else:
+                    heapq.heappush(self.Queue, [e.Time, a, e])
+                    break
+            except KeyError:
+                break
 
-            tte, actor, event = heapq.heappop(self.Queue)
-
-            if actor not in self.Actors:
-                continue
-
-            _, _, e = self.Actors[actor]
-            if event is e:
-                self.reschedule_actor(actor, ti)
+    def put_requests_back(self):
+        for a, r in self.CurrentRequests.items():
+            e = r.Event
+            try:
+                self.WaitingActors.remove(a)
+            except KeyError:
+                pass
+            if e.is_cancelled:
+                self.reschedule_actor(a, e.Time)
+            else:
+                heapq.heappush(self.Queue, [e.Time, a, e])
+        self.CurrentRequests.clear()
+        self.Time = float('inf')
 
     def __gt__(self, ot):
         return self.Time > ot.Time
@@ -260,16 +269,16 @@ class Schedule:
 
     # Collection stage
     def find_next(self):
-        try:
-            ti, actor, event = min(self.Queue)
-            if ti < self.Time:
-                self.Requests = [Request(e, a.Name, self.Location) for t, a, e in self.Queue if t is ti]
-                self.Time = ti
-        except ValueError:
-            pass
+        self.extract_nearest()
+        self.Requests = list(self.CurrentRequests.values())
 
     def append_request_from_source(self, event, who):
-        self.Requests.append(Request(event, who, self.Location))
+        if event.Time < self.Time:
+            self.put_requests_back()
+            self.Requests = [Request(event, who, self.Location)]
+            self.Time = event.Time
+        elif event.Time == self.Time:
+            self.Requests.append(Request(event, who, self.Location))
 
     def append_disclosure(self, dss: Disclosure):
         """
@@ -288,6 +297,7 @@ class Schedule:
     def append_lower_schedule(self, lower):
         ti = lower.Time
         if ti < self.Time:
+            self.put_requests_back()
             if lower.Requests:
                 self.Requests = lower.up_scale_requests(self.Location)
             self.Time = ti
@@ -295,7 +305,7 @@ class Schedule:
             if self.Requests:
                 self.Requests += lower.up_scale_requests(self.Location)
         else:
-            return
+            lower.put_requests_back()
 
     # After sending back
 
@@ -354,20 +364,16 @@ class Schedule:
     def execution_completed(self):
         self.Status = Status.TO_FINISH
         self.Requests.clear()
-        self.remove_event_until(self.Time)
         self.reschedule_waiting_actors(self.Time)
         self.Time = float('inf')
 
     def cycle_completed(self):
         self.Status = Status.TO_COLLECT
         self.Disclosures.clear()
-        if self.Requests:
-            self.Requests.clear()
-            self.remove_event_until(self.Time)
-            self.reschedule_waiting_actors(self.Time)
         self.Time = float('inf')
 
     def cycle_broke(self):
+        self.put_requests_back()
         self.cycle_completed()
         self.collection_completed()
 

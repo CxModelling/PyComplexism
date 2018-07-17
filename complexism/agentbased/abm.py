@@ -185,7 +185,6 @@ class GenericAgentBasedModel(LeafModel, metaclass=ABCMeta):
         except KeyError as e:
             raise e
 
-
     def __len__(self):
         return len(self.Population.Agents)
 
