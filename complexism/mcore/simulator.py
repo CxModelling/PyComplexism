@@ -67,6 +67,7 @@ class Simulator:
             for req in requests:
                 self.Logger.info(str(req))
             self.Model.fetch_requests(requests)
+            self.Model.synchronise_request_time(ti)
             self.Model.execute_requests()
             self.deal_with_disclosures(ti, requests)
             self.Model.exit_cycle()

@@ -144,7 +144,7 @@ ii = InfIn()
 model_i.add_listener(cx.InitialChecker(), ii)
 model_i.add_listener(cx.StartsWithChecker('update'), ii)
 
-scale = 2000
+scale = 200
 # Step 5 simulate
 y0e = {
     'Sus': 29 * scale,

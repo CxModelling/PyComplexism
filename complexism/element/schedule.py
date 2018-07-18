@@ -147,21 +147,14 @@ class Request:
 Request.NullRequest = Request(Event(None, float('inf')), 'Nobody', 'Nowhere')
 
 
-class Status(Enum):
-    TO_COLLECT = auto()  # collect
-    TO_VALIDATE = auto()
-    TO_EXECUTE = auto()
-    TO_FINISH = auto()
-
-
 class Schedule:
     def __init__(self, loc):
         self.Location = loc
+
         self.Requests = list()
         self.Disclosures = list()
         self.Time = float('inf')
         self.OwnTime = float('inf')
-        self.Status = Status.TO_COLLECT
 
         self.Queue = list()
         self.WaitingActors = set()
@@ -172,9 +165,9 @@ class Schedule:
         actor.set_scheduler(self)
 
     def remove_actor(self, actor):
+        actor.drop_next()
+        actor.detach_scheduler()
         try:
-            actor.drop_next()
-            actor.detach_scheduler()
             self.WaitingActors.remove(actor)
         except KeyError:
             pass
@@ -225,7 +218,7 @@ class Schedule:
                     self.OwnTime = e.Time
                 else:
                     break
-            except KeyError:
+            except (IndexError, KeyError):
                 break
 
     def put_requests_back(self):
@@ -236,7 +229,7 @@ class Schedule:
                 self.reschedule_actor(a)
             else:
                 self.reschedule_actor(a)
-        self.CurrentRequests.clear()
+        self.CurrentRequests = dict()
         self.OwnTime = float('inf')
 
     def __gt__(self, ot):
@@ -269,6 +262,8 @@ class Schedule:
             self.Time = event.Time
         elif event.Time == self.Time:
             self.Requests.append(Request(event, who, self.Location))
+        else:
+            return
 
     def append_disclosure(self, dss: Disclosure):
         """
@@ -299,6 +294,10 @@ class Schedule:
             return
 
     def fetch_requests(self, rs):
+        rs_out = [req for req in self.Requests if req not in rs]
+        for req in rs_out:
+            req.Event.cancel()
+
         self.Requests = rs
 
     def pop_lower_requests(self):
@@ -317,10 +316,10 @@ class Schedule:
 
         self.Requests = current
 
-        if (not self.Requests) and (not lower):
-            self.execution_completed()
-
         return pop
+
+    def is_executable(self):
+        return self.Time is self.OwnTime
 
     def pop_disclosures(self):
         ds, self.Disclosures = self.Disclosures, list()
@@ -329,52 +328,20 @@ class Schedule:
     def fetch_disclosures(self, ds):
         self.Disclosures = ds
 
-    def waiting_for_collection(self):
-        return self.Status is Status.TO_COLLECT
-
-    def waiting_for_validation(self):
-        return self.Status is Status.TO_VALIDATE
-
-    def waiting_for_execution(self):
-        return self.Status is Status.TO_EXECUTE
-
-    def waiting_for_finish(self):
-        return self.Status is Status.TO_FINISH
-
-    def collection_completed(self):
-        self.Status = Status.TO_VALIDATE
-
-    def validation_completed(self):
-        if self.is_empty():
-            self.execution_completed()
-        else:
-            self.Status = Status.TO_EXECUTE
-
     def execution_completed(self):
-        self.Status = Status.TO_FINISH
         self.Requests.clear()
-        if self.Time == self.OwnTime:
-            self.CurrentRequests = dict()
-            self.OwnTime = float('inf')
-        self.Time = float('inf')
+        self.CurrentRequests = dict()
+        self.OwnTime = float('inf')
 
     def cycle_completed(self):
-        self.Status = Status.TO_COLLECT
         self.Disclosures.clear()
-        self.reschedule_waiting_actors()
-        # self.Time = min(float('inf'), self.OwnTime)
-
-    def cycle_broke(self):
-        self.cycle_completed()
-        self.collection_completed()
+        self.Time = min(float('inf'), self.OwnTime)
 
     def is_empty(self):
         return not self.Requests
 
     def __repr__(self):
-        return 'Status: {}, Req: {}, Dss: {}, Next Event Time: {}'.format(
-            self.Status,
-            len(self.Requests), len(self.Disclosures), self.Time)
+        return 'Req: {}, Dss: {}, Next Event Time: {}'.format(len(self.Requests), len(self.Disclosures), self.Time)
 
     def print(self):
         print(self.Location, ':', repr(self))

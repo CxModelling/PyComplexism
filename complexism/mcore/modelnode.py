@@ -192,11 +192,11 @@ class AbsModel(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def do_request(self, request):
+    def validate_requests(self):
         pass
 
     @abstractmethod
-    def validate_requests(self):
+    def synchronise_request_time(self, time):
         pass
 
     @abstractmethod
@@ -205,6 +205,10 @@ class AbsModel(metaclass=ABCMeta):
 
     @abstractmethod
     def execute_requests(self):
+        pass
+
+    @abstractmethod
+    def do_request(self, request):
         pass
 
     def disclose(self, msg, who, **kwargs):
@@ -231,8 +235,7 @@ class AbsModel(metaclass=ABCMeta):
         return self.Listeners.AllChecker
 
     def exit_cycle(self):
-        if not self.Scheduler.waiting_for_validation():
-            self.Scheduler.cycle_completed()
+        self.Scheduler.cycle_completed()
 
     @abstractmethod
     def print_schedule(self):
@@ -275,25 +278,21 @@ class LeafModel(AbsModel, metaclass=ABCMeta):
         AbsModel.__init__(self, name, env, obs, y0_class)
 
     def collect_requests(self):
-        if self.Scheduler.waiting_for_collection():
-            self.Scheduler.find_next()
-            self.Scheduler.collection_completed()
-            return self.Scheduler.Requests
-        elif self.Scheduler.waiting_for_validation():
-            return self.Scheduler.Requests
-        else:
-            raise AttributeError(self.Scheduler.Status)
+        self.Scheduler.find_next()
+        return self.Scheduler.Requests
 
     def validate_requests(self):
         # todo validation if not validated, disapprove
         pass
 
+    def synchronise_request_time(self, time):
+        self.Scheduler.Time = time
+
     def fetch_requests(self, rs):
         self.Scheduler.fetch_requests(rs)
-        self.Scheduler.validation_completed()
 
     def execute_requests(self):
-        if self.Scheduler.waiting_for_execution():
+        if self.Scheduler.is_executable():
             for request in self.Scheduler.Requests:
                 self.do_request(request)
             self.Scheduler.execution_completed()
@@ -338,16 +337,19 @@ class BranchModel(AbsModel, metaclass=ABCMeta):
         return ModelSelector(self.all_models()).select_all(sel)
 
     def collect_requests(self):
-        if self.Scheduler.waiting_for_collection():
-            self.Scheduler.find_next()
-            for v in self.all_models().values():
-                v.collect_requests()
-                self.Scheduler.append_lower_schedule(v.Scheduler)
-            self.Scheduler.collection_completed()
+        self.Scheduler.find_next()
+        for v in self.all_models().values():
+            v.collect_requests()
+            self.Scheduler.append_lower_schedule(v.Scheduler)
         return self.Scheduler.Requests
 
     def validate_requests(self):
         pass  # todo
+
+    def synchronise_request_time(self, time):
+        self.Scheduler.Time = time
+        for v in self.all_models().values():
+            v.synchronise_request_time(time)
 
     def fetch_requests(self, rs):
         self.Scheduler.fetch_requests(rs)
@@ -356,14 +358,12 @@ class BranchModel(AbsModel, metaclass=ABCMeta):
 
         for k, v in res.items():
             self.select(k).fetch_requests(v)
-        if res or self.Scheduler.Requests:
-            self.Scheduler.validation_completed()
 
     def execute_requests(self):
         for v in self.all_models().values():
             v.execute_requests()
 
-        if self.Scheduler.waiting_for_execution():
+        if self.Scheduler.is_executable():
             for request in self.Scheduler.Requests:
                 self.do_request(request)
             self.Scheduler.execution_completed()
