@@ -218,7 +218,7 @@ class Schedule:
         while self.Queue:
             try:
                 t = self.find_min_t()
-                if t < self.OwnTime:
+                if t <= self.OwnTime:
                     t, a, e = heapq.heappop(self.Queue)
                     self.requeue_actor(a)
                     self.CurrentRequests[a] = Request(e, a.Name, self.Location)
@@ -227,7 +227,6 @@ class Schedule:
                     break
             except KeyError:
                 break
-        self.Time = min(self.Time, self.OwnTime)
 
     def put_requests_back(self):
         for a, r in self.CurrentRequests.items():
@@ -258,11 +257,13 @@ class Schedule:
     # Collection stage
     def find_next(self):
         self.reschedule_waiting_actors()
-        self.extract_nearest()
+        if not self.CurrentRequests:
+            self.extract_nearest()
         self.Requests = list(self.CurrentRequests.values())
         self.Time = min(self.Time, self.OwnTime)
 
     def append_request_from_source(self, event, who):
+        # todo validate
         if event.Time < self.Time:
             self.Requests = [Request(event, who, self.Location)]
             self.Time = event.Time
@@ -361,7 +362,7 @@ class Schedule:
         self.Status = Status.TO_COLLECT
         self.Disclosures.clear()
         self.reschedule_waiting_actors()
-        self.Time = float('inf')
+        # self.Time = min(float('inf'), self.OwnTime)
 
     def cycle_broke(self):
         self.cycle_completed()
