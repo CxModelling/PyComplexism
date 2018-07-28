@@ -28,11 +28,11 @@ model = cx.StSpAgentBasedModel(model_name, pc, pop)
 
 
 # Step 4 add behaviours to the model
-# ss.FDShock.decorate('FOI', model, s_src='Inf', t_tar='Infect')
+ss.FDShock.decorate('FOI', model, s_src='Inf', t_tar='Infect')
 # ss.FDShockFast.decorate('FOI', model=model, s_src='Inf', t_tar='Infect', dt=0.1)
-pc.impulse({'beta': pc['beta']/300})
+# pc.impulse({'beta': pc['beta']/300})
 # ss.DDShock.decorate('FOI', model=model, s_src='Inf', t_tar='Infect')
-ss.DDShockFast.decorate('FOI', model=model, s_src='Inf', t_tar='Infect')
+# ss.DDShockFast.decorate('FOI', model=model, s_src='Inf', t_tar='Infect')
 
 
 # Step 5 decide outputs
@@ -47,7 +47,7 @@ model.add_observing_behaviour('FOI')
 
 # Step 6 simulate
 y0 = [
-    {'n': 290, 'attributes': {'st': 'Sus'}},
+    {'n': 490, 'attributes': {'st': 'Sus'}},
     {'n': 10, 'attributes': {'st': 'Inf'}}
 ]
 

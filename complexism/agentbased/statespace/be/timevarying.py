@@ -1,6 +1,5 @@
 from complexism.abmodel import TimeModBe, GloRateModifier, Event
 from complexism.element import StepTicker, Clock
-#from complexism import StepFn
 import numpy as np
 from scipy import interpolate
 

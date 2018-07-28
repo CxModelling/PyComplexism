@@ -99,18 +99,28 @@ class GenericAgentBasedModel(LeafModel, metaclass=ABCMeta):
         self.disclose('initialise', '*')
 
     def check_enter(self, ag):
-        return (be for be in self.Behaviours.values() if be.check_enter(ag))
+        bes = list()
+        for be in self.Behaviours.values():
+            chk = be.check_enter(ag)
+            if chk:
+                bes.append((chk, be))
+        return bes
 
     def impulse_enter(self, bes, ag, ti):
-        for be in bes:
-            be.impulse_enter(self, ag, ti)
+        for chk, be in bes:
+            be.impulse_enter(self, ag, ti, chk)
 
     def check_exit(self, ag):
-        return (be for be in self.Behaviours.values() if be.check_exit(ag))
+        bes = list()
+        for be in self.Behaviours.values():
+            chk = be.check_exit(ag)
+            if chk:
+                bes.append((chk, be))
+        return bes
 
     def impulse_exit(self, bes, ag, ti):
-        for be in bes:
-            be.impulse_exit(self, ag, ti)
+        for chk, be in bes:
+            be.impulse_exit(self, ag, ti, chk)
 
     def check_pre_change(self, ag):
         return [be.check_pre_change(ag) for be in self.Behaviours.values()]
@@ -122,12 +132,12 @@ class GenericAgentBasedModel(LeafModel, metaclass=ABCMeta):
         bes = list()
         for f, t, be in zip(pre, post, self.Behaviours.values()):
             if be.check_change(f, t):
-                bes.append(be)
+                bes.append((f, t, be))
         return bes
 
     def impulse_change(self, bes, ag, ti):
-        for be in bes:
-            be.impulse_change(self, ag, ti)
+        for f, t, be in bes:
+            be.impulse_change(self, ag, ti, f, t)
 
     def birth(self, n, ti, **kwargs):
         ags = self.Population.add_agent(n, **kwargs)

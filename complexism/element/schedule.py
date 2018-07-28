@@ -1,6 +1,5 @@
 from itertools import groupby
 import heapq
-from enum import Enum, auto
 from .event import Event
 
 __author__ = 'TimeWz667'
@@ -159,10 +158,12 @@ class Schedule:
         self.Queue = list()
         self.WaitingActors = set()
         self.CurrentRequests = dict()
+        self.NActors = 0
 
     def add_actor(self, actor):
         self.WaitingActors.add(actor)
         actor.set_scheduler(self)
+        self.NActors += 1
 
     def remove_actor(self, actor):
         actor.drop_next()
@@ -171,6 +172,7 @@ class Schedule:
             self.WaitingActors.remove(actor)
         except KeyError:
             pass
+        self.NActors -= 1
 
     def reschedule_actor(self, actor):
         event = actor.Next
@@ -193,6 +195,16 @@ class Schedule:
         for actor in self.WaitingActors:
             self.reschedule_actor(actor)
         self.WaitingActors.clear()
+
+        if len(self.Queue) > 5 * self.NActors:
+            # print(len(self.Queue), min(self.Queue)[0], self.NActors)
+            self.clean_queue()
+            # print(len(self.Queue))
+
+    def clean_queue(self):
+        queue = [[t, a, e] for t, a, e in self.Queue if not e.is_cancelled()]
+        self.Queue = queue
+        heapq.heapify(self.Queue)
 
     def requeue_actor(self, actor):
         self.WaitingActors.add(actor)

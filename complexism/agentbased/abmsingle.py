@@ -68,13 +68,13 @@ class SingleIndividualABM(LeafModel):
     def preset(self, ti):
         self.Agent.initialise(model=self, ti=ti)
         for be in self.Behaviours.values():
-            be.initialise(self, ti)
+            be.preset(self, ti, model=self)
         self.Scheduler.reschedule_all_actors()
 
     def reset(self, ti):
         self.Agent.reset(model=self, ti=ti)
         for be in self.Behaviours.values():
-            be.initialise(self, ti)
+            be.reset(self, ti, model=self)
         self.Scheduler.reschedule_all_actors()
 
     def trigger_external_impulses(self, disclosure, model, time):

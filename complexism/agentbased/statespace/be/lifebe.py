@@ -15,16 +15,16 @@ class Reincarnation(PassiveBehaviour):
         self.S_birth = s_birth
         self.BirthN = 0
 
-    def initialise(self, ti, *args, **kwargs):
+    def initialise(self, ti, model):
         pass
 
-    def reset(self, ti, *args, **kwargs):
+    def reset(self, ti, model):
         pass
 
     def register(self, ag, ti):
         pass
 
-    def impulse_change(self, model, ag, ti):
+    def impulse_change(self, model, ag, ti, args_pre=None, args_post=None):
         model.kill(ag.Name, ti)
         model.birth(n=1, ti=ti, st=self.S_birth)
         self.BirthN += 1
@@ -51,16 +51,16 @@ class Cohort(PassiveBehaviour):
         self.S_death = s_death
         self.DeathN = 0
 
-    def initialise(self, ti, *args, **kwargs):
+    def initialise(self, ti, model):
         pass
 
-    def reset(self, ti, *args, **kwargs):
+    def reset(self, ti, model):
         pass
 
     def register(self, ag, ti):
         pass
 
-    def impulse_change(self, model, ag, ti):
+    def impulse_change(self, model, ag, ti, args_pre=None, args_post=None):
         model.kill(ag.Name, ti)
         self.DeathN += 1
 
@@ -106,7 +106,7 @@ class LifeRate(ActiveBehaviour):
     def register(self, ag, ti):
         pass
 
-    def impulse_change(self, model, ag, ti):
+    def impulse_change(self, model, ag, ti, args_pre=None, args_post=None):
         model.kill(ag.Name, ti)
 
     def fill(self, obs, model, ti):
@@ -158,7 +158,7 @@ class LifeS(ActiveBehaviour):
     def register(self, ag, ti):
         pass
 
-    def impulse_change(self, model, ag, ti):
+    def impulse_change(self, model, ag, ti, args_pre=None, args_post=None):
         model.kill(ag.Name, ti)
 
     def fill(self, obs, model, ti):
@@ -186,10 +186,10 @@ class AgentImport(PassiveBehaviour):
         self.S_birth = s_birth
         self.BirthN = 0
 
-    def initialise(self, ti, *args, **kwargs):
+    def initialise(self, ti, model):
         pass
 
-    def reset(self, ti, *args, **kwargs):
+    def reset(self, ti, model):
         pass
 
     def register(self, ag, ti):

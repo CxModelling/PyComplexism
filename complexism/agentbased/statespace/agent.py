@@ -23,11 +23,11 @@ class StSpAgent(GenericAgent):
             else:
                 raise e
 
-    def initialise(self, ti=0, *args, **kwargs):
+    def initialise(self, ti=0, model=None):
         self.Transitions.clear()
         self.update_time(ti)
 
-    def reset(self, ti=0, *args, **kwargs):
+    def reset(self, ti=0, model=None):
         self.Transitions.clear()
         self.update_time(ti)
 

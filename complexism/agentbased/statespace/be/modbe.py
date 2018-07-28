@@ -19,10 +19,10 @@ class ExternalShock(PassiveModBehaviour):
         self.T_tar = t_tar
         self.Value = 1
 
-    def initialise(self, ti, model, *args, **kwargs):
+    def initialise(self, ti, model):
         self.__shock(model, ti)
 
-    def reset(self, ti, *args, **kwargs):
+    def reset(self, ti, model):
         pass
 
     def shock(self, ti, source, target, value):
@@ -57,22 +57,22 @@ class GlobalShock(PassiveModBehaviour, metaclass=ABCMeta):
         self.T_tar = t_tar
         self.Value = 0
 
-    def initialise(self, ti, model, *args, **kwargs):
+    def initialise(self, ti, model):
         self.Value = self._evaluate(model)
         self.__shock(model, ti)
 
-    def reset(self, ti, *args, **kwargs):
+    def reset(self, ti, model):
         pass
 
-    def impulse_change(self, model, ag, ti):
+    def impulse_change(self, model, ag, ti, args_pre=None, args_post=None):
         self.Value = self._evaluate(model)
         self.__shock(model, ti)
 
-    def impulse_enter(self, model, ag, ti):
+    def impulse_enter(self, model, ag, ti, args=None):
         self.Value += self._difference(model, ag)
         self.__shock(model, ti)
 
-    def impulse_exit(self, model, ag, ti):
+    def impulse_exit(self, model, ag, ti, args=None):
         self.Value -= self._difference(model, ag)
         self.__shock(model, ti)
 
@@ -106,15 +106,13 @@ class GlobalShockFast(ActiveModBehaviour):
         self.T_tar = t_tar
         self.Value = 0
 
-    def initialise(self, ti, *args, **kwargs):
-        ActiveModBehaviour.initialise(self, ti, *args, **kwargs)
-        model = kwargs['model']
+    def initialise(self, ti, model):
+        ActiveModBehaviour.initialise(self, ti, model)
         self.Value = self._evaluate(model)
         self.__shock(model, ti)
 
-    def reset(self, ti, *args, **kwargs):
+    def reset(self, ti, model):
         self.Clock.initialise(ti)
-        model = kwargs['model']
         self.Value = self._evaluate(model)
         self.__shock(model, ti)
 
@@ -134,10 +132,11 @@ class GlobalShockFast(ActiveModBehaviour):
             self.register(ag, ti)
 
     def __shock(self, model, ti):
-        self.ProtoModifier.Value = self.Value
-        for ag in model.agents:
-            ag.modify(self.Name, ti)
-        model.disclose('update value', self.Name)
+        if self.ProtoModifier.Value is not self.Value:
+            self.ProtoModifier.Value = self.Value
+            for ag in model.agents:
+                ag.modify(self.Name, ti)
+            model.disclose('update value', self.Name)
 
     @abstractmethod
     def _evaluate(self, model):
@@ -299,21 +298,21 @@ class NetShock(PassiveModBehaviour, metaclass=ABCMeta):
         self.T_tar = t_tar
         self.Net = net
 
-    def initialise(self, ti, model, *args, **kwargs):
+    def initialise(self, ti, model):
         for ag in model.agents:
             val = model.Population.count_neighbours(ag, st=self.S_src, net=self.Net)
             ag.shock(ti, None, self.Name, val)
 
-    def reset(self, ti, *args, **kwargs):
+    def reset(self, ti, model):
         pass
 
-    def impulse_change(self, model, ag, ti):
+    def impulse_change(self, model, ag, ti, args_pre=None, args_post=None):
         self.__shock(ag, model, ti)
 
-    def impulse_enter(self, model, ag, ti):
+    def impulse_enter(self, model, ag, ti, args=None):
         self.__shock(ag, model, ti)
 
-    def impulse_exit(self, model, ag, ti):
+    def impulse_exit(self, model, ag, ti, args=None):
         self.__shock(ag, model, ti)
 
     def match(self, be_src, ags_src, ags_new, ti):
@@ -358,18 +357,18 @@ class NetWeightShock(PassiveModBehaviour, metaclass=ABCMeta):
         self.Net = net
         self.Weight = weight
 
-    def initialise(self, ti, model, *args, **kwargs):
+    def initialise(self, ti, model):
         for ag in model.agents:
             val = self.__foi(ag, model)
             ag.shock(ti, None, self.Name, val)
 
-    def impulse_change(self, model, ag, ti):
+    def impulse_change(self, model, ag, ti, args_pre=None, args_post=None):
         self.__shock(ag, model, ti)
 
-    def impulse_enter(self, model, ag, ti):
+    def impulse_enter(self, model, ag, ti, args=None):
         self.__shock(ag, model, ti)
 
-    def impulse_exit(self, model, ag, ti):
+    def impulse_exit(self, model, ag, ti, args=None):
         self.__shock(ag, model, ti)
 
     def match(self, be_src, ags_src, ags_new, ti):
@@ -423,18 +422,18 @@ class SwitchOn(PassiveModBehaviour, metaclass=ABCMeta):
         self.Decision = 0
         self.Buff = 0
 
-    def initialise(self, ti, model, *args, **kwargs):
+    def initialise(self, ti, model):
         for ag in model.agents:
             if self.S_src in ag.State:
                 self.__shock(ag, ti)
 
-    def impulse_change(self, model, ag, ti):
+    def impulse_change(self, model, ag, ti, args_pre=None, args_post=None):
         self.__shock(ag, ti)
 
-    def impulse_enter(self, model, ag, ti):
+    def impulse_enter(self, model, ag, ti, args=None):
         self.__shock(ag, ti)
 
-    def impulse_exit(self, model, ag, ti):
+    def impulse_exit(self, model, ag, ti, args=None):
         ag.shock(ti, self.Name, self.Name, False)
 
     @staticmethod
@@ -475,18 +474,18 @@ class SwitchOff(PassiveModBehaviour, metaclass=ABCMeta):
         self.Decision = 0
         self.Nerf = 0
 
-    def initialise(self, ti, model, *args, **kwargs):
+    def initialise(self, ti, model):
         for ag in model.agents:
             if self.S_src in ag.State:
                 self.__shock(ag, ti)
 
-    def impulse_change(self, model, ag, ti):
+    def impulse_change(self, model, ag, ti, args_pre=None, args_post=None):
         self.__shock(ag, ti)
 
-    def impulse_enter(self, model, ag, ti):
+    def impulse_enter(self, model, ag, ti, args=None):
         self.__shock(ag, ti)
 
-    def impulse_exit(self, model, ag, ti):
+    def impulse_exit(self, model, ag, ti, args=None):
         ag.shock(ti, self.Name, self.Name, False)
 
     @staticmethod

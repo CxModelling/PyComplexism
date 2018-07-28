@@ -28,19 +28,19 @@ class AbsBehaviour(ModelAtom, metaclass=ABCMeta):
     def check_change(self, pre, post):
         return self.Trigger.check_change(pre, post)
 
-    def impulse_change(self, model, ag, ti):
+    def impulse_change(self, model, ag, ti, args_pre=None, args_post=None):
         pass
 
     def check_enter(self, ag):
         return self.Trigger.check_enter(ag)
 
-    def impulse_enter(self, model, ag, ti):
+    def impulse_enter(self, model, ag, ti, args=None):
         pass
 
     def check_exit(self, ag):
         return self.Trigger.check_exit(ag)
 
-    def impulse_exit(self, model, ag, ti):
+    def impulse_exit(self, model, ag, ti, args=None):
         pass
 
     def fill(self, obs: dict, model, ti):
@@ -77,10 +77,10 @@ class ActiveBehaviour(AbsBehaviour, metaclass=ABCMeta):
         self.do_action(model, event.Todo, time)
         self.drop_next()
 
-    def initialise(self, ti, *args, **kwargs):
+    def initialise(self, ti, model):
         self.Clock.initialise(ti)
 
-    def reset(self, ti, *args, **kwargs):
+    def reset(self, ti, model):
         self.Clock.initialise(ti)
 
     @abstractmethod

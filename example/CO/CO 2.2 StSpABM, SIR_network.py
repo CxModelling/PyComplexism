@@ -1,8 +1,5 @@
-import numpy.random as rd
-import matplotlib.pyplot as plt
 import epidag as dag
 import complexism as cx
-import complexism.equationbased as ebm
 import complexism.agentbased.statespace as ss
 
 

@@ -101,11 +101,11 @@ class ModelAtom(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def initialise(self, ti, model, *args, **kwargs):
+    def initialise(self, ti, model):
         pass
 
     @abstractmethod
-    def reset(self, ti, model, *args, **kwargs):
+    def reset(self, ti, model):
         pass
 
     def shock(self, ti, model, target, value):
