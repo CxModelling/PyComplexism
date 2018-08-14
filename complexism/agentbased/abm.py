@@ -81,10 +81,10 @@ class GenericAgentBasedModel(LeafModel, metaclass=ABCMeta):
 
     def preset(self, ti):
         for be in self.Behaviours.values():
-            self.Scheduler.add_actor(be)
+            # self.Scheduler.add_actor(be)
             be.initialise(ti=ti, model=self)
         for ag in self.Population.Agents.values():
-            self.Scheduler.add_actor(ag)
+            # self.Scheduler.add_actor(ag)
             ag.initialise(ti=ti, model=self)
 
         self.Scheduler.reschedule_all_actors()

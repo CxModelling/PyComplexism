@@ -81,7 +81,7 @@ class Cohort(PassiveBehaviour):
 
 
 class LifeRate(ActiveBehaviour):
-    def __init__(self, name, s_birth, s_death, rate, dt=1):
+    def __init__(self, name, s_death, s_birth, rate, dt=1):
         ActiveBehaviour.__init__(self, name, Clock(dt), StateEnterTrigger(s_death))
         self.S_death = s_death.Name
         self.S_birth = s_birth
@@ -116,7 +116,7 @@ class LifeRate(ActiveBehaviour):
     def decorate(name, model, *args, **kwargs):
         s_death = model.DCore.States[kwargs['s_death']]
         dt = kwargs['dt'] if 'dt' in kwargs else 1
-        model.add_behaviour(LifeRate(name, kwargs['s_birth'], s_death, kwargs['rate'], dt))
+        model.add_behaviour(LifeRate(name, s_death, kwargs['s_birth'], kwargs['rate'], dt))
 
     def __repr__(self):
         return 'BDbyRate({}, BirthRate={})'.format(self.Name, self.BirthRate)
@@ -129,7 +129,7 @@ class LifeRate(ActiveBehaviour):
 
 
 class LifeS(ActiveBehaviour):
-    def __init__(self, name, s_birth, s_death, cap, rate, dt=1):
+    def __init__(self, name, s_death, s_birth, cap, rate, dt=1):
         ActiveBehaviour.__init__(self, name, Clock(dt), StateEnterTrigger(s_death))
         self.S_death = s_death.Name
         self.S_birth = s_birth
@@ -168,7 +168,7 @@ class LifeS(ActiveBehaviour):
     def decorate(name, model, *args, **kwargs):
         s_death = model.DCore.States[kwargs['s_death']]
         dt = kwargs['dt'] if 'dt' in kwargs else 1
-        model.add_behaviour(LifeS(name, kwargs['s_birth'], s_death, kwargs['cap'], kwargs['rate'], dt))
+        model.add_behaviour(LifeS(name, s_death, kwargs['s_birth'], kwargs['cap'], kwargs['rate'], dt))
 
     def __repr__(self):
         return 'S-shape({}, K={}, R={})'.format(self.Name, self.Cap, self.Rate)

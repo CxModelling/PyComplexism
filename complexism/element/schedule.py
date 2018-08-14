@@ -229,7 +229,7 @@ class Schedule:
                     self.CurrentRequests[a] = Request(e, a.Name, self.Location)
                     self.OwnTime = e.Time
                 else:
-                    break
+                    return
             except (IndexError, KeyError):
                 break
 
@@ -302,8 +302,6 @@ class Schedule:
         elif ti == self.Time:
             if self.Requests:
                 self.Requests += lower.up_scale_requests(self.Location)
-        else:
-            return
 
     def fetch_requests(self, rs):
         rs_out = [req for req in self.Requests if req not in rs]
@@ -347,7 +345,7 @@ class Schedule:
 
     def cycle_completed(self):
         self.Disclosures.clear()
-        self.Time = min(float('inf'), self.OwnTime)
+        self.Time = self.OwnTime
 
     def is_empty(self):
         return not self.Requests
