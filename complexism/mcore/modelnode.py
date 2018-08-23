@@ -108,7 +108,7 @@ class ModelAtom(metaclass=ABCMeta):
     def reset(self, ti, model):
         pass
 
-    def shock(self, ti, model, target, value):
+    def shock(self, ti, model, action, value):
         raise AttributeError('Undefined external shock')
 
     def is_compatible(self, **kwargs):
@@ -143,8 +143,9 @@ class ModelAtom(metaclass=ABCMeta):
         dat.update(self.Attributes)
         return dat
 
-    def clone(self, *args, **kwargs):
-        clo = self.__class__.__init__(self, self.Name, self.Parameters)
+    def clone(self, **kwargs):
+        pc = kwargs if 'pc' in kwargs else self.Parameters
+        clo = self.__class__.__init__(self, self.Name, pc)
         clo.Attributes.update(self.Attributes)
 
 
