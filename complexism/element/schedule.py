@@ -1,6 +1,5 @@
 from itertools import groupby
 import heapq
-from enum import Enum, auto
 from .event import Event
 
 __author__ = 'TimeWz667'
