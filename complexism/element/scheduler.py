@@ -96,15 +96,21 @@ class AbsScheduler(metaclass=ABCMeta):
         if not lower.Requests:
             return
 
-        ti = lower.Time
-        if ti < self.Time:
+        ti = lower.GloTime
+        if ti < self.GloTime:
             self.Requests = lower.up_scale_requests(self.Location)
-            self.Time = ti
-        elif ti == self.Time:
-            if self.Requests:
-                self.Requests += lower.up_scale_requests(self.Location)
+            self.GloTime = ti
+        elif ti == self.GloTime:
+            self.Requests += lower.up_scale_requests(self.Location)
         else:
             return
+
+    def fetch_requests(self, rs):
+        # rs_out = [req for req in self.Requests if req not in rs]
+        # for req in rs_out:
+        #     req.Event.cancel()
+        self.Requests = list(rs)
+        self.Counter['Requests'] += len(rs)
 
     def append_request_from_source(self, event, who):
         # todo validate
@@ -128,12 +134,7 @@ class AbsScheduler(metaclass=ABCMeta):
         self.append_disclosure(dss)
 
 
-    def fetch_requests(self, rs):
-        rs_out = [req for req in self.Requests if req not in rs]
-        for req in rs_out:
-            req.Event.cancel()
 
-        self.Requests = rs
 
     def pop_lower_requests(self):
         gp = groupby(self.Requests, lambda x: x.reached())
