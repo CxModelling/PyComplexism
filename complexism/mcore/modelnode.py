@@ -67,7 +67,7 @@ class ModelAtom(metaclass=ABCMeta):
         """
         self.__next.cancel()
         try:
-            self.__scheduler.requeue_actor(self)
+            self.__scheduler.await(self)
         except AttributeError:
             pass
 
@@ -298,7 +298,7 @@ class LeafModel(AbsModel, metaclass=ABCMeta):
         pass
 
     def synchronise_request_time(self, time):
-        self.Scheduler.Time = time
+        self.Scheduler.GloTime = time
 
     def fetch_requests(self, rs):
         self.Scheduler.fetch_requests(rs)

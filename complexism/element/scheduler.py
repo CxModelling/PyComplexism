@@ -1,10 +1,12 @@
 from abc import ABCMeta, abstractmethod
 from collections import Counter
+import heapq
 from .event import Event
 __author__ = 'TimeWz667'
 __all__ = ['get_scheduler', 'DefaultScheduler', 'Request', ]
 
-DefaultScheduler = "PriorityQueue"
+DefaultScheduler = 'PriorityQueue'
+# DefaultScheduler = 'Looping'
 
 
 class Disclosure:
@@ -149,10 +151,12 @@ Request.NullRequest = Request(Event(None, float('inf')), 'Nobody', 'Nowhere')
 
 def get_scheduler(loc, tp=None):
     tp = tp if tp else DefaultScheduler
-    if tp == "PriorityQueue":
+    if tp == 'PriorityQueue':
         return PriorityQueueScheduler(loc)
-    elif tp == "Looping":
+    elif tp == 'Looping':
         return LoopingScheduler(loc)
+    else:
+        raise TypeError('Unknown scheduler type')
 
 
 class AbsScheduler(metaclass=ABCMeta):
@@ -191,7 +195,11 @@ class AbsScheduler(metaclass=ABCMeta):
         pass
 
     def pop_from_upcoming(self, atom):
-        self.Upcoming.remove(atom)
+        try:
+            self.Upcoming.remove(atom)
+        except KeyError:
+            return
+
         if not self.Upcoming:
             self.OwnTime = float('inf')
 
@@ -376,24 +384,86 @@ class LoopingScheduler(AbsScheduler):
 
 class PriorityQueueScheduler(AbsScheduler):
     CAP = 10
+
     def __init__(self, location):
         AbsScheduler.__init__(self, location)
-
-
-    def leave_scheduler(self, atom):
-        pass
-
-    def await(self, atom):
-        pass
-
-    def reschedule_all(self):
-        pass
-
-    def reschedule_waiting(self):
-        pass
-
-    def find_upcoming_atoms(self):
-        pass
+        self.Queue = list()
+        self.Waiting = set()
 
     def join_scheduler(self, atom):
-        pass
+        self.Waiting.add(atom)
+
+    def leave_scheduler(self, atom):
+        atom.drop_next()
+        try:
+            self.Waiting.remove(atom)
+        except KeyError:
+            pass
+
+    def await(self, atom):
+        self.Waiting.add(atom)
+        self.pop_from_upcoming(atom)
+
+    def reschedule_all(self):
+        self.Upcoming.clear()
+        self.OwnTime = float('Inf')
+
+        self.Waiting.update(a for _, a, _ in self.Queue)
+        self.Queue = list()
+        self.reschedule_waiting()
+
+    def reschedule_waiting(self):
+        atoms = list(self.Waiting)
+        for atom in atoms:
+            event = atom.Next
+            tte = event.Time
+            entry = [tte, atom, event]
+            heapq.heappush(self.Queue, entry)
+
+            if tte < self.OwnTime:
+                self.Upcoming.clear()
+                self.OwnTime = float('Inf')
+
+        self.Counter['Requeuing'] += len(self.Waiting)
+        self.Waiting.clear()
+
+        if len(self.Queue) > PriorityQueueScheduler.CAP * self.NumAtoms:
+            print(len(self.Queue), min(self.Queue)[0], self.NumAtoms)
+            self.clean_queue()
+
+    def clean_queue(self):
+        # queue = [[t, a, e] for t, a, e in self.Queue if not e.is_cancelled()]
+        self.Queue = [[t, a, e] for t, a, e in self.Queue if not e.is_cancelled()]
+        heapq.heapify(self.Queue)
+
+    def find_upcoming_atoms(self):
+        self.OwnTime = self.find_min_t()
+        if self.OwnTime == float("inf"):
+            return
+        self.Upcoming.clear()
+
+        while self.Queue:
+            try:
+                t, _, e = min(self.Queue)
+                if e.is_cancelled():
+                    heapq.heappop(self.Queue)
+
+                if t is self.OwnTime:
+                    t, a, e = heapq.heappop(self.Queue)
+                    self.Waiting.add(a)
+                    self.Upcoming.add(a)
+
+                else:
+                    return
+            except (IndexError, KeyError):
+                break
+
+    def find_min_t(self):
+        while self.Queue:
+            t, _, e = min(self.Queue)
+            if e.is_cancelled():
+                heapq.heappop(self.Queue)
+            else:
+                return t
+        else:
+            return float('inf')
