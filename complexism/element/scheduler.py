@@ -2,8 +2,17 @@ from abc import ABCMeta, abstractmethod
 from collections import Counter
 from . import Request, Disclosure
 __author__ = 'TimeWz667'
+__all__ = ['get_scheduler', '']
 
 DefaultScheduler = "PriorityQueue"
+
+
+def get_scheduler(loc, tp=None):
+    tp = tp if tp else DefaultScheduler
+    if tp == "PriorityQueue":
+        return None
+    elif tp == "Looping":
+        return None
 
 
 class AbsScheduler(metaclass=ABCMeta):
@@ -17,6 +26,9 @@ class AbsScheduler(metaclass=ABCMeta):
         self.Disclosures = list()
         self.NumAtoms = 0
         self.Counter = Counter()
+
+    def __len__(self):
+        return len(self.Requests) + len(self.Disclosures)
 
     def add_atom(self, atom):
         self.join_scheduler(atom)
@@ -38,7 +50,6 @@ class AbsScheduler(metaclass=ABCMeta):
     def leave_scheduler(self, atom):
         pass
 
-    @abstractmethod
     def pop_from_upcoming(self, atom):
         self.Upcoming.remove(atom)
         if not self.Upcoming:
@@ -114,13 +125,30 @@ class AbsScheduler(metaclass=ABCMeta):
 
     def append_request_from_source(self, event, who):
         # todo validate
-        if event.Time < self.Time:
+        if event.Time < self.GloTime:
             self.Requests = [Request(event, who, self.Location)]
-            self.Time = event.Time
-        elif event.Time == self.Time:
+            self.GloTime = event.Time
+        elif event.Time == self.GloTime:
             self.Requests.append(Request(event, who, self.Location))
         else:
             return
+
+    def pop_lower_requests(self):
+        current = list()
+        lower = dict()
+
+        for req in self.Requests:
+            if req.reached():
+                continue
+            try:
+                _, req = req.down_scale()
+                lower[req.Group].append(req)
+            except KeyError:
+                lower[req.Group] = [req]
+
+        self.Requests = current
+
+        return lower
 
     def append_disclosure(self, dss: Disclosure):
         """
@@ -133,26 +161,99 @@ class AbsScheduler(metaclass=ABCMeta):
         dss = Disclosure(msg, who, self.Location, **kwargs)
         self.append_disclosure(dss)
 
+    def pop_disclosures(self):
+        ds, self.Disclosures = self.Disclosures, list()
+        self.Counter['Disclosure'] + len(ds)
+        return ds
+
+    def execution_completed(self):
+        self.Requests.clear()
+        self.AtomRequests = dict()
+        self.Upcoming.clear()
+        self.OwnTime = float('inf')
+
+    def cycle_completed(self):
+        """
+        To finish a cycle without erase un-executed requests
+        """
+        self.Requests.clear()
+        self.Disclosures.clear()
+        self.GloTime = self.OwnTime
+
+    def __repr__(self):
+        return 'Scheduler{Location={}, #Atoms={}, #Requests={}, #Disclosure={}, Time={}'.format(
+            self.Location, self.NumAtoms, len(self.Requests), len(self.Disclosures), self.OwnTime
+        )
 
 
+class LoopingScheduler(AbsScheduler):
+    def __init__(self, location):
+        AbsScheduler.__init__(self, location)
+        self.Atoms = list()
+        self.Waiting = set()
 
-    def pop_lower_requests(self):
-        gp = groupby(self.Requests, lambda x: x.reached())
-        lower, current = list(), list()
-        for k, g in gp:
-            if k:
-                current += list(g)
-            else:
-                lower += [req.down_scale() for req in g]
+    def join_scheduler(self, atom):
+        self.Atoms.append(atom)
+        self.Waiting.add(atom)
 
-        if lower:
-            pop = {k: [req for _, req in g] for k, g in groupby(lower, lambda x: x[1].Group)}
+    def leave_scheduler(self, atom):
+        self.Atoms.remove(atom)
+        self.Waiting.remove(atom)
+
+    def await(self, atom):
+        self.Waiting.add(atom)
+        self.pop_from_upcoming(atom)
+
+    def reschedule_all(self):
+        self.Upcoming.clear()
+        self.OwnTime = float('inf')
+        self.reschedule_set(self.Atoms)
+        self.Waiting.clear()
+
+    def reschedule_waiting(self):
+        if self.Upcoming:
+            self.reschedule_set(self.Waiting)
+            self.Waiting.clear()
         else:
-            pop = dict()
+            self.reschedule_all()
 
-        self.Requests = current
+    def find_upcoming_atoms(self):
+        if not self.Upcoming:
+            self.reschedule_all()
 
-        return pop
+    def reschedule_set(self, atoms):
+        for atom in atoms:
+            event = atom.Next
+            if event.Time < self.OwnTime:
+                self.Upcoming.clear()
+                self.Upcoming.add(atom)
+                self.OwnTime = event.Time
+            elif event.Time == self.OwnTime:
+                self.Upcoming.add(atom)
+
+        self.Counter['Requeuing'] += len(atoms)
 
 
+class PriorityQueueScheduler(AbsScheduler):
+    CAP = 10
+    def __init__(self, location):
+        AbsScheduler.__init__(self, location)
 
+
+    def leave_scheduler(self, atom):
+        pass
+
+    def await(self, atom):
+        pass
+
+    def reschedule_all(self):
+        pass
+
+    def reschedule_waiting(self):
+        pass
+
+    def find_upcoming_atoms(self):
+        pass
+
+    def join_scheduler(self, atom):
+        pass
