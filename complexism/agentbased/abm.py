@@ -45,9 +45,9 @@ class ObsABM(Observer):
 
 
 class GenericAgentBasedModel(LeafModel, metaclass=ABCMeta):
-    def __init__(self, name, env, population, obs=None, y0_class=None):
+    def __init__(self, name, pars, population, obs=None, y0_class=None):
         obs = obs if obs else ObsABM()
-        LeafModel.__init__(self, name, env=env, obs=obs, y0_class=y0_class)
+        LeafModel.__init__(self, name, pars=pars, obs=obs, y0_class=y0_class)
         self.Population = population
         self.Behaviours = OrderedDict()
 
@@ -71,13 +71,13 @@ class GenericAgentBasedModel(LeafModel, metaclass=ABCMeta):
     def _make_agent(self, n, ti, **kwargs):
         ags = self.Population.add_agent(n, **kwargs)
         for ag in ags:
-            self.Scheduler.add_actor(ag)
+            self.Scheduler.add_atom(ag)
             for be in self.Behaviours.values():
                 be.register(ag, ti)
 
     def add_behaviour(self, be):
         self.Behaviours[be.Name] = be
-        self.Scheduler.add_actor(be)
+        self.Scheduler.add_atom(be)
 
     def preset(self, ti):
         for be in self.Behaviours.values():
@@ -87,7 +87,7 @@ class GenericAgentBasedModel(LeafModel, metaclass=ABCMeta):
             # self.Scheduler.add_actor(ag)
             ag.initialise(ti=ti, model=self)
 
-        self.Scheduler.reschedule_all_actors()
+        self.Scheduler.reschedule_all()
         self.disclose('initialise', '*')
 
     def reset(self, ti):
@@ -95,7 +95,7 @@ class GenericAgentBasedModel(LeafModel, metaclass=ABCMeta):
             be.reset(ti=ti, model=self)
         for ag in self.Population.Agents.values():
             ag.reset(ti=ti, model=self)
-        self.Scheduler.reschedule_all_actors()
+        self.Scheduler.reschedule_all()
         self.disclose('initialise', '*')
 
     def check_enter(self, ag):

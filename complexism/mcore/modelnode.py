@@ -1,6 +1,6 @@
 from abc import ABCMeta, abstractmethod
-from complexism.element import Event, Schedule
-from complexism.mcore import Observer, DefaultObserver, ModelSelector, EventListenerSet
+from complexism.element import Event, get_scheduler
+from complexism.mcore import Observer, DefaultObserver, ModelSelector, EventListenerSet, LeafY0, BranchY0
 from complexism.misc.counter import count
 
 __author__ = 'TimeWz667'
@@ -150,14 +150,15 @@ class ModelAtom(metaclass=ABCMeta):
 
 
 class AbsModel(metaclass=ABCMeta):
-    def __init__(self, name, env=None, obs: Observer=None, y0_class=None):
+    def __init__(self, name, pars=None, obs: Observer=None, y0_class=None):
         self.Name = name
         self.Observer = obs if obs else DefaultObserver()
         self.ClassY0 = y0_class
-        self.Scheduler = Schedule(self.Name)
+        self.Scheduler = get_scheduler(self.Name)
         self.Validator = None
         self.Listeners = EventListenerSet()
-        self.Environment = env
+        self.Parameters = pars
+        self.Environment = dict()
         self.TimeEnd = None
 
     def __getitem__(self, item):
@@ -165,6 +166,15 @@ class AbsModel(metaclass=ABCMeta):
             return self.Environment[item]
         except KeyError as e:
             raise e
+
+    def __setitem__(self, instance, value):
+        self.Environment[instance] = value
+
+    def get_parameter(self, s):
+        return self.Parameters[s]
+
+    def get_sampler(self, s):
+        return self.Parameters.get_sampler(s)
 
     def initialise(self, ti=None, y0=None):
         if y0:
@@ -175,11 +185,12 @@ class AbsModel(metaclass=ABCMeta):
         self.preset(ti)
 
     def preset(self, ti):
-        self.reset(ti)
+        self.Scheduler.reschedule_all_actors()
+        self.disclose('initialise', '*')
 
-    @abstractmethod
     def reset(self, ti):
         self.Scheduler.reschedule_all_actors()
+        self.disclose('reset', '*')
 
     @abstractmethod
     def read_y0(self, y0, ti):
@@ -240,7 +251,7 @@ class AbsModel(metaclass=ABCMeta):
 
     @abstractmethod
     def print_schedule(self):
-        pass
+        print(self.Scheduler)
 
     @count('Observe')
     def initialise_observations(self, ti):
@@ -275,8 +286,8 @@ class AbsModel(metaclass=ABCMeta):
 
 
 class LeafModel(AbsModel, metaclass=ABCMeta):
-    def __init__(self, name, env=None, obs: Observer=None, y0_class=None):
-        AbsModel.__init__(self, name, env, obs, y0_class)
+    def __init__(self, name, pars=None, obs: Observer=None, y0_class=None):
+        AbsModel.__init__(self, name, pars, obs, y0_class if y0_class else LeafY0)
 
     def collect_requests(self):
         self.Scheduler.find_next()

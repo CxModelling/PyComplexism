@@ -60,7 +60,7 @@ class Simulator:
         while tx < end:
             self.Model.collect_requests()
             requests = self.Model.Scheduler.Requests
-            ti = self.Model.Scheduler.Time
+            ti = self.Model.Scheduler.GloTime
             if ti > end:
                 break
             tx = ti

@@ -1,18 +1,158 @@
 from abc import ABCMeta, abstractmethod
 from collections import Counter
-from . import Request, Disclosure
+from .event import Event
 __author__ = 'TimeWz667'
-__all__ = ['get_scheduler', '']
+__all__ = ['get_scheduler', 'DefaultScheduler', 'Request', ]
 
 DefaultScheduler = "PriorityQueue"
+
+
+class Disclosure:
+    def __init__(self, what, who, where, **kwargs):
+        self.What = what
+        self.Who = who
+        self.Where = [where] if isinstance(where, str) else where
+        self.Arguments = dict(kwargs)
+
+    def up_scale(self, adr):
+        """
+        Append upper address into address
+        :param adr: upper position
+        :return: extended disclosure
+        """
+        new_adr = self.Where + [adr]
+        return Disclosure(self.What, self.Who, new_adr, **self.Arguments)
+
+    def sibling_scale(self):
+        """
+        Append a sibling indicator into address
+        :return: extended disclosure
+        """
+        new_adr = self.Where + ['^']
+        return Disclosure(self.What, self.Who, new_adr, **self.Arguments)
+
+    def down_scale(self):
+        """
+        Decrease scale of the request
+        :return: upper address and reformed request
+        :rtype: tuple
+        """
+        new_adr = self.Where[:-1]
+        return self.Where[-1], Disclosure(self.What, self.Who, new_adr, **self.Arguments)
+
+    @property
+    def Distance(self):
+        return len(self.Where)
+
+    def is_sibling(self):
+        return self.Where[-1] == '^' and len(self.Where) is 2
+
+    @property
+    def Address(self):
+        return '@'.join(self.Where)
+
+    @property
+    def Group(self):
+        return self.Where[-1]
+
+    @property
+    def Source(self):
+        return self.Where[0]
+
+    def __repr__(self):
+        if self.Arguments:
+            args = ', '.join(self.Arguments.keys())
+            return 'Disclosure({} did {} in {} with)'.format(
+                self.Who, self.What, self.Address, args)
+        else:
+            return 'Disclosure({} did {} in {})'.format(self.Who, self.What, self.Address)
+
+    def __str__(self):
+        res = 'Disclose:\t{} did {} in {}'.format(self.Who, self.What, self.Address)
+        if self.Arguments:
+            args = ', '.join(self.Arguments.keys())
+            res = '{} with {}'.format(res, args)
+        return res
+
+
+class Request:
+    NullRequest = None
+
+    def __init__(self, evt: Event, who, where):
+        self.Who = who
+        self.Where = [where] if isinstance(where, str) else where
+        self.Event = evt
+
+    @property
+    def Message(self):
+        return self.Event.Message
+
+    @property
+    def When(self):
+        return self.Event.Time
+
+    @property
+    def What(self):
+        return self.Event.Todo
+
+    @property
+    def Address(self):
+        return '@'.join(self.Where)
+
+    @property
+    def Group(self):
+        return self.Where[-1]
+
+    def to_disclosure(self):
+        return Disclosure(self.Message, self.Who, self.Where)
+
+    def __repr__(self):
+        return 'Request({} want to do {} in {} when t={:.3f})'.format(self.Who, self.Message, self.Address, self.When)
+
+    def __str__(self):
+        return 'Request:\t{} want to do {} in {} when t={:.3f}'.format(self.Who, self.Message, self.Address, self.When)
+
+    def up_scale(self, adr):
+        """
+        Append upper address into address
+        :param adr: upper position
+        :return: extended request
+        """
+        new_adr = self.Where + [adr]
+        return Request(self.Event, self.Who, new_adr)
+
+    def down_scale(self):
+        """
+        Decrease scale of the request
+        :return: upper address and reformed request
+        """
+        if self.reached():
+            raise AttributeError('It is the lowest scale')
+        new_adr = self.Where[:-1]
+        return self.Where[-1], Request(self.Event, self.Who, new_adr)
+
+    def reached(self):
+        return len(self.Where) is 1
+
+    def __gt__(self, ot):
+        return self.When > ot.When
+
+    def __le__(self, ot):
+        return self.When <= ot.When
+
+    def __eq__(self, ot):
+        return self.When == ot.When
+
+
+Request.NullRequest = Request(Event(None, float('inf')), 'Nobody', 'Nowhere')
 
 
 def get_scheduler(loc, tp=None):
     tp = tp if tp else DefaultScheduler
     if tp == "PriorityQueue":
-        return None
+        return PriorityQueueScheduler(loc)
     elif tp == "Looping":
-        return None
+        return LoopingScheduler(loc)
 
 
 class AbsScheduler(metaclass=ABCMeta):
