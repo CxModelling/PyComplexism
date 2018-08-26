@@ -1,7 +1,6 @@
-import networkx as nx
+from collections import OrderedDict
 from complexism.misc.counter import count
 from complexism.mcore import BranchModel, Observer
-from .entries import RelationEntry
 
 
 __author__ = 'TimeWz667'
@@ -12,6 +11,7 @@ class ObsMultiModel(Observer):
     def __init__(self):
         Observer.__init__(self)
         self.ObservingModels = list()
+        self.Actors = dict()
 
     def add_observing_model(self, model):
         if model not in self.ObservingModels:
@@ -32,50 +32,57 @@ class ObsMultiModel(Observer):
 
 
 class MultiModel(BranchModel):
-    def __init__(self, name, env=None):
-        BranchModel.__init__(self, name, env=env, obs=ObsMultiModel())
-        self.Models = nx.MultiDiGraph()
+    def __init__(self, name, pars=None):
+        BranchModel.__init__(self, name, pars=pars, obs=ObsMultiModel(), )
+        self.Children = dict()
+        self.Atoms = OrderedDict
+
+    def append_child(self, model, obs=True):
+        m = model.Name
+        if m not in self.Children:
+            self.Children[m] = model
+            if obs:
+                self.Observer.add_observing_model(m)
+        else:
+            raise AttributeError('Duplicated model name')
+
+    def append_atom(self, act):
+        if act.Name not in self.Atoms:
+            self.Atoms[act.Name] = act
+            self.Scheduler.add_actor(act)
+        else:
+            raise AttributeError('Duplicated actor name')
 
     def add_observing_model(self, m):
-        if m in self.Models:
+        if m in self.Children:
             self.Observer.add_observing_model(m)
-
-    def append(self, m):
-        if m.Name not in self.Models:
-            self.Models.add_node(m.Name, model=m)
-
-    def link(self, src, tar, message=None, **kwargs):
-        src = src if isinstance(src, RelationEntry) else RelationEntry(src)
-        tar = tar if isinstance(tar, RelationEntry) else RelationEntry(tar)
-
-        m_src = self.select_all(src.Selector)
-        m_tar = self.select_all(tar.Selector)
-
-        if src.is_single():
-            ms = m_src.first()
-            for kt, mt in m_tar.items():
-                if ms is not mt:
-                    mt.listen(ms.Name, message, src.Parameter, tar.Parameter, **kwargs)
-                    self.Models.add_edge(ms.Name, mt.Name, par_src=src.Parameter, par_tar=tar.Parameter)
+        else:
+            raise KeyError('Model {} does not exist'.format(m))
 
     def read_y0(self, y0, ti):
         if not y0:
             return
-        for k, m in self.Models.nodes().data('model'):
+        for k, m in self.Children.items():
             m.read_y0(y0=y0[k], ti=ti)
 
     @count()
     def do_request(self, req):
-        pass
-
-    def find_next(self):
-        pass
+        nod, evt, time = req.Who, req.Event, req.When
+        try:
+            act = self.Atoms[nod]
+            act.approve_event(evt)
+            act.operate(self)
+        except KeyError as e:
+            raise e
 
     def all_models(self):
-        return dict(self.Models.nodes().data('model'))
+        return self.Children
 
     def get_model(self, k):
-        return self.Models.nodes[k]['model']
+        return self.Children[k]
 
     def clone(self, **kwargs):
+        pass
+
+    def to_json(self):
         pass

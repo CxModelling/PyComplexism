@@ -80,7 +80,7 @@ class GenericEquationBasedModel(LeafModel):
         LeafModel.__init__(self, name, env, obs, y0_class=y0_class)
         self.Y = None
         self.Equations = eqs
-        self.Scheduler.add_actor(self.Equations)
+        self.Scheduler.add_atom(self.Equations)
 
     def add_observing_stock(self, stock):
         self.Observer.add_observing_stock(stock)

@@ -1,9 +1,6 @@
 from json import JSONDecodeError
 import logging
-import epidag as dag
 from complexism.fn import *
-
-log = logging.getLogger(__name__)
 
 __author__ = 'TimeWz667'
 __all__ = ['Director']
@@ -15,82 +12,95 @@ class Director:
         self.DCoreBlueprints = dict()
         self.MCoreBlueprints = dict()
         self.ModelLayouts = dict()
+        self.Log = logging.getLogger(__name__)
 
     def _add_bn(self, bn):
         if bn in self.BayesianNetworks:
-            log.info('Bayesian Network {} have already existed'.format(bn.Name))
+            self.Log.warning('Bayesian Network {} have already existed'.format(bn.Name))
         else:
             self.BayesianNetworks[bn.Name] = bn
-            log.info('Bayesian Network {} added'.format(bn.Name))
+            self.Log.info('Bayesian Network {} added'.format(bn.Name))
 
     def _add_dbp(self, dbp):
         if dbp in self.DCoreBlueprints:
-            log.info('DCore Blueprint {} overrided'.format(dbp.Name))
+            self.Log.warning('State-Space Model {} have already existed'.format(dbp.Name))
         else:
             self.DCoreBlueprints[dbp.Name] = dbp
-            log.info('DCore Blueprint {} added'.format(dbp.Name))
+            self.Log.info('State-Space Model {} added'.format(dbp.Name))
 
     def _add_mbp(self, mbp):
         if mbp in self.MCoreBlueprints:
-            log.info('MCore Blueprint {} overrided'.format(mbp.Name))
+            self.Log.warning('Simulation Model {} have already existed'.format(mbp.Name))
         else:
             self.MCoreBlueprints[mbp.Name] = mbp
-            log.info('MCore Blueprint {} added'.format(mbp.Name))
+            self.Log.info('Simulation Model {} added'.format(mbp.Name))
 
     def _add_lyo(self, lyo):
         if lyo in self.ModelLayouts:
-            log.info('Model layout {} overrided'.format(lyo.Name))
+            self.Log.warning('Model Layout {} have already existed'.format(lyo.Name))
         else:
             self.ModelLayouts[lyo.Name] = lyo
-            log.info('Model layout {} added'.format(lyo.Name))
+            self.Log.info('Model Layout {} added'.format(lyo.Name))
 
-    def get_bn(self, bn_name):
-        return self.BayesianNetworks[bn_name]
+    def get_bayes_net(self, bn_name):
+        try:
+            return self.BayesianNetworks[bn_name]
+        except KeyError:
+            self.Log.warning('Unknown BayesNet')
 
-    def get_dbp(self, dbp_name):
-        return self.DCoreBlueprints[dbp_name]
+    def get_state_space_model(self, dbp_name):
+        try:
+            return self.DCoreBlueprints[dbp_name]
+        except KeyError:
+            self.Log.warning('Unknown State-Space Model')
 
-    def get_mbp(self, mbp_name):
-        return self.MCoreBlueprints[mbp_name]
+    def get_sim_model(self, mbp_name):
+        try:
+            return self.MCoreBlueprints[mbp_name]
+        except KeyError:
+            self.Log.warning('Unknown Simulation Model')
 
-    def get_lyo(self, lyo_name):
-        return self.ModelLayouts[lyo_name]
+    def get_layout(self, lyo_name):
+        try:
+            return self.ModelLayouts[lyo_name]
+        except KeyError:
+            self.Log.warning('Unknown Model Layout')
 
-    def read_bn_script(self, script):
+    def read_bayes_net(self, script):
         bn = read_bn_script(script)
         self._add_bn(bn)
 
-    def load_bn(self, file):
+    def load_bates_net(self, file):
         try:
             bn = read_bn_json(load_json(file))
         except JSONDecodeError:
             bn = read_bn_script(load_txt(file))
         self._add_bn(bn)
 
-    def save_bn(self, bn_name, file):
+    def save_bayes_net(self, bn_name, file):
         try:
-            bn = self.get_bn(bn_name)
+            bn = self.get_bayes_net(bn_name)
             save_bn(bn, file)
         except KeyError:
-            log.warning('Bayesian Network {} not found'.format(bn_name))
+            self.Log.warning('BayesNet {} not found'.format(bn_name))
 
-    def list_bns(self):
+    def list_bayes_nets(self):
         return list(self.BayesianNetworks.keys())
 
-    def read_dbp_script(self, script):
+    def read_state_space_model(self, script):
         bn = read_dbp_script(script)
         self._add_bn(bn)
 
-    def load_dbp(self, file):
+    def load_state_space_model(self, file):
         try:
             dbp = read_dbp_json(load_json(file))
         except JSONDecodeError:
             dbp = read_dbp_script(load_txt(file))
         self._add_dbp(dbp)
 
-    def new_dbp(self, dbp_name, dc_type):
+    def new_state_space_model(self, dbp_name, dc_type):
         """
-        Generate a new blueprint of a dynamic core
+        Generate a new blueprint of a state-space dynamic model
         :param dbp_name: name of the model
         :param dc_type: type of dynamic core, CTBN or CTMC
         :return: a new Blueprint
@@ -99,14 +109,14 @@ class Director:
         self._add_dbp(dbp)
         return dbp
 
-    def save_dbp(self, dbp_name, file):
+    def save_state_space_model(self, dbp_name, file):
         try:
-            dbp = self.get_dbp(dbp_name)
+            dbp = self.get_state_space_model(dbp_name)
             save_dbp(dbp, file)
         except KeyError:
-            log.warning('DCore Blueprint {} not found'.format(dbp_name))
+            self.Log.warning('Unknown State-Space Model')
 
-    def list_dbps(self):
+    def list_state_spaces(self):
         return list(self.DCoreBlueprints.keys())
 
     def load_mbp(self, file):
@@ -132,7 +142,7 @@ class Director:
             mbp = self.get_mbp(mbp_name)
             save_mbp(mbp, file)
         except KeyError:
-            log.warning('Model Blueprint {} not found'.format(mbp_name))
+            self.Log.warning('Model Blueprint {} not found'.format(mbp_name))
 
     def list_mbps(self):
         return list(self.MCoreBlueprints.keys())
@@ -142,7 +152,7 @@ class Director:
             lyo = self.get_lyo(lyo_name)
             save_layout(lyo, file)
         except KeyError:
-            log.info('Layout {} saved'.format(lyo))
+            self.Log.info('Layout {} saved'.format(lyo))
 
     def list_lyo(self):
         return list(self.ModelLayouts.keys())
@@ -165,15 +175,15 @@ class Director:
     def generate_model(self, mc, name=None, **kwargs):
         if not name:
             name = mc
-        mbp = self.get_mbp(mc)
+        mbp = self.get_sim_model(mc)
         if 'bn' in kwargs:
-            kwargs['bn'] = self.get_bn(kwargs['bn'])
+            kwargs['bn'] = self.get_bayes_net(kwargs['bn'])
         if 'dbp' in kwargs:
-            kwargs['dbp'] = self.get_dbp(kwargs['dbp'])
+            kwargs['ss'] = self.get_state_space_model(kwargs['ss'])
         if 'dc' in kwargs:
-            kwargs['dc'] = self.get_dbp(kwargs['dc'])
+            kwargs['dc'] = self.get_state_space_model(kwargs['dc'])
 
-        return mbp.generate('M1', **kwargs)
+        return mbp.generate(name, **kwargs)
 
     def copy_model(self, mod_src, **kwargs):
         pass
@@ -195,7 +205,7 @@ class Director:
         elif model in self.MCoreBlueprints and y0:
             m = self.generate_model(model)
         else:
-            log.warning('No matched model')
+            self.Log.warning('No matched model')
             return
 
         out = simulate(m, y0=y0, fr=fr, to=to, dt=dt)

@@ -56,8 +56,8 @@ def new_mbp(name, model_type='SSABM'):
         return ssa.BlueprintStSpABM(name)
     elif model_type == 'ODEABM':
         pass
-    elif model_type == 'ODE':
-        return ebm.BlueprintODE(name)
+    elif model_type == 'ODEEBM':
+        return ebm.BlueprintODEEBM(name)
     elif model_type == 'SSODE':
         pass
     else:
@@ -72,10 +72,8 @@ def read_mbp_json(js):
     """
     if js['Type'] == 'SSABM':
         return ssa.BlueprintStSpABM.from_json(js)
-    elif js['Type'] == 'ODEABM':
-        pass
-    elif js['Type'] == 'ODE':
-        return ebm.BlueprintODE.from_json(js)
+    elif js['Type'] == 'ODEEBM':
+        return ebm.BlueprintODEEBM.from_json(js)
     elif js['Type'] == 'SSODE':
         pass
     else:

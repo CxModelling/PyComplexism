@@ -81,12 +81,9 @@ class GenericAgentBasedModel(LeafModel, metaclass=ABCMeta):
 
     def preset(self, ti):
         for be in self.Behaviours.values():
-            # self.Scheduler.add_actor(be)
             be.initialise(ti=ti, model=self)
         for ag in self.Population.Agents.values():
-            # self.Scheduler.add_actor(ag)
             ag.initialise(ti=ti, model=self)
-
         self.Scheduler.reschedule_all()
         self.disclose('initialise', '*')
 
@@ -188,10 +185,10 @@ class GenericAgentBasedModel(LeafModel, metaclass=ABCMeta):
             except KeyError:
                 pass
 
-    def shock(self, time, action, target, value):
+    def shock(self, time, action, values):
         try:
-            be = self.Behaviours[target]
-            be.shock(time, self, target, value)
+            be = self.Behaviours[action]
+            be.shock(time, self, action, values)
         except KeyError as e:
             raise e
 

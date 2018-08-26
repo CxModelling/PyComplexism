@@ -150,7 +150,7 @@ class ODEY0(LeafY0):
             if yn not in self.Ys:
                 self.Ys[yn] = 0
 
-    def define(self, st, n, *args, **kwargs):
+    def define(self, st, n, **kwargs):
         self.Ys[st] = n
 
     @staticmethod

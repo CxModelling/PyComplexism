@@ -130,9 +130,9 @@ model_i.add_listener(cx.InitialChecker(), ii)
 model_i.add_listener(cx.StartsWithChecker('update'), ii)
 
 
-model = cx.MultiLevelModel('SR_I', env=pc)
-model.append(model_i)
-model.append(model_sr)
+model = cx.MultiModel('SR_I', pars=pc)
+model.append_child(model_i)
+model.append_child(model_sr)
 
 
 y0 = {

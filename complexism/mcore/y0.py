@@ -81,11 +81,12 @@ class BranchY0(AbsY0):
             self.ChildrenY0 = dict(chd) if chd else dict()
         elif isinstance(chd, dict):
             self.ChildrenY0 = dict(chd)
+        else:
+            self.ChildrenY0 = dict()
 
     def __getitem__(self, item):
         return self.ChildrenY0[item]
 
-    @abstractmethod
     def append_child(self, key, chd):
         self.ChildrenY0[key] = chd
 
@@ -106,7 +107,10 @@ class BranchY0(AbsY0):
 
     @staticmethod
     def from_source(src):
-        return BranchY0(src)
+        y0s = BranchY0()
+        for k, v in src['Children'].items():
+            y0s.append_child(k, LeafY0.from_json(v))
+        return y0s
 
     @staticmethod
     def from_json(js):

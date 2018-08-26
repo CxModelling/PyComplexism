@@ -180,7 +180,7 @@ class AbsModel(metaclass=ABCMeta):
         if y0:
             if self.ClassY0:
                 y0 = y0 if isinstance(y0, self.ClassY0) else self.ClassY0.from_source(y0)
-                y0.match_model(self)
+                y0.match_model_info(self)
             self.read_y0(y0, ti)
         self.preset(ti)
 
@@ -240,7 +240,7 @@ class AbsModel(metaclass=ABCMeta):
     def trigger_external_impulses(self, disclosure, model, time):
         return self.Listeners.apply_shock(disclosure, model, self, time)
 
-    def shock(self, time, action, target, value):
+    def shock(self, time, action, values):
         pass
 
     def get_all_impulse_checkers(self):
@@ -321,18 +321,18 @@ class LeafModel(AbsModel, metaclass=ABCMeta):
 
 
 class BranchModel(AbsModel, metaclass=ABCMeta):
-    def __init__(self, name, env=None, obs=None, y0_class=None):
-        AbsModel.__init__(self, name, env, obs, y0_class)
+    def __init__(self, name, pars=None, obs=None, y0_class=None):
+        AbsModel.__init__(self, name, pars, obs, y0_class if y0_class else BranchY0)
 
     def preset(self, ti):
         for v in self.all_models().values():
             v.preset(ti)
-        self.Scheduler.reschedule_all_actors()
+        self.Scheduler.reschedule_all()
 
     def reset(self, ti):
         for v in self.all_models().values():
             v.reset(ti)
-        self.Scheduler.reschedule_all_actors()
+        self.Scheduler.reschedule_all()
 
     @abstractmethod
     def all_models(self) -> dict:
@@ -359,7 +359,7 @@ class BranchModel(AbsModel, metaclass=ABCMeta):
         pass  # todo
 
     def synchronise_request_time(self, time):
-        self.Scheduler.Time = time
+        self.Scheduler.GloTime = time
         for v in self.all_models().values():
             v.synchronise_request_time(time)
 

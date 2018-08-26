@@ -1,115 +1,50 @@
 import epidag as dag
 import complexism as cx
 from complexism.misc import start_counting, stop_counting, get_results
-import complexism.equationbased as ebm
 import complexism.agentbased.statespace as ss
 
 __author__ = 'TimeWz667'
 
-psc = '''
-PCore MultiSIR {
-    beta = 1.5
-    betaF = 1.0/300
-    gamma = 0.2
-    Infect ~ exp(beta)
-    InfectF ~ exp(betaF)
-    Recov ~ exp(0.5)
-}
-'''
+director = cx.Director()
 
-bn = dag.bn_from_script(psc)
+director.load_bates_net('../scripts/pDzAB.txt')
+director.load_state_space_model('../scripts/DzAB.txt')
+
+mbp = ss.BlueprintStSpABM('abm')
+mbp.set_agent(prefix='Ag', group='agent', dynamics='DzAB')
+mbp.set_observations(states=['ab', 'aB', 'Ab', 'AB'])
+
+
+# Initialise parameters
+bn = director.get_bayes_net('pDzAB')
 
 hie = {
-    'city': ['abm', 'ebm'],
+    'city': ['abm'],
     'abm': ['agent'],
-    'agent': ['Infect', 'InfectF', 'Recov'],
-    'ebm': []
+    'agent': ['TrA', 'TrB', 'TrA_B']
 }
 
 sm = dag.as_simulation_core(bn, hie=hie)
 
-model_name = 'MultiSIR'
+# Create a multi-model, and defined initial value
+model_name = 'MultiModel'
 
 pc = sm.generate(model_name)
 
 model = cx.MultiModel(model_name, pc)
 
-# EBM
-ebm_name = 'SIR_E'
+y0s = cx.BranchY0()
+for i in range(1, 3):
+    name = 'A{}'.format(i)
+    m_abm = mbp.generate(name, pc=pc.breed(name, 'abm'), dc=director.get_state_space_model('DzAB'))
+    model.append_child(m_abm, True)
+    y0 = cx.LeafY0()
+    y0.define({'n': 300, 'attributes': {'st': 'ab'}})
+    y0s.append_child(name, y0)
 
-
-def SIR_ODE(y, t, p, x):
-    s = y[0]
-    i = y[1]
-    n = sum(y)
-    inf_d = s * p['beta'] * i / n
-    inf_f = s * p['betaF'] * x['fI'] / x['fN'] if x['fN'] else 0
-    inf = inf_d + inf_f
-    rec = i * p['gamma']
-    return [-inf, inf - rec, rec]
-
-
-def fore_imp(m, tab, ti):
-    tab['fI'] = m.Equations.X['fI']
-    tab['fN'] = m.Equations.X['fN']
-
-
-p_ebm = pc.breed(ebm_name, 'ebm')
-m_ebm = ebm.generate_ode_model(ebm_name, SIR_ODE, pc, ['S', 'I', 'R'], {'fI': 1, 'fN': 300}, dt=0.2)
-ebm.set_observations(m_ebm, stocks=['S', 'I', 'R'], stock_functions=[fore_imp])
-
-# ABM
-abm_name = 'SIR_A'
-
-dsc = '''
-CTMC SIR {
-    Sus
-    Inf
-    Rec
-
-    Sus -- Infect -> Inf
-    Sus -- InfectF -> Inf
-    Inf -- Recov -> Rec
-}
-'''
-
-
-def num(m, tab, ti):
-    n = len(m)
-    tab['N'] = n if n else 0
-
-
-dbp = cx.read_dbp_script(dsc)
-p_abm = pc.breed(abm_name, 'abm')
-
-mbp = ss.BlueprintStSpABM(abm_name)
-mbp.set_agent(prefix='Ag', group='agent', dynamics='SIR')
-mbp.add_behaviour('FOI', 'FDShockFast', s_src='Inf', t_tar='Infect', dt=0.5)
-mbp.set_observations(states=['Sus', 'Inf', 'Rec'],
-                     transitions=['Infect', 'InfectF'],
-                     behaviours=['FOI'], functions=[num])
-
-m_abm = mbp.generate(abm_name, pc=p_abm, dc=dbp)
-
-model.append(m_ebm)
-model.append(m_abm)
-
-model.link('{}@Inf'.format(abm_name), '{}@fI'.format(ebm_name))
-model.link('{}@N'.format(abm_name), '{}@fN'.format(ebm_name))
-model.link('{}@I'.format(ebm_name), '{}@InfectF'.format(abm_name))
-
-y0 = {
-    abm_name: [
-        {'n': 300, 'attributes': {'st': 'Sus'}},
-        # {'n': 10, 'attributes': {'st': 'Inf'}}
-    ],
-    ebm_name: {'S': 290, 'I': 10, 'R': 0}
-}
-
-m_abm.add_observing_behaviour('I-InfectF')
 
 start_counting('MM')
-output = cx.simulate(model, y0, 0, 10, 1)
+output = cx.simulate(model, y0s, 0, 10, 1)
 stop_counting()
 print(output)
 print()
