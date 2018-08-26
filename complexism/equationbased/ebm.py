@@ -1,7 +1,7 @@
 from copy import deepcopy
 from abc import ABCMeta, abstractmethod
 from complexism.misc.counter import count
-from complexism.mcore import Observer, LeafModel, ModelAtom
+from complexism.mcore import Observer, LeafModel, ModelAtom, LeafY0
 from complexism.element import Event, StepTicker
 
 
@@ -37,6 +37,12 @@ class AbsEquations(ModelAtom, metaclass=ABCMeta):
 
     @abstractmethod
     def get_y_dict(self):
+        pass
+
+
+class EBMY0(LeafY0, metaclass=ABCMeta):
+    @abstractmethod
+    def get_dict_form(self):
         pass
 
 
@@ -77,7 +83,7 @@ class ObsEBM(Observer):
 class GenericEquationBasedModel(LeafModel):
     def __init__(self, name, eqs, env=None, obs=None, y0_class=None):
         obs = obs if obs else ObsEBM()
-        LeafModel.__init__(self, name, env, obs, y0_class=y0_class)
+        LeafModel.__init__(self, name, env, obs, y0_class=y0_class if y0_class else LeafY0)
         self.Y = None
         self.Equations = eqs
         self.Scheduler.add_atom(self.Equations)
@@ -92,20 +98,20 @@ class GenericEquationBasedModel(LeafModel):
         self.Observer.add_observing_flow_function(func)
 
     def read_y0(self, y0, ti):
-        self.Equations.set_y(y0)
+        self.Equations.set_y(y0.get_dict_form())
         self.Y = self.Equations.get_y_dict()
 
     def preset(self, ti):
         self.Equations.set_y(self.Y)
         self.Equations.initialise(ti, self)
         self.disclose('initialise', '*')
-        self.Scheduler.reschedule_all_actors()
+        self.Scheduler.reschedule_all()
 
     def reset(self, ti):
         self.Equations.reset(ti, self)
         self.Equations.set_y(self.Y)
-        self.disclose('initialise', '*')
-        self.Scheduler.reschedule_all_actors()
+        self.disclose('reset', '*')
+        self.Scheduler.reschedule_all()
 
     def go_to(self, ti):
         self.Equations.update_time(ti)
@@ -119,8 +125,8 @@ class GenericEquationBasedModel(LeafModel):
     def do_request(self, req):
         self.Equations.execute_event()
 
-    def impulse(self, action, **kwargs):
-        self.Y = self.Equations.shock(None, action, self, kwargs)
+    def shock(self, time, action, **values):
+        self.Y = self.Equations.shock(None, action, self, values)
 
     def to_json(self):
         # todo

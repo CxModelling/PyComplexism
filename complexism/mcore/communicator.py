@@ -33,8 +33,12 @@ class EventListenerSet:
         shocked = False
         for k, v in self.Listeners.items():
             if k(disclosure):
-                v(disclosure, model_foreign, model_local, ti)
-                shocked = True
+                try:
+                    action, values = v(disclosure, model_foreign, model_local, ti)
+                    model_local.shock(ti, action, values)
+                    shocked = True
+                except TypeError:
+                    pass
         return shocked
 
     def is_jsonifiable(self):

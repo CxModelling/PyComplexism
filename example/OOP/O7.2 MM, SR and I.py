@@ -104,8 +104,7 @@ class InfIn(cx.ImpulseResponse):
                 lam = model_foreign['beta'] * sus * inf * dt / (sus + inf + rec)
                 n = rd.poisson(lam)
                 n = min(n, sus)
-                model_local.shock(ti, model_foreign, 'InfIn', value=n)
-
+                return 'InfIn', {'n': n}
         self.Last = ti
 
 

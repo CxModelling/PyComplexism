@@ -1,7 +1,7 @@
 import numpy as np
 from scipy.integrate import odeint
-from complexism.mcore import Observer, LeafY0
-from .ebm import AbsEquations, GenericEquationBasedModel
+from complexism.mcore import Observer
+from .ebm import AbsEquations, GenericEquationBasedModel, EBMY0
 
 __author__ = 'TimeWz667'
 __all__ = ['ObsODE', 'ODEY0', 'OrdinaryDifferentialEquations', 'OrdinaryDifferentialEquationModel']
@@ -136,28 +136,41 @@ class OrdinaryDifferentialEquations(AbsEquations):
         return self.get_y_dict()
 
 
-class ODEY0(LeafY0):
-    def __init__(self):
-        LeafY0.__init__(self)
-        self.Ys = dict()
+class ODEY0(EBMY0):
+    def __init__(self, src=None):
+        if 'Entries' not in src:
+            src = {'Entries': [{'st': k, 'n': v} for k, v in src.items()]}
+        EBMY0.__init__(self, src)
 
-    def __iter__(self):
-        return iter(self.Ys.items())
+    def get_dict_form(self):
+        return {ent['st']: ent['n'] for ent in self.Entries}
 
     def match_model(self, model):
         yns = model.Equations.NamesY
+        ys = [ent['st'] for ent in self.Entries]
         for yn in yns:
-            if yn not in self.Ys:
-                self.Ys[yn] = 0
+            if yn not in ys:
+                self.Entries.append({'st': yn, 'n': 0})
 
-    def define(self, st, n, **kwargs):
-        self.Ys[st] = n
+    def define(self, st, **kwargs):
+        if isinstance(st, dict):
+            self.Entries.append(st)
+        elif 'n' in kwargs:
+            self.Entries.append({
+                'st': st, 'n': kwargs['n']
+            })
+        else:
+            raise TypeError('Unknown entry format')
 
     @staticmethod
     def from_source(src):
         y0 = ODEY0()
-        y0.Ys.update(src)
+        y0.Entries = list(src.Entries)
         return y0
+
+    @staticmethod
+    def from_json(js):
+        return ODEY0(js)
 
 
 class OrdinaryDifferentialEquationModel(GenericEquationBasedModel):

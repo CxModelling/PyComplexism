@@ -1,6 +1,6 @@
 from abc import ABCMeta, abstractmethod
 
-__all__ = ['LeafY0', 'BranchY0']
+__all__ = ['AbsY0', 'LeafY0', 'BranchY0']
 
 
 class AbsY0(metaclass=ABCMeta):
@@ -107,11 +107,13 @@ class BranchY0(AbsY0):
 
     @staticmethod
     def from_source(src):
-        y0s = BranchY0()
-        for k, v in src['Children'].items():
-            y0s.append_child(k, LeafY0.from_json(v))
-        return y0s
+        return BranchY0(src)
 
     @staticmethod
     def from_json(js):
-        return BranchY0(js)
+        y0s = BranchY0()
+        for k, v in js['Children'].items():
+            y0s.append_child(k, LeafY0.from_json(v))
+        for ent in js['Entries']:
+            y0s.define(ent)
+        return y0s

@@ -57,7 +57,7 @@ ax = output.plot(ax=axes[0])
 ax.set_xlim([0, 30])
 
 # Internal intervention
-model.impulse('impulse', k='dis', v=0.1)
+model.shock(time=10, action='impulse', k='dis', v=0.1)
 output = cx.update(model, to=20, dt=1)
 ax = output.plot(ax=axes[1])
 ax.set_xlim([0, 30])

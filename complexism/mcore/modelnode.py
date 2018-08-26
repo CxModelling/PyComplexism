@@ -1,6 +1,6 @@
 from abc import ABCMeta, abstractmethod
 from complexism.element import Event, get_scheduler
-from complexism.mcore import Observer, DefaultObserver, ModelSelector, EventListenerSet, LeafY0, BranchY0
+from complexism.mcore import Observer, DefaultObserver, ModelSelector, EventListenerSet, AbsY0, LeafY0, BranchY0
 from complexism.misc.counter import count
 
 __author__ = 'TimeWz667'
@@ -178,9 +178,12 @@ class AbsModel(metaclass=ABCMeta):
 
     def initialise(self, ti=None, y0=None):
         if y0:
-            if self.ClassY0:
-                y0 = y0 if isinstance(y0, self.ClassY0) else self.ClassY0.from_source(y0)
-                y0.match_model_info(self)
+            if self.ClassY0 and not isinstance(y0, self.ClassY0):
+                if isinstance(y0, dict):
+                    y0 = self.ClassY0.from_json(y0)
+                else:
+                    y0 = self.ClassY0.from_source(y0)
+            y0.match_model_info(self)
             self.read_y0(y0, ti)
         self.preset(ti)
 
@@ -240,7 +243,7 @@ class AbsModel(metaclass=ABCMeta):
     def trigger_external_impulses(self, disclosure, model, time):
         return self.Listeners.apply_shock(disclosure, model, self, time)
 
-    def shock(self, time, action, values):
+    def shock(self, time, action, **values):
         pass
 
     def get_all_impulse_checkers(self):
