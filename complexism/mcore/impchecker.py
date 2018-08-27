@@ -1,0 +1,125 @@
+from abc import ABCMeta, abstractmethod
+import re
+
+__all__ = ['get_impulse_checker',
+           'ImpulseChecker', 'StartsWithChecker', 'RegexChecker',
+           'InclusionChecker', 'InitialChecker', 'IsChecker']
+
+
+class ImpulseChecker(metaclass=ABCMeta):
+    @abstractmethod
+    def __call__(self, disclosure):
+        pass
+
+    def to_json(self):
+        return {
+            'Type': type(self)
+        }
+
+    @staticmethod
+    def from_json(js):
+        raise AttributeError('Unmatched type')
+
+
+class StartsWithChecker(ImpulseChecker):
+    def __init__(self, s):
+        self.Start = s
+
+    def __call__(self, disclosure):
+        return disclosure.What.startswith(self.Start)
+
+    def to_json(self):
+        js = ImpulseChecker.to_json(self)
+        js['Start'] = self.Start
+        return js
+
+    @staticmethod
+    def from_json(js):
+        try:
+            return StartsWithChecker(js['Start'])
+        except KeyError:
+            ImpulseChecker.from_json(js)
+
+
+class IsChecker(ImpulseChecker):
+    def __init__(self, s):
+        self.Message = s
+
+    def __call__(self, disclosure):
+        return disclosure.What == self.Message
+
+    def to_json(self):
+        js = ImpulseChecker.to_json(self)
+        js['Message'] = self.Message
+        return js
+
+    @staticmethod
+    def from_json(js):
+        try:
+            return IsChecker(js['Message'])
+        except KeyError:
+            ImpulseChecker.from_json(js)
+
+
+class RegexChecker(ImpulseChecker):
+    def __init__(self, regex, flag=0):
+        self.Regex = regex
+        self.Flag = flag
+        self.RegexF = re.compile(regex, flags=flag)
+
+    def __call__(self, disclosure):
+        return bool(self.RegexF.match(disclosure.What))
+
+    def to_json(self):
+        js = ImpulseChecker.to_json(self)
+        js['Regex'] = self.Regex
+        js['Flag'] = self.Flag
+        return js
+
+    @staticmethod
+    def from_json(js):
+        try:
+            return RegexChecker(js['Regex'], js['Flag'])
+        except KeyError:
+            ImpulseChecker.from_json(js)
+
+
+class InclusionChecker(ImpulseChecker):
+    def __init__(self, included):
+        self.Inclusion = list(included)
+
+    def __call__(self, disclosure):
+        return disclosure.What in self.Inclusion
+
+    def to_json(self):
+        js = ImpulseChecker.to_json(self)
+        js['Inclusion'] = self.Inclusion
+        return js
+
+    @staticmethod
+    def from_json(js):
+        try:
+            return InclusionChecker(js['Inclusion'])
+        except KeyError:
+            ImpulseChecker.from_json(js)
+
+
+class InitialChecker(IsChecker):
+    def __init__(self):
+        IsChecker.__init__(self, 'initialise')
+
+
+CheckerLibrary = {
+    'InitialChecker': ImpulseChecker,
+    'IsChecker': IsChecker,
+    'StartsWithChecker': StartsWithChecker,
+    'RegexChecker': RegexChecker,
+    'InclusionChecker': InclusionChecker
+}
+
+
+def get_impulse_checker(checker_type, **kwargs):
+    try:
+        CheckerLibrary[checker_type].from_json(kwargs)
+    except KeyError:
+        raise KeyError('Unknown type of checker')

@@ -145,7 +145,7 @@ class GenericAgentBasedModel(LeafModel, metaclass=ABCMeta):
             bes = self.check_enter(ag)
             ag.initialise(ti)
             self.impulse_enter(bes, ag, ti)
-            self.Scheduler.add_schedule_actor(ag)
+            self.Scheduler.add_scheduler_atom(ag)
 
         kwargs['n'] = n_birth
         if n_birth:

@@ -35,6 +35,7 @@ class ModelAtom(metaclass=ABCMeta):
         self.__scheduler = sc
 
     def detach_scheduler(self):
+        self.__next.cancel()
         self.__scheduler = None
 
     @property
@@ -108,7 +109,7 @@ class ModelAtom(metaclass=ABCMeta):
     def reset(self, ti, model):
         pass
 
-    def shock(self, ti, model, action, value):
+    def shock(self, ti, model, action, **values):
         raise AttributeError('Undefined external shock')
 
     def is_compatible(self, **kwargs):
