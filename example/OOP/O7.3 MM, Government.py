@@ -15,10 +15,10 @@ class ValuePassing(mm.ActiveActor):
 
     def do_action(self, model, todo, ti):
         if ti is 3:
-            model.get_model('ABM').shock(ti, todo, 'd_rec', 8)
+            model.get_model('ABM').shock(ti, 'd_rec', v=8)
             self.Clock.update(ti)
         elif ti is 6:
-            model.get_model('ABM').shock(ti, todo, 'd_rec', 100)
+            model.get_model('ABM').shock(ti, 'd_rec', v=100)
             self.Clock.update(ti)
 
     def register(self, sub_model, ti):
@@ -68,28 +68,28 @@ for st in ['Sus', 'Inf', 'Rec', 'Alive', 'Dead']:
 
 sub_model.add_observing_behaviour('FOI')
 
-model = cx.MultiLevelModel('SIR', env=pc)
-model.append_actor(ValuePassing('VP'))
-model.append(sub_model)
+model = cx.MultiModel('SIR', pars=pc)
+model.append_atom(ValuePassing('VP'))
+model.append_child(sub_model)
 
 
 # Step 6 simulate
-y0 = {
-    'ABM': [
-        {'n': 90, 'attributes': {'st': 'Sus'}},
-        {'n': 10, 'attributes': {'st': 'Inf'}}
-    ]
-}
+y0s = cx.BranchY0()
+
+y0 = cx.LeafY0()
+y0.define({'n': 90, 'attributes': {'st': 'Sus'}})
+y0.define({'n': 10, 'attributes': {'st': 'Inf'}})
+y0s.append_child('ABM', y0)
 
 
-output = cx.simulate(model, y0, 0, 15, 0.5)
+output = cx.simulate(model, y0s, 0, 15, 0.5)
 print(output)
 
 
 # Step 7 inference, draw figures, and manage outputs
 fig, axes = plt.subplots(nrows=3, ncols=1)
 
-output[['ABM.Sus', 'ABM.Inf', 'ABM.Rec']].plot(ax=axes[0])
-output[['ABM.Recov', 'ABM.Infect']].plot(ax=axes[1])
-output[['ABM.FOI']].plot(ax=axes[2])
+output[['ABM:Sus', 'ABM:Inf', 'ABM:Rec']].plot(ax=axes[0])
+output[['ABM:Recov', 'ABM:Infect']].plot(ax=axes[1])
+output[['ABM:FOI']].plot(ax=axes[2])
 plt.show()

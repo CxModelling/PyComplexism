@@ -25,9 +25,9 @@ class ExternalShock(PassiveModBehaviour):
     def reset(self, ti, model):
         pass
 
-    def shock(self, ti, source, target, value):
-        self.Value = value
-        self.__shock(source, ti)
+    def shock(self, ti, model, action, **values):
+        self.Value = values['v']
+        self.__shock(model, ti)
 
     def match(self, be_src, ags_src, ags_new, ti):
         self.Value = be_src.Value

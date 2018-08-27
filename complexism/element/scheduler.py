@@ -290,6 +290,7 @@ class AbsScheduler(metaclass=ABCMeta):
 
         for req in self.Requests:
             if req.reached():
+                current.append(req)
                 continue
             try:
                 _, req = req.down_scale()
@@ -431,7 +432,7 @@ class PriorityQueueScheduler(AbsScheduler):
         self.Waiting.clear()
 
         if len(self.Queue) > PriorityQueueScheduler.CAP * self.NumAtoms:
-            print(len(self.Queue), min(self.Queue)[0], self.NumAtoms)
+            print(len(self.Queue), min(self.Queue)[0], self.NumAtoms) # todo
             self.clean_queue()
 
     def clean_queue(self):

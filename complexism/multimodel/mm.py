@@ -35,7 +35,7 @@ class MultiModel(BranchModel):
     def __init__(self, name, pars=None):
         BranchModel.__init__(self, name, pars=pars, obs=ObsMultiModel(), )
         self.Children = dict()
-        self.Atoms = OrderedDict
+        self.Atoms = OrderedDict()
 
     def append_child(self, model, obs=True):
         m = model.Name
@@ -49,9 +49,9 @@ class MultiModel(BranchModel):
     def append_atom(self, act):
         if act.Name not in self.Atoms:
             self.Atoms[act.Name] = act
-            self.Scheduler.add_actor(act)
+            self.Scheduler.add_atom(act)
         else:
-            raise AttributeError('Duplicated actor name')
+            raise AttributeError('Duplicated atom name')
 
     def add_observing_model(self, m):
         if m in self.Children:
