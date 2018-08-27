@@ -16,6 +16,9 @@ class Disclosure:
         self.Where = [where] if isinstance(where, str) else where
         self.Arguments = dict(kwargs)
 
+    def __getitem__(self, item):
+        return self.Arguments[item]
+
     def up_scale(self, adr):
         """
         Append upper address into address

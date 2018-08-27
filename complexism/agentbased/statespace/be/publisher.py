@@ -12,25 +12,31 @@ class StateTrack(PassiveBehaviour):
         self.Value = 0
 
     def initialise(self, ti, model):
-        self.Value = model.Population.count(st=self.S_src)
+        self.Value = self.__evaluate(model)
+        model.disclose('update value to {}'.format(self.Value), self.Name, v1=self.Value)
 
     def reset(self, ti, model):
         pass
 
     def impulse_change(self, model, ag, ti, args_pre=None, args_post=None):
         if self.S_src in ag:
-            self.Value += 1
+            self.__change_value(model, 1)
         else:
-            self.Value -= 1
-        model.disclose('update value', self.Name, v=self.Value)
+            self.__change_value(model, -1)
 
     def impulse_enter(self, model, ag, ti, args=None):
-        self.Value += 1
-        model.disclose('update value', self.Name, v=self.Value)
+        self.__change_value(model, 1)
 
     def impulse_exit(self, model, ag, ti, args=None):
-        self.Value -= 1
-        model.disclose('update value', self.Name, v=self.Value)
+        self.__change_value(model, -1)
+
+    def __evaluate(self, model):
+        return model.Population.count(st=self.S_src)
+
+    def __change_value(self, model, dv):
+        v0, v1 = self.Value, self.Value + dv
+        self.Value = v1
+        model.disclose('update value to {}'.format(v1), self.Name, v0=v0, v1=v1)
 
     def match(self, be_src, ags_src, ags_new, ti):
         self.Value = be_src.Value

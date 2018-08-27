@@ -1,5 +1,9 @@
 from abc import ABCMeta, abstractmethod
 
+__all__ = ['ImpulseResponse',
+           'ValueImpulse', 'AddOneImpulse', 'MinusOneImpulse', 'MinusNImpulse',
+           'get_impulse_response']
+
 
 class ImpulseResponse(metaclass=ABCMeta):
     @abstractmethod
@@ -25,7 +29,7 @@ class ValueImpulse(ImpulseResponse):
         self.Value = value
 
     def __call__(self, disclosure, model_foreign, model_local, ti):
-        return 'Impulse', {'k': self.Target, 'v': disclosure[self.Value]}
+        return 'impulse', {'k': self.Target, 'v': disclosure[self.Value]}
 
     def to_json(self):
         js = ImpulseResponse.to_json(self)
@@ -41,8 +45,88 @@ class ValueImpulse(ImpulseResponse):
             ImpulseResponse.from_json(js)
 
 
+class AddOneImpulse(ImpulseResponse):
+    def __init__(self, target):
+        """
+        (Equation-based model only)
+        Making add one to a targeted variable
+        :param target: target variable
+        """
+        self.Target = target
+
+    def __call__(self, disclosure, model_foreign, model_local, ti):
+        return 'add', {'y': self.Target, 'n': 1}
+
+    def to_json(self):
+        js = ImpulseResponse.to_json(self)
+        js['Target'] = self.Target
+        return js
+
+    @staticmethod
+    def from_json(js):
+        try:
+            return AddOneImpulse(js['Target'])
+        except KeyError:
+            ImpulseResponse.from_json(js)
+
+
+class MinusOneImpulse(ImpulseResponse):
+    def __init__(self, target):
+        """
+        (Equation-based model only)
+        Making minus one to a targeted variable
+        :param target: target variable
+        """
+        self.Target = target
+
+    def __call__(self, disclosure, model_foreign, model_local, ti):
+        return 'del', {'y': self.Target, 'n': 1}
+
+    def to_json(self):
+        js = ImpulseResponse.to_json(self)
+        js['Target'] = self.Target
+        return js
+
+    @staticmethod
+    def from_json(js):
+        try:
+            return MinusOneImpulse(js['Target'])
+        except KeyError:
+            ImpulseResponse.from_json(js)
+
+
+class MinusNImpulse(ImpulseResponse):
+    def __init__(self, target, value):
+        """
+        (Equation-based model only)
+        Making minus n to a targeted variable
+        :param target: target variable
+        :param value: index of amount
+        """
+        self.Target = target
+        self.Value = value
+
+    def __call__(self, disclosure, model_foreign, model_local, ti):
+        return 'del', {'y': self.Target, 'n': disclosure[self.Value]}
+
+    def to_json(self):
+        js = ImpulseResponse.to_json(self)
+        js['Target'] = self.Target
+        return js
+
+    @staticmethod
+    def from_json(js):
+        try:
+            return MinusOneImpulse(js['Target'])
+        except KeyError:
+            ImpulseResponse.from_json(js)
+
+
 ResponseLibrary = {
-    'ValueImpulse': ValueImpulse
+    'ValueImpulse': ValueImpulse,
+    'AddOneImpulse': AddOneImpulse,
+    'MinusOneImpulse': MinusOneImpulse,
+    'MinusNImpulse': MinusNImpulse
 }
 
 

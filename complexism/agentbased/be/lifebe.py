@@ -192,10 +192,10 @@ class AgentImport(PassiveBehaviour):
     def fill(self, obs, model, ti):
         obs[self.Name] = self.BirthN
 
-    def shock(self, ti, source, target, value):
-        value = np.floor(value)
+    def shock(self, ti, model, action, **values):
+        value = np.floor(values['n'])
         if value > 0:
-            source.birth(n=value, ti=ti, **self.Atr_birth)
+            model.birth(n=value, ti=ti, **self.Atr_birth)
             self.BirthN += value
 
     @staticmethod

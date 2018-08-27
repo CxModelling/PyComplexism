@@ -179,17 +179,17 @@ class AbsModel(metaclass=ABCMeta):
 
     def initialise(self, ti=None, y0=None):
         if y0:
-            self.check_y0(y0)
+            y0 = self.check_y0(y0)
             self.read_y0(y0, ti)
         self.preset(ti)
 
     def preset(self, ti):
-        self.Scheduler.reschedule_all_actors()
         self.disclose('initialise', '*')
+        self.Scheduler.reschedule_all_actors()
 
     def reset(self, ti):
-        self.Scheduler.reschedule_all_actors()
         self.disclose('reset', '*')
+        self.Scheduler.reschedule_all_actors()
 
     def check_y0(self, y0):
         if not isinstance(y0, self.ClassY0):
@@ -198,6 +198,7 @@ class AbsModel(metaclass=ABCMeta):
             else:
                 y0 = self.ClassY0.from_source(y0)
         y0.match_model_info(self)
+        return y0
 
     @abstractmethod
     def read_y0(self, y0, ti):
@@ -341,9 +342,10 @@ class BranchModel(AbsModel, metaclass=ABCMeta):
             v.reset(ti)
         self.Scheduler.reschedule_all()
 
-    def check_y0(self, y0):
+    def check_y0(self, y0s):
         for k, m in self.all_models().items():
-            m.check_y0(y0[k])
+            y0s.ChildrenY0[k] = m.check_y0(y0s[k])
+        return y0s
 
     def read_y0(self, y0, ti):
         for k, m in self.all_models().items():

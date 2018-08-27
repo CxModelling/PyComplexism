@@ -42,8 +42,8 @@ for st in ['S', 'I', 'R']:
 
 # Step 5 simulate
 y0 = {
-    'S': 999,
-    'I': 1,
+    'S': 950,
+    'I': 50,
     'R': 0
 }
 

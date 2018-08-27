@@ -126,7 +126,7 @@ class GenericEquationBasedModel(LeafModel):
         self.Equations.execute_event()
 
     def shock(self, time, action, **values):
-        self.Y = self.Equations.shock(None, action, self, values)
+        self.Y = self.Equations.shock(None, self, action, **values)
 
     def to_json(self):
         # todo

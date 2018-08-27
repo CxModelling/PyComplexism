@@ -99,35 +99,35 @@ class OrdinaryDifferentialEquations(AbsEquations):
         self.Y = odeint(self.Func, self.Y, ts, args=(self.Parameters, self.Attributes))[-1]
         self.Last = t1
 
-    def shock(self, ti, src, tar, value):
-        if src == 'impulse':
+    def shock(self, ti, model, action, **values):
+        if action == 'impulse':
             try:
-                k, v1 = value['k'], value['v']
+                k, v1 = values['k'], values['v']
                 v0 = self[k]
                 self[k] = v1
-                tar.disclose('change {} from {} to {}'.format(k, v0, v1), 'Equation')
+                model.disclose('change {} from {} to {}'.format(k, v0, v1), 'Equation')
             except KeyError:
                 raise KeyError('Unmatched keywords')
-        elif src == 'add':
+        elif action == 'add':
             try:
-                y = value['y']
+                y = values['y']
                 if y not in self.IndicesY:
                     raise KeyError('{} does not exist')
-                n = value['n'] if 'n' in value else 1
+                n = values['n'] if 'n' in values else 1
                 self.Y[self.IndicesY[y]] += n
-                tar.disclose('add {} by {}'.format(y, n), 'Equation')
+                model.disclose('add {} by {}'.format(y, n), 'Equation')
             except KeyError:
                 raise KeyError('Unmatched keywords')
-        elif src == 'del':
+        elif action == 'del':
             try:
-                y = value['y']
+                y = values['y']
                 if y not in self.IndicesY:
                     raise KeyError('{} does not exist')
 
-                n = value['n'] if 'n' in value else 1
+                n = values['n'] if 'n' in values else 1
                 n = min(n, np.floor(self.Y[self.IndicesY[y]]))
                 self.Y[self.IndicesY[y]] -= n
-                tar.disclose('delete {} by {}'.format(y, n), 'Equation')
+                model.disclose('delete {} by {}'.format(y, n), 'Equation')
             except KeyError:
                 raise KeyError('Unmatched keywords')
         else:
