@@ -3,7 +3,7 @@ from collections import Counter
 import heapq
 from .event import Event
 __author__ = 'TimeWz667'
-__all__ = ['get_scheduler', 'DefaultScheduler', 'Request', ]
+__all__ = ['get_scheduler', 'DefaultScheduler', 'Request', 'Disclosure']
 
 DefaultScheduler = 'PriorityQueue'
 # DefaultScheduler = 'Looping'

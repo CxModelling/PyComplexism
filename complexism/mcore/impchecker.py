@@ -3,7 +3,7 @@ import re
 
 __all__ = ['get_impulse_checker',
            'ImpulseChecker', 'StartsWithChecker', 'RegexChecker',
-           'InclusionChecker', 'InitialChecker', 'IsChecker']
+           'InclusionChecker', 'InitialChecker', 'IsChecker', 'WhoStartWithChecker']
 
 
 class ImpulseChecker(metaclass=ABCMeta):
@@ -109,12 +109,35 @@ class InitialChecker(IsChecker):
         IsChecker.__init__(self, 'initialise')
 
 
+class WhoStartWithChecker(ImpulseChecker):
+    def __init__(self, who, something):
+        self.Who = who
+        self.Start = something
+
+    def __call__(self, disclosure):
+        return disclosure.What.startswith(self.Start) and disclosure.Who == self.Who
+
+    def to_json(self):
+        js = ImpulseChecker.to_json(self)
+        js['Start'] = self.Start
+        js['Who'] = self.Who
+        return js
+
+    @staticmethod
+    def from_json(js):
+        try:
+            return WhoStartWithChecker(js['Who'], js['Start'])
+        except KeyError:
+            ImpulseChecker.from_json(js)
+
+
 CheckerLibrary = {
     'InitialChecker': ImpulseChecker,
     'IsChecker': IsChecker,
     'StartsWithChecker': StartsWithChecker,
     'RegexChecker': RegexChecker,
-    'InclusionChecker': InclusionChecker
+    'InclusionChecker': InclusionChecker,
+    'WhoStartWithChecker': WhoStartWithChecker
 }
 
 

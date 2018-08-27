@@ -51,7 +51,7 @@ class StateSpaceAgentTestCase(unittest.TestCase):
         self.Agent = cx.StSpAgent('Helen', self.DC['Sus'])
 
     def test_creation(self):
-        self.Agent.initialise(time=0)
+        self.Agent.initialise(ti=0)
         nxt = self.Agent.Next
 
         self.assertIn(nxt.Todo, [self.DC.Transitions[tr] for tr in ['Infect', 'Die']])
@@ -61,7 +61,7 @@ class StateSpaceAgentTestCase(unittest.TestCase):
 
     def test_transition(self):
         self.Agent.State = self.DC['Sus']
-        self.Agent.initialise(time=100)
+        self.Agent.initialise(ti=100)
         nxt = self.Agent.Next
         nxt.Todo = self.DC.Transitions['Infect']
 
