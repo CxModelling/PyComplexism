@@ -59,12 +59,6 @@ class MultiModel(BranchModel):
         else:
             raise KeyError('Model {} does not exist'.format(m))
 
-    def read_y0(self, y0, ti):
-        if not y0:
-            return
-        for k, m in self.Children.items():
-            m.read_y0(y0=y0[k], ti=ti)
-
     @count()
     def do_request(self, req):
         nod, evt, time = req.Who, req.Event, req.When

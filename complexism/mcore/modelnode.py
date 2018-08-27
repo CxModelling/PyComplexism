@@ -178,12 +178,7 @@ class AbsModel(metaclass=ABCMeta):
 
     def initialise(self, ti=None, y0=None):
         if y0:
-            if self.ClassY0 and not isinstance(y0, self.ClassY0):
-                if isinstance(y0, dict):
-                    y0 = self.ClassY0.from_json(y0)
-                else:
-                    y0 = self.ClassY0.from_source(y0)
-            y0.match_model_info(self)
+            self.check_y0(y0)
             self.read_y0(y0, ti)
         self.preset(ti)
 
@@ -194,6 +189,14 @@ class AbsModel(metaclass=ABCMeta):
     def reset(self, ti):
         self.Scheduler.reschedule_all_actors()
         self.disclose('reset', '*')
+
+    def check_y0(self, y0):
+        if not isinstance(y0, self.ClassY0):
+            if isinstance(y0, dict):
+                y0 = self.ClassY0.from_json(y0)
+            else:
+                y0 = self.ClassY0.from_source(y0)
+        y0.match_model_info(self)
 
     @abstractmethod
     def read_y0(self, y0, ti):
@@ -336,6 +339,14 @@ class BranchModel(AbsModel, metaclass=ABCMeta):
         for v in self.all_models().values():
             v.reset(ti)
         self.Scheduler.reschedule_all()
+
+    def check_y0(self, y0):
+        for k, m in self.all_models().items():
+            m.check_y0(y0[k])
+
+    def read_y0(self, y0, ti):
+        for k, m in self.all_models().items():
+            m.read_y0(y0=y0[k], ti=ti)
 
     @abstractmethod
     def all_models(self) -> dict:

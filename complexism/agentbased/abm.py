@@ -156,7 +156,7 @@ class GenericAgentBasedModel(LeafModel, metaclass=ABCMeta):
     def kill(self, i, ti):
         ag = self.Population[i]
         bes = self.check_exit(ag)
-        self.Scheduler.remove_actor(ag)
+        self.Scheduler.remove_atom(ag)
         self.Population.remove_agent(i)
         self.impulse_exit(bes, ag, ti)
         self.disclose('remove agent', ag.Name)

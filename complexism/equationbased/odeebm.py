@@ -138,14 +138,14 @@ class OrdinaryDifferentialEquations(AbsEquations):
 
 class ODEY0(EBMY0):
     def __init__(self, src=None):
-        if 'Entries' not in src:
+        if src and 'Entries' not in src:
             src = {'Entries': [{'st': k, 'n': v} for k, v in src.items()]}
         EBMY0.__init__(self, src)
 
     def get_dict_form(self):
         return {ent['st']: ent['n'] for ent in self.Entries}
 
-    def match_model(self, model):
+    def match_model_info(self, model):
         yns = model.Equations.NamesY
         ys = [ent['st'] for ent in self.Entries]
         for yn in yns:

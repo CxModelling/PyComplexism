@@ -86,6 +86,7 @@ model_i = mbp_i.generate('I', pc=pc.breed('I', 'abm'), dc=dbp)
 class InfOut(cx.ImpulseResponse):
     def __call__(self, disclosure, model_foreign, model_local, ti):
         n = disclosure.Arguments['n']
+
         model_local.impulse('del', y='Sus', n=float(n))
         model_local.impulse('impulse', k='Inf', v=model_foreign.get_snapshot('StInf', ti))
 
@@ -116,17 +117,17 @@ class RecSource(cx.ImpulseResponse):
 
 class UpdateSource(cx.ImpulseResponse):
     def __call__(self, disclosure, model_foreign, model_local, ti):
-        model_local.impulse('impulse', k='Inf', v=model_foreign.get_snapshot('StInf', ti))
+        return 'impulse', {'k', 'Inf', 'v', model_foreign.get_snapshot('StInf', ti)}
 
 
-model_sr.add_listener(cx.InitialChecker(), UpdateSource())
-model_sr.add_listener(cx.StartsWithChecker('add'), InfOut())
-model_sr.add_listener(cx.StartsWithChecker('Rec'), RecSource())
+#model_sr.add_listener(cx.InitialChecker(), UpdateSource())
+#model_sr.add_listener(cx.StartsWithChecker('add'), InfOut())
+#model_sr.add_listener(cx.StartsWithChecker('Rec'), RecSource())
 
 
-ii = InfIn()
-model_i.add_listener(cx.InitialChecker(), ii)
-model_i.add_listener(cx.StartsWithChecker('update'), ii)
+#ii = InfIn()
+#model_i.add_listener(cx.InitialChecker(), ii)
+#model_i.add_listener(cx.StartsWithChecker('update'), ii)
 
 
 model = cx.MultiModel('SR_I', pars=pc)
@@ -134,20 +135,25 @@ model.append_child(model_i)
 model.append_child(model_sr)
 
 
-y0 = {
-    'I': [
-        {'n': 10, 'attributes': {'st': 'Inf'}}
-    ],
-    'SR': {'Sus': 990, 'Rec': 0}
-}
+y0s = cx.BranchY0()
+
+y0 = cx.LeafY0()
+y0.define({'n': 300, 'attributes': {'st': 'Inf'}})
+y0s.append_child('I', y0)
+
+y0 = cx.ODEY0()
+y0.define('Sus', n=990)
+y0s.append_child('SR', y0)
 
 
 cx.start_counting('MM')
-output = cx.simulate(model, y0, 0, 10, 1)
+output = cx.simulate(model, y0s, 0, 10, 1)
 cx.stop_counting()
-print(output[['SR.Sus', 'I.Inf', 'SR.Rec', 'I.StInf', 'SR.inc']])
+# print(output)
+print(output[['SR:Sus', 'I:Inf', 'SR:Rec', 'I:StInf', 'SR:inc']])
 print()
 print(cx.get_results('MM'))
 
-output[['SR.Sus', 'I.Inf', 'SR.Rec', 'I.StInf', 'SR.inc']].plot()
+output[['SR:Sus', 'I:Inf', 'SR:Rec', 'I:StInf', 'SR:inc']].plot()
+# output.plot()
 plt.show()
