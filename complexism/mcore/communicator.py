@@ -5,7 +5,8 @@ from collections import OrderedDict
 __author__ = 'TimeWz667'
 __all__ = ['EventListenerSet', 'ImpulseChecker', 'ImpulseResponse',
            'StartsWithChecker', 'RegexChecker', 'InclusionChecker',
-           'InitialChecker']
+           'InitialChecker',
+           'ValueImpulse']
 
 # The job of EventListener
 # 1. Check if an external event have impact
@@ -79,11 +80,11 @@ class ImpulseResponse(metaclass=ABCMeta):
         pass
 
     def to_json(self):
-        raise AttributeError('Not jsonifiable')
+        raise {'Type': type(self)}
 
     @staticmethod
     def from_json(js):
-        raise AttributeError('Not jsonifiable')
+        raise AttributeError('Unmatched form')
 
 
 class StartsWithChecker(ImpulseChecker):
@@ -146,3 +147,30 @@ class InclusionChecker(ImpulseChecker):
 class InitialChecker(StartsWithChecker):
     def __init__(self):
         StartsWithChecker.__init__(self, 'initialise')
+
+
+class ValueImpulse(ImpulseResponse):
+    def __init__(self, target, value):
+        """
+        Making an impulse on target considering a value of the disclosed
+        :param target: target variable
+        :param value: index referred to a value of disclosure
+        """
+        self.Target = target
+        self.Value = value
+
+    def __call__(self, disclosure, model_foreign, model_local, ti):
+        return 'Impulse', {'k': self.Target, 'v': disclosure[self.Value]}
+
+    def to_json(self):
+        js = ImpulseResponse.to_json(self)
+        js['Target'] = self.Target
+        js['Value'] = self.Value
+        return js
+
+    @staticmethod
+    def from_json(js):
+        try:
+            return ValueImpulse(js['Target'], js['Value'])
+        except KeyError:
+            ImpulseResponse.from_json(js)

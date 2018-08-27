@@ -120,8 +120,8 @@ class UpdateSource(cx.ImpulseResponse):
         return 'impulse', {'k', 'Inf', 'v', model_foreign.get_snapshot('StInf', ti)}
 
 
-#model_sr.add_listener(cx.InitialChecker(), UpdateSource())
-#model_sr.add_listener(cx.StartsWithChecker('add'), InfOut())
+model_sr.add_listener(cx.InitialChecker(), UpdateSource())
+model_sr.add_listener(cx.StartsWithChecker('update value'), cx.ValueImpulse('Inf', 'v1'))
 #model_sr.add_listener(cx.StartsWithChecker('Rec'), RecSource())
 
 
