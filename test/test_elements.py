@@ -72,7 +72,7 @@ class RequestTestCase(unittest.TestCase):
 
 class RequestSetTestCase(unittest.TestCase):
     def setUp(self):
-        self.ReqSet = Schedule('Home')
+        self.ReqSet = get_scheduler('Home')
         self.Req1 = Request(Event('Task 1', 1), 'I', 'Home')
         self.Req2 = Request(Event('Task 2', 2), 'You', 'Home')
         self.Req3 = Request(Event('Task 3', 2), 'She', 'Home')
@@ -110,7 +110,7 @@ class RequestSetTestCase(unittest.TestCase):
         self.assertEqual(len(self.ReqSet), 2)
 
     def test_pass_request(self):
-        rsu = Schedule('Taipei')
+        rsu = get_scheduler('Taipei')
         rsu.append_request(self.Req5)
 
         self.ReqSet.append_request(self.Req1)

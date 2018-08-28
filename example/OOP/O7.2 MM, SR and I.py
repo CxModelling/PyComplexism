@@ -81,7 +81,7 @@ dbp = cx.read_dbp_script(dsc)
 
 pc = sm.generate('SIR')
 model_sr = mbp_sr.generate('SR', pc=pc.breed('SR', 'ebm'))
-model_i = mbp_i.generate('I', pc=pc.breed('I', 'abm'), dc=dbp)
+model_i = mbp_i.generate('I', pc=pc.breed('I', 'abm'), ss=dbp)
 
 
 class InfIn(cx.ImpulseResponse):

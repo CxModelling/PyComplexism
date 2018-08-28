@@ -185,11 +185,11 @@ class AbsModel(metaclass=ABCMeta):
 
     def preset(self, ti):
         self.disclose('initialise', '*')
-        self.Scheduler.reschedule_all_actors()
+        self.Scheduler.reschedule_all()
 
     def reset(self, ti):
         self.disclose('reset', '*')
-        self.Scheduler.reschedule_all_actors()
+        self.Scheduler.reschedule_all()
 
     def check_y0(self, y0):
         if not isinstance(y0, self.ClassY0):

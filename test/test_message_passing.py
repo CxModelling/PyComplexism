@@ -55,6 +55,9 @@ class City(BranchModel):
 
 
 class School(LeafModel):
+    def read_y0(self, y0, ti):
+        pass
+
     def __init__(self, name):
         LeafModel.__init__(self, name, None)
         self.Last = 0

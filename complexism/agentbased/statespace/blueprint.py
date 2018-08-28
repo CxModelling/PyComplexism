@@ -4,6 +4,7 @@ import complexism as cx
 from complexism.mcore import AbsBlueprintMCore
 from .abmstsp import StSpAgentBasedModel
 from .breeder import StSpBreeder
+
 __author__ = 'TimeWz667'
 __all__ = ['BlueprintStSpABM']
 
@@ -20,13 +21,13 @@ class BlueprintStSpABM(AbsBlueprintMCore):
 
     def set_agent(self, dynamics, prefix='Ag', group=None, exo=None, **kwargs):
         self.Population['Agent'] = {
-                                        'Prefix': prefix,
-                                        'Group': group if group else 'agent',
-                                        'Type': 'stsp',
-                                        'Exo': dict(exo) if exo else dict(),
-                                        'Dynamics': dynamics if dynamics else None,
-                                        'Args': dict(kwargs)
-                                    }
+            'Prefix': prefix,
+            'Group': group if group else 'agent',
+            'Type': 'stsp',
+            'Exo': dict(exo) if exo else dict(),
+            'Dynamics': dynamics if dynamics else None,
+            'Args': dict(kwargs)
+        }
 
     def add_network(self, net_name, net_type, **kwargs):
         self.Population['Networks'].append({
@@ -66,21 +67,23 @@ class BlueprintStSpABM(AbsBlueprintMCore):
         da = kwargs['da'] if 'da' in kwargs else None
 
         pc = kwargs['pc'] if 'pc' in kwargs else None
-        if isinstance(pc, str):
-            bn, pc = pc, None
-        elif 'bn' in kwargs:
-            bn = kwargs['bn']
-        else:
+        bn = kwargs['bn'] if 'bn' in kwargs else None
+
+        if pc is not None:
+            if isinstance(pc, str):
+                bn, pc = pc, None
+        elif not bn:
             raise KeyError('Missing parameter-related information')
 
-        if isinstance(bn, str):
-            try:
-                bn = da.get_bayes_net(bn)
-            except KeyError as e:
-                raise e
+        if pc is None:
+            if isinstance(bn, str):
+                try:
+                    bn = da.get_bayes_net(bn)
+                except KeyError as e:
+                    raise e
 
-        elif not isinstance(bn, dag.BayesianNetwork):
-            raise TypeError('Unknown type parameters')
+            elif not isinstance(bn, dag.BayesianNetwork):
+                raise TypeError('Unknown type parameters')
 
         ss = kwargs['ss'] if 'ss' in kwargs else self.Population['Agent']['Dynamics']
         if isinstance(ss, str) and da:
@@ -91,7 +94,7 @@ class BlueprintStSpABM(AbsBlueprintMCore):
         elif not isinstance(ss, cx.AbsBlueprint):
             raise TypeError('da(Direct) required for identifying state-space')
 
-        if not pc:
+        if pc is None:
             hie = self.get_parameter_hierarchy(dc=ss)
             sm = dag.as_simulation_core(bn, hie=hie)
             pc = sm.generate(name, exo=kwargs['exo'] if 'exo' in kwargs else None)
