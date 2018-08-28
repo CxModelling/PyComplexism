@@ -145,9 +145,9 @@ y0a = [
     {'n': 0, 'attributes': {'st': 'Act'}}
 ]
 
-model = cx.MultiLevelModel('TB_v1', env=pc)
-model.append(model_ser)
-model.append(model_i)
+model = cx.MultiModel('TB_v1', pars=pc)
+model.append_child(model_ser)
+model.append_child(model_i)
 
 model.add_observing_model('I')
 model.add_observing_model('SER')

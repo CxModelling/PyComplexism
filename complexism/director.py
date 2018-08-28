@@ -89,7 +89,7 @@ class Director:
 
     def read_state_space_model(self, script):
         bn = read_dbp_script(script)
-        self._add_bn(bn)
+        self._add_dbp(bn)
 
     def load_state_space_model(self, file):
         try:
@@ -119,18 +119,18 @@ class Director:
     def list_state_spaces(self):
         return list(self.DCoreBlueprints.keys())
 
-    def load_mbp(self, file):
+    def load_sim_model(self, file):
         try:
             mbp = read_mbp_json(load_json(file))
         except JSONDecodeError:
             mbp = read_mbp_script(load_txt(file))
         self._add_mbp(mbp)
 
-    def new_mbp(self, mbp_name, model_type):
+    def new_sim_model(self, mbp_name, model_type):
         """
         Generate a new blueprint of a dynamic core
         :param mbp_name: name of the model
-        :param model_type: type of simulation model, SSABM, SSODE, ODE
+        :param model_type: type of simulation model, StSpABM, SSODE, ODEEBM
         :return: a new Blueprint
         """
         mbp = new_mbp(mbp_name, model_type)
@@ -138,16 +138,18 @@ class Director:
         return mbp
 
     def save_mbp(self, mbp_name, file):
+        # todo
         try:
-            mbp = self.get_mbp(mbp_name)
+            mbp = self.get_sim_model(mbp_name)
             save_mbp(mbp, file)
         except KeyError:
             self.Log.warning('Model Blueprint {} not found'.format(mbp_name))
 
-    def list_mbps(self):
+    def list_sim_models(self):
         return list(self.MCoreBlueprints.keys())
 
     def save_layout(self, lyo_name, file):
+        # todo
         try:
             lyo = self.get_lyo(lyo_name)
             save_layout(lyo, file)
@@ -166,26 +168,32 @@ class Director:
         save_json(js, file)
 
     def load(self, file):
+        # todo
         js = load_json(file)
         self.BayesianNetworks.update({k: read_bn_json(v) for k, v in js['PCores'].items()})
         self.DCoreBlueprints.update({k: read_dbp_json(v) for k, v in js['DCores'].items()})
         # self.MCoreBlueprints.update({k: load_mc(v) for k, v in js['MCores'].items()})
         # self.ModelLayouts.update({k: load_layout(v) for k, v in js['Layouts'].items()})
 
-    def generate_model(self, mc, name=None, **kwargs):
-        if not name:
-            name = mc
-        mbp = self.get_sim_model(mc)
+    def generate_mc(self, name, sim_model, **kwargs):
+        mbp = self.get_sim_model(sim_model)
         if 'bn' in kwargs:
-            kwargs['bn'] = self.get_bayes_net(kwargs['bn'])
-        if 'dbp' in kwargs:
-            kwargs['ss'] = self.get_state_space_model(kwargs['ss'])
-        if 'dc' in kwargs:
-            kwargs['dc'] = self.get_state_space_model(kwargs['dc'])
+            bn = kwargs['bn']
+            if isinstance(bn, str):
+                kwargs['bn'] = self.get_bayes_net(bn)
 
+        kwargs['da'] = self
         return mbp.generate(name, **kwargs)
 
+    def generate_model(self, name, sim_model, bn):
+        if sim_model in self.ModelLayouts:
+            # todo
+            pass
+        else:
+            return self.generate_mc(name, sim_model, bn=bn)
+
     def copy_model(self, mod_src, **kwargs):
+        # todo
         pass
 
     def generate(self, model, cond=None, fixed=None, odt=0.5):

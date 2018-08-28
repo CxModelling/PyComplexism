@@ -432,11 +432,10 @@ class PriorityQueueScheduler(AbsScheduler):
         self.Waiting.clear()
 
         if len(self.Queue) > PriorityQueueScheduler.CAP * self.NumAtoms:
-            print(len(self.Queue), min(self.Queue)[0], self.NumAtoms) # todo
+            # print(len(self.Queue), min(self.Queue)[0], self.NumAtoms)
             self.clean_queue()
 
     def clean_queue(self):
-        # queue = [[t, a, e] for t, a, e in self.Queue if not e.is_cancelled()]
         self.Queue = [[t, a, e] for t, a, e in self.Queue if not e.is_cancelled()]
         heapq.heapify(self.Queue)
 

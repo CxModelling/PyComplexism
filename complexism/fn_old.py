@@ -63,23 +63,3 @@ def copy_core_ode(mod_src, bp_mc, bp_pc, bp_dc, pc_new=False, intervention=None)
 
     dc_new = bp_dc.generate_model(pc_new, mod_src.DCore.Name)
     return bp_mc.clone(mod_src, pc=pc_new, dc=dc_new)
-
-
-def copy_model(mod_src, bp_mc, bp_pc, bp_dc, tr_tte=True, pc_new=False, intervention=None):
-    """
-    copy a simulation model
-    :param mod_src: model to be replicated
-    :param bp_mc: blueprint of source model
-    :param bp_pc: blueprint of targeted parameter core
-    :param bp_dc: blueprint of targeted dynamic model
-    :param pc_new: True if new parameter core required
-    :param tr_tte: keep not intervened time to event or not
-    :param intervention: dictionary for variables to be intervened
-    :return: a copied ABM
-    """
-    if isinstance(bp_mc, BlueprintABM):
-        return copy_abm(mod_src, bp_mc, bp_pc, bp_dc, tr_tte, pc_new, intervention)
-    elif isinstance(bp_mc, BlueprintCoreODE):
-        return copy_core_ode(mod_src, bp_mc, bp_pc, bp_dc, pc_new, intervention)
-
-

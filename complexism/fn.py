@@ -45,20 +45,20 @@ def save_bn(bn, path):
     save_json(bn.to_json(), path)
 
 
-def new_mbp(name, model_type='SSABM'):
+def new_mbp(name, model_type='StSpABM'):
     """
     Generate a new blueprint of model
     :param name: name of blueprint
     :param model_type: type of model
     :return: blueprint of model
     """
-    if model_type == 'SSABM':
+    if model_type == 'StSpABM':
         return ssa.BlueprintStSpABM(name)
     elif model_type == 'ODEABM':
         pass
     elif model_type == 'ODEEBM':
         return ebm.BlueprintODEEBM(name)
-    elif model_type == 'SSODE':
+    elif model_type == 'StSpODE':
         pass
     else:
         pass

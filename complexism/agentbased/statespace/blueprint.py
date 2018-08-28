@@ -18,7 +18,7 @@ class BlueprintStSpABM(AbsBlueprintMCore):
         self.ObsTransitions = list()
         self.ObsFunctions = list()
 
-    def set_agent(self, prefix='Ag', group=None, exo=None, dynamics=None, **kwargs):
+    def set_agent(self, dynamics, prefix='Ag', group=None, exo=None, **kwargs):
         self.Population['Agent'] = {
                                         'Prefix': prefix,
                                         'Group': group if group else 'agent',
@@ -62,25 +62,45 @@ class BlueprintStSpABM(AbsBlueprintMCore):
 
     def generate(self, name, **kwargs):
         # Prepare PC, DC
-        dc = kwargs['dc']
 
-        if 'pc' in kwargs:
-            pc = kwargs['pc']
-        elif 'sm' in kwargs:
-            sm = kwargs['sm']
-            pc = sm.generate(name, exo=kwargs['exo'] if 'exo' in kwargs else None)
+        da = kwargs['da'] if 'da' in kwargs else None
+
+        pc = kwargs['pc'] if 'pc' in kwargs else None
+        if isinstance(pc, str):
+            bn, pc = pc, None
         elif 'bn' in kwargs:
             bn = kwargs['bn']
-            random = kwargs['random'] if 'random' in kwargs else []
-            hie = kwargs['hie'] if 'hie' in kwargs else self.get_parameter_hierarchy(dc=dc)
-            sm = dag.as_simulation_core(bn, hie=hie, random=random)
-            pc = sm.generate(name, exo=kwargs['exo'] if 'exo' in kwargs else None)
         else:
-            raise KeyError('Parameter core not found')
+            raise KeyError('Missing parameter-related information')
+
+        if isinstance(bn, str):
+            try:
+                bn = da.get_bayes_net(bn)
+            except KeyError as e:
+                raise e
+
+        elif not isinstance(bn, dag.BayesianNetwork):
+            raise TypeError('Unknown type parameters')
+
+        ss = kwargs['ss'] if 'ss' in kwargs else self.Population['Agent']['Dynamics']
+        if isinstance(ss, str) and da:
+            try:
+                ss = da.get_state_space_model(ss)
+            except KeyError as e:
+                raise e
+        elif not isinstance(ss, cx.AbsBlueprint):
+            raise TypeError('da(Direct) required for identifying state-space')
+
+        if not pc:
+            hie = self.get_parameter_hierarchy(dc=ss)
+            sm = dag.as_simulation_core(bn, hie=hie)
+            pc = sm.generate(name, exo=kwargs['exo'] if 'exo' in kwargs else None)
+
+        ss = ss.generate_model(name, **pc.get_prototype(group=self.Population['Agent']['Group']).get_samplers())
 
         # Generate population
         ag = self.Population['Agent']
-        eve = StSpBreeder(ag['Prefix'], ag['Group'], pc, dc)
+        eve = StSpBreeder(ag['Prefix'], ag['Group'], pc, ss)
         pop = cx.Population(eve)
         model = StSpAgentBasedModel(name, pc, pop)
 
