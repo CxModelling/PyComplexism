@@ -1,10 +1,5 @@
-import epidag as dag
 import complexism as cx
-import complexism.equationbased as ebm
 import matplotlib.pyplot as plt
-
-
-pc = dag.quick_build_parameter_core(cx.load_txt('scripts/pSIR.txt'))
 
 
 def SIR_ODE(y, t, p, x):
@@ -16,14 +11,18 @@ def SIR_ODE(y, t, p, x):
     return [-inf, inf-rec, rec]
 
 
-bp = ebm.BlueprintODEEBM('EBM ODE')
+ctrl = cx.Director()
+ctrl.load_bates_net('scripts/pSIR.txt')
+
+bp = ctrl.new_sim_model('EBM SIR', 'ODEEBM')
 bp.set_fn_ode(SIR_ODE, ['S', 'I', 'R'])
 bp.set_external_variables({'dis': 0.5})
 bp.set_dt(dt=0.1, odt=0.5)
 bp.set_observations()
 
 
-model = bp.generate('SIR', pc=pc)
+model = ctrl.generate_model('M1', 'EBM SIR', bn='pSIR')
+
 
 y0 = {
     'S': 999,
@@ -31,9 +30,9 @@ y0 = {
     'R': 0
 }
 
-cx.simulate(model, y0, 0, 15, 1, log=True)
-model.impulse('del', y='S', n=500)
-model.impulse('add', y='I', n=100)
+cx.simulate(model, y0, 0, 10, .1, log=True)
+model.shock(10, 'del', y='S', n=100)
+model.shock(10, 'add', y='I', n=100)
 out = cx.update(model, 30, 1)
 out.plot()
 plt.show()

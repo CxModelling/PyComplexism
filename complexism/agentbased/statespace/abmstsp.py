@@ -4,7 +4,7 @@ from complexism.agentbased.abm import GenericAgentBasedModel, ObsABM
 from complexism.mcore.y0 import LeafY0
 
 __author__ = 'TimeWz667'
-__all__ = ['StSpAgentBasedModel']
+__all__ = ['StSpAgentBasedModel', 'StSpY0']
 
 Record = namedtuple('Record', ('Ag', 'Todo', 'Time'))
 
@@ -98,26 +98,35 @@ class ObsStSpABM(ObsABM):
 
 
 class StSpY0(LeafY0):
-    def __init__(self):
-        self.Values = list()
-
-    def __iter__(self):
-        return iter(self.Values)
+    def __init__(self, src=None):
+        LeafY0.__init__(self, src)
 
     def match_model(self, model):
         pass
 
-    def define(self, n, st, **kwargs):
+    def define(self, n, **kwargs):
+        if isinstance(n, dict):
+            if 'attributes' not in n:
+                raise KeyError('State not defined')
+            elif 'st' not in n['attributes']:
+                raise KeyError('State not defined')
+            else:
+                LeafY0.define(self, n)
+            return
+
         n = int(n)
         if n > 0:
-            atr = {'st': st}
-            atr.update(kwargs)
-            self.Values.append({'n': n, 'attributes': atr})
+            if 'attributes' in kwargs:
+                atr = kwargs['attributes']
+            elif 'st' in kwargs:
+                atr = kwargs
+            else:
+                raise KeyError('State not defined')
+            self.Entries.append({'n': n, 'attributes': atr})
 
     @staticmethod
     def from_source(src):
-        y0 = StSpY0()
-        y0.Values = list(src)
+        y0 = StSpY0(src)
         return y0
 
 

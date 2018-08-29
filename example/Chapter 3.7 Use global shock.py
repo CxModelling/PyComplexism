@@ -1,70 +1,34 @@
 import matplotlib.pyplot as plt
 import complexism as cx
-import complexism.agentbased.statespace as ss
-import epidag as dag
 
 
-psc = """
-PCore pSIR {
-    beta = 1.4
-    gamma = 0.5
-    Infect ~ exp(beta)
-    Recov ~ exp(0.5)
-    Die ~ exp(0.02)
-}
-"""
+ctrl = cx.Director()
+ctrl.load_bates_net('scripts/pSIR.txt')
+ctrl.load_state_space_model('scripts/SIR_BN.txt')
 
-dsc = """
-CTBN SIR {
-    life[Alive | Dead]
-    sir[S | I | R]
 
-    Alive{life:Alive}
-    Dead{life:Dead}
-    Inf{life:Alive, sir:I}
-    Rec{life:Alive, sir:R}
-    Sus{life:Alive, sir:S}
-
-    Die -> Dead # from transition Die to state Dead by distribution Die
-    Sus -- Infect -> Inf
-    Inf -- Recov -> Rec
-
-    Alive -- Die # from state Alive to transition Die
-}
-"""
-
-bn = cx.read_bn_script(psc)
-sm = dag.as_simulation_core(bn,
-                            hie={'city': ['agent'],
-                                 'agent': ['Recov', 'Die', 'Infect']})
-
-model_name = 'M1'
-dc = cx.read_dbp_script(dsc)
-Gene = sm.generate()
-eve = ss.StSpBreeder('Ag ', 'agent', Gene, dc)
-pop = cx.Population(eve)
+abm = ctrl.new_sim_model('SIR', 'StSpABM')
+abm.set_agent(dynamics='SIR', prefix='Ag')
+abm.add_behaviour('FOI', 'FDShock', s_src='Inf', t_tar='Infect')
+abm.add_behaviour('Life', 'Reincarnation', s_birth='Sus', s_death='Dead')
+abm.set_observations(states=['Sus', 'Inf', 'Rec', 'Alive'],
+                     transitions=['Infect', 'Recov', 'Die'],
+                     behaviours=['FOI'])
 
 
 if __name__ == '__main__':
-    model = cx.StSpAgentBasedModel(model_name, Gene, pop)
-    ss.FDShockFast.decorate('FOI', model=model, s_src='Inf', t_tar='Infect')
-
-    for tr in ['Infect', 'Recov', 'Die']:
-        model.add_observing_transition(tr)
-
-    for st in ['Sus', 'Inf', 'Rec', 'Alive', 'Dead']:
-        model.add_observing_state(st)
-
-    model.add_observing_behaviour('FOI')
+    model = ctrl.generate_model('M7', 'SIR', bn='pSIR')
 
     y0 = [
-        {'n': 598, 'attributes': {'st': 'Sus'}},
-        {'n': 2, 'attributes': {'st': 'Inf'}},
+        {'n': 90, 'attributes': {'st': 'Sus'}},
+        {'n': 10, 'attributes': {'st': 'Inf'}}
     ]
 
-    cx.start_counting('SIR')
-    output = cx.simulate(model, y0, 0, 30, 1)
+    cx.start_counting()
+    output = cx.simulate(model, y0, 0, 15, .5)
     cx.stop_counting()
-    print(cx.get_results('SIR'))
-    output.plot()
+    print(cx.get_results())
+
+    output[['Sus', 'Inf', 'Rec', 'Alive', 'FOI']].plot()
+
     plt.show()

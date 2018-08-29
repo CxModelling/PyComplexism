@@ -1,48 +1,24 @@
 import complexism as cx
-import complexism.agentbased as ab
+import complexism.agentbased.statespace as ss
 
 __author__ = 'TimeWz667'
 
 ctrl = cx.Director()
-ctrl.load_bn('scripts/pSIR_net.txt')
-ctrl.load_dbp('scripts/SIR_BN.txt')
+ctrl.load_bates_net('scripts/pSIR_net.txt')
+ctrl.load_state_space_model('scripts/SIR_BN.txt')
 
 
-pc = ctrl.get_pc('pSIR_net').sample_core()
-dc = ctrl.get_dc('SIR_BN').generate_model(pc)
+abm = ctrl.new_sim_model('SIR', 'StSpABM')
+abm.set_agent(dynamics='SIR')
+abm.add_network('N1', 'GNP', p=0.1)
+abm.add_behaviour('Net', 'NetShock', s_src='Inf', t_tar='Infect', net='N1')
+abm.set_observations(states=['Sus', 'Inf'], transitions=['Infect'], behaviours=['Net'])
 
+model = ctrl.generate_model('sir', sim_model='SIR', bn='pSIR_net')
 
-abm = ab.AgentBasedModel('SIR', dc, pc)
-print(abm)
-ab.install_network(abm, 'N1', 'Category', p=0.2)
-ab.install_behaviour(abm, 'Net', 'NetShock', s_src='Inf', t_tar='Infect', net='N1')
-abm.add_obs_behaviour('Net')
-abm.add_obs_state('Inf')
-abm.add_obs_state('Sus')
-abm.add_obs_transition('Infect')
-cx.simulate(abm, {'Sus': 50, 'Inf': 50}, fr=0, to=10)
-print(abm.output(mid=True))
+y0 = ss.StSpY0()
+y0.define(n=90, st='Sus')
+y0.define(n=10, st='Inf')
 
-
-ctrl = cx.Director()
-ctrl.load_pc('scripts/pBAD.txt')
-ctrl.load_dc('scripts/BAD.txt')
-
-
-pc = ctrl.get_pc('pBAD').sample_core()
-dc = ctrl.get_dc('BAD').generate_model(pc)
-
-abm = cx.AgentBasedModel('BAD', dc, pc)
-print(abm)
-
-
-demo = cx.DemographySimplified('../data/Life_All.csv')
-
-
-# install_behaviour(abm, 'BD', 'DemoDynamic', s_birth='Young', s_death='Dead', t_death='Die', demo=demo)
-# abm.add_obs_behaviour('BD')
-# abm.add_obs_state('Alive')
-# abm.add_obs_state('Death')
-# abm.add_obs_transition('Die')
-# simulate(abm, {'Young': 1000}, fr=0, to=10)
-# print(abm.output())
+cx.simulate(model, y0, fr=0, to=10)
+print(model.output())

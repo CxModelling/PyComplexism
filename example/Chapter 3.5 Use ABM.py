@@ -1,69 +1,28 @@
 import matplotlib.pyplot as plt
 import complexism as cx
-import complexism.agentbased.statespace as ss
-import epidag as dag
 
 
-psc = """
-PCore pSIR {
-    beta = 0.4
-    gamma = 0.5
-    Infect ~ exp(beta)
-    Recov ~ exp(0.5)
-    Die ~ exp(0.02)
-}
-"""
+ctrl = cx.Director()
+ctrl.load_bates_net('scripts/pDzAB.txt')
+ctrl.load_state_space_model('scripts/DzAB.txt')
 
-dsc = """
-CTBN SIR {
-    life[Alive | Dead]
-    sir[S | I | R]
 
-    Alive{life:Alive}
-    Dead{life:Dead}
-    Inf{life:Alive, sir:I}
-    Rec{life:Alive, sir:R}
-    Sus{life:Alive, sir:S}
-
-    Die -> Dead # from transition Die to state Dead by distribution Die
-    Sus -- Infect -> Inf
-    Inf -- Recov -> Rec
-
-    Alive -- Die # from state Alive to transition Die
-}
-"""
-
-bn = cx.read_bn_script(psc)
-sm = dag.as_simulation_core(bn,
-                            hie={'city': ['agent'],
-                                 'agent': ['Recov', 'Die', 'Infect']})
-
-model_name = 'M1'
-dc = cx.read_dbp_script(dsc)
-Gene = sm.generate()
-eve = ss.StSpBreeder('Ag ', 'agent', Gene, dc)
-pop = cx.Population(eve)
+abm = ctrl.new_sim_model('AB', 'StSpABM')
+abm.set_agent(dynamics='DzAB', prefix='Ag')
+abm.set_observations(states=['ab', 'aB', 'Ab', 'AB'])
 
 
 if __name__ == '__main__':
-    model = cx.AgentBasedModel(model_name, Gene, pop)
-    model.add_observing_event(pop.Eve.DCore.Transitions['Infect'])
-
-    def f(m, tab, ti):
-        tab['Sus'] = m.Population.count(st='Sus')
-        tab['Inf'] = m.Population.count(st='Inf')
-        tab['Rec'] = m.Population.count(st='Rec')
-        tab['Alive'] = m.Population.count(st='Alive')
-        tab['Dead'] = m.Population.count(st='Dead')
-
-
-    model.add_observing_function(f)
+    model = ctrl.generate_model('M5', 'AB', bn='pDzAB')
 
     y0 = [
-        {'n': 995, 'attributes': {'st': 'Sus'}},
-        {'n': 5, 'attributes': {'st': 'Inf'}},
+        {'n': 1000, 'attributes': {'st': 'ab'}}
     ]
 
-    output = cx.simulate(model, y0, 0, 10, 1)
-    output[['Sus', 'Inf', 'Rec']].plot()
+    cx.start_counting()
+    output = cx.simulate(model, y0, 0, 10, .5)
+    cx.stop_counting()
+    print(cx.get_results())
+
+    output.plot()
     plt.show()

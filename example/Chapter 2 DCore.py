@@ -42,7 +42,7 @@ print(pc.Actors.keys())
 # Use pc to generate a dynamic core
 dc = bp.generate_model('TestCTBN', **pc.Actors)
 print('\nCombining parameter model and dynamic model')
-print(dc)
+print(dc.Transitions)
 
 state_ab = dc['ab']
 state_a = dc['a']
