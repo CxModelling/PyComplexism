@@ -43,10 +43,10 @@ class ObsSingleAgent(Observer):
 
 
 class SingleIndividualABM(LeafModel):
-    def __init__(self, name, agent: GenericAgent, pc=None):
-        LeafModel.__init__(self, name, env=pc, obs=ObsSingleAgent())
+    def __init__(self, name, agent: GenericAgent, pars=None):
+        LeafModel.__init__(self, name, pars=pars, obs=ObsSingleAgent())
         self.Agent = agent
-        self.Scheduler.add_actor(agent)
+        self.Scheduler.add_atom(agent)
         self.Behaviours = OrderedDict()
 
     def add_observing_attribute(self, atr):
@@ -59,7 +59,7 @@ class SingleIndividualABM(LeafModel):
     def add_behaviour(self, be):
         if be.Name not in self.Behaviours:
             self.Behaviours[be.Name] = be
-            self.Scheduler.add_actor(be)
+            self.Scheduler.add_atom(be)
 
     def read_y0(self, y0, ti):
         for be in self.Behaviours.values():
@@ -69,7 +69,7 @@ class SingleIndividualABM(LeafModel):
         self.Agent.initialise(model=self, ti=ti)
         for be in self.Behaviours.values():
             be.preset(self, ti, model=self)
-        self.Scheduler.reschedule_all_actors()
+        self.Scheduler.reschedule_all()
 
     def reset(self, ti):
         self.Agent.reset(model=self, ti=ti)
@@ -88,11 +88,11 @@ class SingleIndividualABM(LeafModel):
             self.exit_cycle()
         return res
 
-    def shock(self, time, action, target, value):
+    def shock(self, time, action, **values):
         if action == 'impulse':
             try:
-                be = self.Behaviours[target]
-                be.shock(time, self, target, value)
+                be = self.Behaviours[action]
+                be.shock(time, self, action, values)
             except KeyError:
                 raise KeyError('Unknown target')
             except AttributeError as e:

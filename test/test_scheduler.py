@@ -35,7 +35,7 @@ class GenericAgentTestCase(unittest.TestCase):
     def test_simulate(self):
         self.Model.initialise(0, None)
         self.Model.collect_requests()
-        while self.Model.Scheduler.Time < 10:
+        while self.Model.Scheduler.GloTime < 10:
             self.Model.collect_requests()
             requests = self.Model.collect_requests()
             self.print(requests)
@@ -46,7 +46,7 @@ class GenericAgentTestCase(unittest.TestCase):
             print()
 
     def print(self, requests):
-        print('Time', self.Model.Scheduler.Time)
+        print('Time', self.Model.Scheduler.GloTime)
         for req in requests:
             print('\t',req)
 
