@@ -34,7 +34,7 @@ class ObsODE(Observer):
             tab[st] = model.Y[st]
 
         y = model.Equations.Y
-        p = model.Environment
+        p = model.Parameters
         x = model.Equations.Attributes
 
         for func in self.Functions:
