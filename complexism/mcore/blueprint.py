@@ -1,4 +1,5 @@
 from abc import ABCMeta, abstractmethod
+from .y0 import LeafY0
 
 __author__ = 'TimeWz667'
 
@@ -28,13 +29,13 @@ class AbsBlueprintMCore(metaclass=ABCMeta):
     def get_parameter_hierarchy(self, **kwargs):
         pass
 
+    @abstractmethod
+    def get_y0_proto(self):
+        pass
+
     @property
     def require_pc(self):
         return bool(self.__pc)
-
-    @property
-    def TargetedPCore(self):
-        return self.__pc
 
     @abstractmethod
     def generate(self, name, **kwargs):

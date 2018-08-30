@@ -81,9 +81,9 @@ class ObsEBM(Observer):
 
 
 class GenericEquationBasedModel(LeafModel):
-    def __init__(self, name, eqs, env=None, obs=None, y0_class=None):
+    def __init__(self, name, eqs, pars=None, obs=None, y0_class=None):
         obs = obs if obs else ObsEBM()
-        LeafModel.__init__(self, name, env, obs, y0_class=y0_class if y0_class else LeafY0)
+        LeafModel.__init__(self, name, pars, obs, y0_class=y0_class if y0_class else LeafY0)
         self.Y = None
         self.Equations = eqs
         self.Scheduler.add_atom(self.Equations)

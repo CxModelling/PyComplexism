@@ -137,8 +137,6 @@ class BlueprintABM(AbsBlueprintMCore):
         js['Name'] = self.Name
         js['Arguments'] = self.Arguments
         js['Type'] = 'ABM'
-        js['TargetedPCore'] = self.TargetedPCore
-        js['TargetedDCore'] = self.TargetedDCore
         js['Networks'] = self.Networks
         js['Behaviours'] = self.Behaviours
         js['Traits'] = self.Traits

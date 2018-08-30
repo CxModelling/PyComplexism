@@ -52,7 +52,7 @@ class MultipleEntry:
             else:
                 index = range(self.Index['fr'], self.Index['to'] + 1)
         else:
-            raise IndexError('No matched index pattern')
+            raise IndexError('No             matched index pattern')
 
         for i in index:
             yield '{}_{}'.format(self.Name, i), self.Prototype, self.Y0

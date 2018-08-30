@@ -1,8 +1,8 @@
 from inspect import signature
 import epidag as dag
 from complexism.mcore import AbsBlueprintMCore
-from .ebm import GenericEquationBasedModel
-from .odeebm import OrdinaryDifferentialEquationModel, OrdinaryDifferentialEquations
+from .ebm import GenericEquationBasedModel, EBMY0
+from .odeebm import OrdinaryDifferentialEquationModel, OrdinaryDifferentialEquations, ODEY0
 
 
 __author__ = 'TimeWz667'
@@ -55,6 +55,9 @@ class BlueprintODEEBM(AbsBlueprintMCore):
     def get_parameter_hierarchy(self, **kwargs):
         return {self.Name: []}
 
+    def get_y0_proto(self):
+        return ODEY0()
+
     def generate(self, name, **kwargs):
         if not all([self.Ys, self.ODE, self.ObsYs]):
             raise TypeError('Equation have not been assigned')
@@ -75,7 +78,7 @@ class BlueprintODEEBM(AbsBlueprintMCore):
             raise KeyError('Parameter core not found')
 
         dt, odt = self.Arguments['dt'], self.Arguments['odt']
-        model = OrdinaryDifferentialEquationModel(name, self.ODE, dt, odt, ys=self.Ys, xs=self.Xs, env=pc)
+        model = OrdinaryDifferentialEquationModel(name, self.ODE, dt, odt, ys=self.Ys, xs=self.Xs, pars=pc)
 
         # Assign observations
         for st in self.ObsYs:
@@ -158,7 +161,7 @@ class BlueprintEBM(AbsBlueprintMCore):
                                             pars=pc,
                                             x=self.InternalVariables)
 
-        model = GenericEquationBasedModel(name, eqs=eqs, env=pc)
+        model = GenericEquationBasedModel(name, eqs=eqs, pars=pc)
 
         # Decide outputs
         for st in self.ObsStocks:
@@ -177,6 +180,9 @@ class BlueprintEBM(AbsBlueprintMCore):
 
     def get_parameter_hierarchy(self, **kwargs):
         return {self.Name: []}
+
+    def get_y0_proto(self):
+        return EBMY0()
 
     def to_json(self):
         # todo

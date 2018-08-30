@@ -2,7 +2,7 @@ import epidag as dag
 from epidag.factory import get_workshop
 import complexism as cx
 from complexism.mcore import AbsBlueprintMCore
-from .abmstsp import StSpAgentBasedModel
+from .abmstsp import StSpAgentBasedModel, StSpY0
 from .breeder import StSpBreeder
 
 __author__ = 'TimeWz667'
@@ -67,6 +67,9 @@ class BlueprintStSpABM(AbsBlueprintMCore):
             self.Name: [ag_gp],
             ag_gp: trs
         }
+
+    def get_y0_proto(self):
+        return StSpY0()
 
     def generate(self, name, **kwargs):
         # Prepare PC, DC

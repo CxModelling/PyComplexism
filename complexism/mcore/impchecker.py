@@ -1,8 +1,8 @@
 from abc import ABCMeta, abstractmethod
 import re
 
-__all__ = ['get_impulse_checker',
-           'ImpulseChecker', 'StartsWithChecker', 'RegexChecker',
+__all__ = ['ImpulseChecker', 'get_impulse_checker',
+           'StartsWithChecker', 'RegexChecker',
            'InclusionChecker', 'InitialChecker', 'IsChecker', 'WhoStartWithChecker']
 
 

@@ -174,10 +174,10 @@ class ODEY0(EBMY0):
 
 
 class OrdinaryDifferentialEquationModel(GenericEquationBasedModel):
-    def __init__(self, name, fn, dt, odt, ys, xs=None, env=None):
+    def __init__(self, name, fn, dt, odt, ys, xs=None, pars=None):
         dt = min(dt, odt)
-        eqs = OrdinaryDifferentialEquations(name, fn, ys, odt, fdt=dt, pars=env, x=xs)
-        GenericEquationBasedModel.__init__(self, name, eqs, env=env, obs=ObsODE(), y0_class=ODEY0)
+        eqs = OrdinaryDifferentialEquations(name, fn, ys, odt, fdt=dt, pars=pars, x=xs)
+        GenericEquationBasedModel.__init__(self, name, eqs, pars=pars, obs=ObsODE(), y0_class=ODEY0)
 
     def add_observing_flow_function(self, func):
         raise TypeError('Depreciated method in ODE model, try add_observing_function')

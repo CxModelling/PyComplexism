@@ -1,7 +1,5 @@
 import complexism as cx
 from complexism.misc import start_counting, stop_counting, get_results
-import complexism.equationbased as ebm
-import complexism.agentbased.statespace as ss
 
 __author__ = 'TimeWz667'
 
@@ -16,7 +14,7 @@ bp.set_agent('DzAB')
 bp.set_observations(states=['ab', 'AB'])
 
 
-y0 = ss.StSpY0()
+y0 = bp.get_y0_proto()
 y0.define(100, st='ab')
 
 lyo = ctrl.new_model_layout('MultiDzAB')

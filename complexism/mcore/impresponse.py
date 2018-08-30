@@ -1,8 +1,8 @@
 from abc import ABCMeta, abstractmethod
 
-__all__ = ['ImpulseResponse',
-           'ValueImpulse', 'AddOneImpulse', 'MinusOneImpulse', 'MinusNImpulse',
-           'get_impulse_response']
+__all__ = ['ImpulseResponse', 'get_impulse_response',
+           'ValueImpulse', 'AddOneImpulse', 'MinusOneImpulse', 'MinusNImpulse'
+           ]
 
 
 class ImpulseResponse(metaclass=ABCMeta):
