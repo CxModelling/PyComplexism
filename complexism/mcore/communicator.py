@@ -16,6 +16,18 @@ class EventListenerSet:
     def __init__(self):
         self.Listeners = OrderedDict()
 
+    def initialise(self, ti):
+        for k, v in self.Listeners.items():
+            try:
+                k.initialise(ti)
+            except AttributeError:
+                pass
+
+            try:
+                v.initialise(ti)
+            except AttributeError:
+                pass
+
     def add_impulse_response(self, checker, event):
         self.Listeners[checker] = event
 

@@ -126,7 +126,9 @@ class StSpY0(LeafY0):
 
     @staticmethod
     def from_source(src):
-        y0 = StSpY0(src)
+        y0 = StSpY0()
+        for ent in src.Entries:
+            y0.define(ent)
         return y0
 
 

@@ -52,7 +52,7 @@ class BlueprintODEEBM(AbsBlueprintMCore):
             'odt': odt
         })
 
-    def get_parameter_hierarchy(self, **kwargs):
+    def get_parameter_hierarchy(self, da=None):
         return {self.Name: []}
 
     def get_y0_proto(self):
@@ -178,7 +178,7 @@ class BlueprintEBM(AbsBlueprintMCore):
         # todo
         pass
 
-    def get_parameter_hierarchy(self, **kwargs):
+    def get_parameter_hierarchy(self, da=None):
         return {self.Name: []}
 
     def get_y0_proto(self):

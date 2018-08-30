@@ -10,6 +10,9 @@ class ImpulseResponse(metaclass=ABCMeta):
     def __call__(self, disclosure, model_foreign, model_local, ti):
         pass
 
+    def initialise(self, ti):
+        pass
+
     def to_json(self):
         raise {'Type': type(self)}
 

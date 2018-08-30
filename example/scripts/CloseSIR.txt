@@ -1,0 +1,8 @@
+CTMC CloseSIR {
+    Inf
+    Rec
+    Sus
+
+    Sus -- Infect -> Inf
+    Inf -- Recov -> Rec
+}

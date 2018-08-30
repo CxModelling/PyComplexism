@@ -11,6 +11,9 @@ class ImpulseChecker(metaclass=ABCMeta):
     def __call__(self, disclosure):
         pass
 
+    def initialise(self, ti):
+        pass
+
     def to_json(self):
         return {
             'Type': type(self)
@@ -19,6 +22,10 @@ class ImpulseChecker(metaclass=ABCMeta):
     @staticmethod
     def from_json(js):
         raise AttributeError('Unmatched type')
+
+    def clone(self):
+        js = self.to_json()
+        return self.__class__.from_json(js)
 
 
 class StartsWithChecker(ImpulseChecker):

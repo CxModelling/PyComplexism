@@ -9,7 +9,7 @@ class ModelLayout:
     def __init__(self, name):
         self.Name = name
         self.Entries = list()
-        self.Relations = list()
+        self.Interactions = list()
         self.Actors = list()
         self.Children = dict()
         self.ObsChildren = []
@@ -36,16 +36,11 @@ class ModelLayout:
         else:
             self.Entries.append(SingleEntry(name, proto, y0))
 
-    def add_relation(self, source, target, js=False):
-        try:
-            if js:
-                self.Relations.append({'Source': RelationEntry.from_json(source),
-                                       'Target': RelationEntry.from_json(target)})
-            else:
-                self.Relations.append({'Source': RelationEntry(source),
-                                       'Target': RelationEntry(target)})
-        except ValueError as e:
-            raise e
+    def add_interaction(self, selector, checker, response):
+        self.Interactions.append(InteractionEntry(selector, checker, response))
+
+    def add_interaction_js(self, js):
+        self.Interactions.append((InteractionEntry.from_json(js)))
 
     def set_observations(self, children=None, actors=None):
         if children:
@@ -64,11 +59,6 @@ class ModelLayout:
         for v in self.Entries:
             for m in v.gen():
                 yield m
-
-    def relations(self):
-        for rel in self.Relations:
-            src, tar = rel['Source'], rel['Target']
-            yield src, tar
 
     def count_prototype(self):
         proto = [ent.Prototype for ent in self.Entries]
@@ -101,8 +91,9 @@ class ModelLayout:
             m = da.generate_mc(name, proto, pc=sub_pc, da=da)
             models.append_child(m, all_obs or proto in self.ObsChildren)
 
-        # for rel in self.Relations:
-        #    models.link(rel['Source'], rel['Target'])
+        for interaction in self.Interactions:
+            for m in models.select_all(interaction.Selector).values():
+                m.add_listener(interaction.pass_checker(), interaction.pass_response())
 
         for act in self.ObsActors:
             models.add_observing_actor(act)
@@ -120,8 +111,7 @@ class ModelLayout:
         js = dict()
         js['Name'] = self.Name
         js['Entries'] = [ent.to_json() for ent in self.Entries]
-        js['Relations'] = [{'Source': rel['Source'].to_json(), 'Target': rel['Target'].to_json()}
-                           for rel in self.Relations]
+        js['Interactions'] = [inter.to_json() for inter in self.Interactions]
         return js
 
     @staticmethod
@@ -133,8 +123,8 @@ class ModelLayout:
             else:
                 lyo.add_entry(ent['Name'], ent['Prototype'], ent['Y0'])
 
-        for rel in js['Relations']:
-            lyo.add_relation(rel['Source'], rel['Target'], js=True)
+        for inter in js['Interactions']:
+            lyo.add_interaction_js(inter)
         return lyo
 
 
@@ -146,14 +136,6 @@ if __name__ == '__main__':
     lm1.add_entry('C', 'm2', 3, size=2)
     for mo in lm1.models():
         print(mo)
-
-    print('\nRelations:')
-
-    lm1.add_relation('B_1@P1', '#B@P2')
-    lm1.add_relation('#C@P3', '.m2@P4')
-
-    for r in lm1.relations():
-        print(r)
 
     print(lm1.count_prototype())
 

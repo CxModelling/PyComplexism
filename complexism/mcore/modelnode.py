@@ -188,10 +188,12 @@ class AbsModel(metaclass=ABCMeta):
 
     def preset(self, ti):
         self.disclose('initialise', '*')
+        self.Listeners.initialise(ti)
         self.Scheduler.reschedule_all()
 
     def reset(self, ti):
         self.disclose('reset', '*')
+        self.Listeners.initialise(ti)
         self.Scheduler.reschedule_all()
 
     def check_y0(self, y0):

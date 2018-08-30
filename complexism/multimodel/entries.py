@@ -1,6 +1,8 @@
 import re
+from complexism.mcore import ImpulseChecker, ImpulseResponse, get_impulse_response, get_impulse_checker
 
 __author__ = 'TimeWz667'
+__all__ = ['SingleEntry', 'MultipleEntry', 'InteractionEntry']
 
 
 class SingleEntry:
@@ -69,6 +71,59 @@ class MultipleEntry:
     def from_json(js):
         ent = js['Name'], js['Prototype'], js['Y0'], js['Index']
         return MultipleEntry(*ent)
+
+
+class InteractionEntry:
+    def __init__(self, sel, checker, response):
+        self.Selector = sel
+        if isinstance(checker, ImpulseChecker):
+            self.Checker = checker
+        elif callable(checker):
+            self.Checker = checker
+        else:
+            try:
+                self.Checker = get_impulse_checker(checker['Type'], **checker)
+            except KeyError or AttributeError:
+                raise TypeError('Unknown type of impulse checker')
+
+        if isinstance(response, ImpulseResponse):
+            self.Response = response
+        elif callable(response):
+            self.Response = response
+        else:
+            try:
+                self.Response = get_impulse_response(response['Type'], **response)
+            except KeyError or AttributeError:
+                raise TypeError('Unknown type of impulse response')
+
+    def to_json(self):
+        return {
+            'Selector': self.Selector,
+            'Checker': self.Checker.to_json(),
+            'Response': self.Response.to_json()
+        }
+
+    def pass_checker(self):
+        try:
+            return self.Checker.clone()
+        except AttributeError as e:
+            if callable(self.Checker):
+                return self.Checker
+            else:
+                raise e
+
+    def pass_response(self):
+        try:
+            return self.Response.clone()
+        except AttributeError as e:
+            if callable(self.Response):
+                return self.Response
+            else:
+                raise e
+
+    @staticmethod
+    def from_json(js):
+        return InteractionEntry(js['Selector'], js['Checker'], js['Response'])
 
 
 class RelationEntry:

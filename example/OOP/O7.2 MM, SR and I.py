@@ -88,6 +88,9 @@ class InfIn(cx.ImpulseResponse):
     def __init__(self):
         self.Last = None
 
+    def initialise(self, ti):
+        self.Last = ti
+
     def __call__(self, disclosure, model_foreign, model_local, ti):
         if self.Last:
             dt = ti - self.Last
@@ -113,7 +116,7 @@ model_sr.add_listener(cx.StartsWithChecker('add'), cx.MinusNImpulse('Sus', 'n'))
 
 
 ii = InfIn()
-model_i.add_listener(cx.InitialChecker(), ii)
+#model_i.add_listener(cx.InitialChecker(), ii)
 model_i.add_listener(cx.IsChecker('update'), ii)
 
 

@@ -25,7 +25,7 @@ for m, _, _ in lyo.models():
 
 print(lyo.get_parameter_hierarchy(ctrl))
 
-model = ctrl.generate_model('3DzAB', 'MultiDzAB', bn='pDzAB')
+model = ctrl.generate_model('M1', 'MultiDzAB', bn='pDzAB')
 y0s = ctrl.get_y0s('MultiDzAB')
 
 print(y0s)

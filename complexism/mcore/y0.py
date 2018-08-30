@@ -12,7 +12,7 @@ class AbsY0(metaclass=ABCMeta):
         elif isinstance(src, dict):
             self.Entries = [ent for ent in src['Entries']]
         else:
-            raise TypeError('Known source type')
+            raise TypeError('Unknown source type')
 
     @abstractmethod
     def match_model_info(self, model):
