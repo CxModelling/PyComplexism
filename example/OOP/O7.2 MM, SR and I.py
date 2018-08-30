@@ -142,7 +142,7 @@ cx.stop_counting()
 # print(output)
 print(output[['SR:Sus', 'I:Inf', 'SR:Rec', 'I:StInf', 'SR:Inf', 'SR:Prv']])
 print()
-print(cx.get_results('MM'))
+print(cx.get_counting_results('MM'))
 
 output[['SR:Sus', 'I:Inf', 'SR:Rec', 'I:StInf', 'SR:Inf', 'SR:Prv']].plot()
 # output.plot()

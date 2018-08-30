@@ -40,14 +40,11 @@ y0_v.define(50, st='I_V')
 
 lyo.add_entry('V', 'Vector', y0_v)
 
-# Define interaction
+# Define interaction: risky bite rate changes as the number of infectious vectors change
 lyo.add_interaction('H',
                     cx.WhoStartWithChecker('StInf', 'update value'),
                     cx.ABMValueImpulse('Bite', 'v1'))
 
-
-for m, _, _ in lyo.models():
-    print(m)
 
 print(lyo.get_parameter_hierarchy(ctrl))
 
@@ -61,9 +58,9 @@ output = cx.simulate(model, y0s, 0, 10, .5, log=False)
 cx.stop_counting()
 print(output)
 print()
-print(cx.get_results('MM'))
+print('Event count')
+print(cx.get_counting_results('MM'))
 
-# print(output)
 
 output[['H:S_H', 'H:I_H', 'H:R_H', 'V:S_V', 'V:I_V', 'H:Bite']].plot()
 # output.plot()

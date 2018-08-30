@@ -1,6 +1,6 @@
 import epidag as dag
 import complexism as cx
-from complexism.misc import start_counting, stop_counting, get_results
+from complexism.misc import start_counting, stop_counting, get_counting_results
 import complexism.agentbased.statespace as ss
 
 __author__ = 'TimeWz667'
@@ -48,4 +48,4 @@ output = cx.simulate(model, y0s, 0, 10, 1)
 stop_counting()
 print(output)
 print()
-print(get_results('MM'))
+print(get_counting_results('MM'))

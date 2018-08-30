@@ -27,7 +27,7 @@ if __name__ == '__main__':
     cx.start_counting()
     output = cx.simulate(model, y0, 0, 15, .5)
     cx.stop_counting()
-    print(cx.get_results())
+    print(cx.get_counting_results())
 
     output[['Sus', 'Inf', 'Rec', 'Alive', 'FOI']].plot()
 

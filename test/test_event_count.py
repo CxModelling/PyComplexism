@@ -33,7 +33,7 @@ class EventRecordTestCase(unittest.TestCase):
 
         self.M.do_c()
         stop_counting()
-        dat = get_results()
+        dat = get_counting_results()
         self.assertEqual(dat['Test:A'][0], 100)
         self.assertEqual(dat['Test:B'][0], 200)
         self.assertEqual(dat['Test:Event'][0], 1)

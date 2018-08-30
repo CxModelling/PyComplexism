@@ -156,7 +156,7 @@ model.add_observing_model('SER')
 cx.start_counting('TB')
 output = cx.simulate(model, {'SER': y0e, 'I': y0a}, 0, 10, 0.5, log=False)
 cx.stop_counting()
-print(cx.get_results('TB'))
+print(cx.get_counting_results('TB'))
 
 fig, axes = plt.subplots(nrows=3, ncols=1)
 print(output.columns)

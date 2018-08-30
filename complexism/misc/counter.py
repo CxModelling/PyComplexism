@@ -5,7 +5,7 @@ from collections import Counter
 
 
 __author__ = 'TimeWz667'
-__all__ = ['count', 'start_counting', 'stop_counting', 'get_results']
+__all__ = ['count', 'start_counting', 'stop_counting', 'get_counting_results']
 
 
 class EventCount:
@@ -99,7 +99,7 @@ start_counting = EventCounter.g_start
 stop_counting = EventCounter.g_stop
 
 
-def get_results(name=None):
+def get_counting_results(name=None):
     if name is None:
         return EventCounter.DefaultCounter.output()
     else:
@@ -146,4 +146,4 @@ if __name__ == '__main__':
 
     m.do_c()
     stop_counting()
-    print(get_results())
+    print(get_counting_results())

@@ -210,13 +210,3 @@ class Director:
     def copy_model(self, mod_src, **kwargs):
         # todo
         pass
-
-    def simulate(self, model, bn, fr, to, y0, dt=1):
-        # todo
-        m = self.generate_model(model, model, bn=bn)
-        out = simulate(m, y0=y0, fr=fr, to=to, dt=dt)
-        return m, out
-
-    def update(self, model, to, dt=1):
-        out = update(model, to, dt)
-        return out

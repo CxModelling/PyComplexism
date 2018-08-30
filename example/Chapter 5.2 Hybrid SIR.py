@@ -113,7 +113,7 @@ output = cx.simulate(model, y0s, 0, 10, .5, log=False)
 cx.stop_counting()
 print(output)
 print()
-print(cx.get_results('MM'))
+print(cx.get_counting_results('MM'))
 
 # print(output)
 
