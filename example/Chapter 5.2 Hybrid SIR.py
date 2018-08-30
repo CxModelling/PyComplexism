@@ -109,15 +109,12 @@ y0s = ctrl.get_y0s('HybridSIR')
 print(y0s)
 
 cx.start_counting('MM')
-output = cx.simulate(model, y0s, 0, 10, 1, log=True)
+output = cx.simulate(model, y0s, 0, 10, .5, log=False)
 cx.stop_counting()
 print(output)
 print()
 print(cx.get_results('MM'))
 
-cx.start_counting('MM')
-output = cx.simulate(model, y0s, 0, 10, 0.5)
-cx.stop_counting()
 # print(output)
 
 output[['E:Sus', 'E:Rec', 'A:Inf', 'E:Inf']].plot()

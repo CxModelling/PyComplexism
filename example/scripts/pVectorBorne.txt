@@ -1,0 +1,7 @@
+PCore pVectorBorne {
+    Infect_H ~ exp(0.005)
+    Recov_H ~ exp(0.5)
+    Infect_V ~ exp(1.5)
+    Recov_V ~ exp(0.5)
+
+}

@@ -1,6 +1,6 @@
 PCore pCloseSIR {
     beta = 1.5
-    gamma = 0.2
+    gamma = 0.5
     Infect ~ exp(beta)
     Recov ~ exp(gamma)
 }

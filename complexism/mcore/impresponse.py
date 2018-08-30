@@ -1,7 +1,8 @@
 from abc import ABCMeta, abstractmethod
 
 __all__ = ['ImpulseResponse', 'get_impulse_response',
-           'ValueImpulse', 'AddOneImpulse', 'MinusOneImpulse', 'MinusNImpulse'
+           'ValueImpulse', 'AddOneImpulse', 'MinusOneImpulse', 'MinusNImpulse',
+           'ABMValueImpulse'
            ]
 
 
@@ -125,11 +126,39 @@ class MinusNImpulse(ImpulseResponse):
             ImpulseResponse.from_json(js)
 
 
+class ABMValueImpulse(ImpulseResponse):
+    def __init__(self, target, value):
+        """
+        Making an impulse on target considering a value of the disclosed
+        :param target: target variable
+        :param value: index referred to a value of disclosure
+        """
+        self.Target = target
+        self.Value = value
+
+    def __call__(self, disclosure, model_foreign, model_local, ti):
+        return self.Target, {'k': self.Target, 'v': disclosure[self.Value]}
+
+    def to_json(self):
+        js = ImpulseResponse.to_json(self)
+        js['Target'] = self.Target
+        js['Value'] = self.Value
+        return js
+
+    @staticmethod
+    def from_json(js):
+        try:
+            return ABMValueImpulse(js['Target'], js['Value'])
+        except KeyError:
+            ImpulseResponse.from_json(js)
+
+
 ResponseLibrary = {
     'ValueImpulse': ValueImpulse,
     'AddOneImpulse': AddOneImpulse,
     'MinusOneImpulse': MinusOneImpulse,
-    'MinusNImpulse': MinusNImpulse
+    'MinusNImpulse': MinusNImpulse,
+    'ABMValueImpulse': ABMValueImpulse
 }
 
 

@@ -1,0 +1,7 @@
+CTMC Human {
+    S_H
+    I_H
+    R_H
+    S_H -- Infect_H -> I_H
+    I_H -- Recov_H -> R_H
+}

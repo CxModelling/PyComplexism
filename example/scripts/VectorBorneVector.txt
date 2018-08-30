@@ -1,0 +1,6 @@
+CTMC Vector {
+    S_V
+    I_V
+    S_V -- Infect_V -> I_V
+    I_V -- Recov_V -> S_V
+}
