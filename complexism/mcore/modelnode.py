@@ -171,6 +171,9 @@ class AbsModel(metaclass=ABCMeta):
     def __setitem__(self, instance, value):
         self.Environment[instance] = value
 
+    def get_y0_proto(self):
+        return self.ClassY0()
+
     def get_parameter(self, s):
         return self.Parameters[s]
 

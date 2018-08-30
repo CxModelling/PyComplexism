@@ -3,7 +3,7 @@ import complexism as cx
 
 
 ctrl = cx.Director()
-ctrl.load_bates_net('scripts/pDzAB.txt')
+ctrl.load_bayes_net('scripts/pDzAB.txt')
 ctrl.load_state_space_model('scripts/DzAB.txt')
 
 

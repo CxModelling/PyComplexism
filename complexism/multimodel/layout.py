@@ -1,3 +1,4 @@
+from complexism.mcore import BranchY0
 from complexism.multimodel.mm import MultiModel
 from complexism.multimodel.entries import *
 
@@ -9,8 +10,10 @@ class ModelLayout:
         self.Name = name
         self.Entries = list()
         self.Relations = list()
-        self.Summary = list()
+        self.Actors = list()
         self.Children = dict()
+        self.ObsChildren = []
+        self.ObsActors = []
 
     def append_child(self, chd):
         self.Children[chd.Name] = chd
@@ -44,8 +47,18 @@ class ModelLayout:
         except ValueError as e:
             raise e
 
-    def set_observations(self, mods):
-        self.Summary += mods
+    def set_observations(self, children=None, actors=None):
+        if children:
+            if isinstance(children, str):
+                self.ObsChildren.append(children)
+            else:
+                self.ObsChildren = list(children)
+
+        if actors:
+            if isinstance(children, str):
+                self.ObsActors.append(children)
+            else:
+                self.ObsActors = list(children)
 
     def models(self):
         for v in self.Entries:
@@ -62,34 +75,46 @@ class ModelLayout:
         proto = set(proto)
         return len(proto)
 
-    def generate(self, gen, odt=0.5, cond=None, fixed=None):
-        cd = dict(cond) if cond else dict()
-        fixed = fixed if fixed else list()
-        if odt <= 0:
-            return None
+    def get_parameter_hierarchy(self, da):
+        hie = {}
+        chd = []
+        for ent in self.Entries:
+            if ent not in hie:
+                pro = ent.Prototype
+                hie.update(da.get_sim_model(pro).get_parameter_hierarchy(da))
+                chd.append(pro)
 
-        if len(self.Entries) is 1 & isinstance(self.Entries[0], SingleEntry):
-            name, proto, y0 = self.Entries[0]
-            return gen(proto, name, cond=cd), y0
+        for sub in self.Children:
+            if sub.Name not in hie:
+                hie[sub.Name] = sub.get_parameter_hierarchy(da)
+                chd.append(sub.Name)
 
-        models = MultiModel(self.Name, odt)
-        y0s = dict()
+        hie[self.Name] = chd
+        return hie
+
+    def generate(self, name, da, pc, all_obs=False):
+        models = MultiModel(name, pars=pc)
 
         for mod in self.models():
-            name, proto, y0 = mod
-            m = gen(proto, name, cond=cd)
-            pc = m.PCore
-            cd.update({k: v for k, v in pc.Locus.items() if k in fixed})
-            models.append(m)
-            y0s[name] = y0
+            name, proto, _ = mod
+            sub_pc = pc.breed(name, proto)
+            m = da.generate_mc(name, proto, pc=sub_pc, da=da)
+            models.append_child(m, all_obs or proto in self.ObsChildren)
 
-        for rel in self.Relations:
-            models.link(rel['Source'], rel['Target'])
+        # for rel in self.Relations:
+        #    models.link(rel['Source'], rel['Target'])
 
-        for mod in self.Summary:
-            models.add_observing_model(mod)
+        for act in self.ObsActors:
+            models.add_observing_actor(act)
 
-        return models, y0s
+        return models
+
+    def get_y0s(self):
+        y0s = BranchY0()
+        for mod in self.models():
+            name, _, y0 = mod
+            y0s.append_child(name, y0)
+        return y0s
 
     def to_json(self):
         js = dict()

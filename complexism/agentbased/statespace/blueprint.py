@@ -52,8 +52,15 @@ class BlueprintStSpABM(AbsBlueprintMCore):
         if functions:
             self.ObsFunctions = list(functions)
 
-    def get_parameter_hierarchy(self, **kwargs):
-        dc = kwargs['dc']
+    def get_parameter_hierarchy(self, da=None, dc=None):
+        if dc:
+            if isinstance(dc, str):
+                dc = da.get_state_space_model(dc)
+            else:
+                raise KeyError('Unknown state space model')
+        elif da:
+            dc = da.get_state_space_model(self.Population['Agent']['Dynamics'])
+
         ag_gp = self.Population['Agent']['Group']
         trs = dc.RequiredSamplers
         return {

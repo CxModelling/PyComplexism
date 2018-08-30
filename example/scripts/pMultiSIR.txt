@@ -1,0 +1,8 @@
+PCore MultiSIR {
+    beta = 1.5
+    betaF = 1.0/300
+    gamma = 0.2
+    Infect ~ exp(beta)
+    InfectF ~ exp(betaF)
+    Recov ~ exp(0.5)
+}

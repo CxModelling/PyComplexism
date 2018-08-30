@@ -4,7 +4,7 @@ import complexism.agentbased.statespace as ss
 __author__ = 'TimeWz667'
 
 ctrl = cx.Director()
-ctrl.load_bates_net('scripts/pSIR_net.txt')
+ctrl.load_bayes_net('scripts/pSIR_net.txt')
 ctrl.load_state_space_model('scripts/SIR_BN.txt')
 
 

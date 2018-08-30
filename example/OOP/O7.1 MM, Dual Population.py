@@ -7,7 +7,7 @@ __author__ = 'TimeWz667'
 
 director = cx.Director()
 
-director.load_bates_net('../scripts/pDzAB.txt')
+director.load_bayes_net('../scripts/pDzAB.txt')
 director.load_state_space_model('../scripts/DzAB.txt')
 
 mbp = ss.BlueprintStSpABM('abm')

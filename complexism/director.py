@@ -1,5 +1,6 @@
 from json import JSONDecodeError
 import logging
+import epidag as dag
 from complexism.fn import *
 
 __author__ = 'TimeWz667'
@@ -60,7 +61,7 @@ class Director:
         except KeyError:
             self.Log.warning('Unknown Simulation Model')
 
-    def get_layout(self, lyo_name):
+    def get_model_layout(self, lyo_name):
         try:
             return self.ModelLayouts[lyo_name]
         except KeyError:
@@ -70,7 +71,7 @@ class Director:
         bn = read_bn_script(script)
         self._add_bn(bn)
 
-    def load_bates_net(self, file):
+    def load_bayes_net(self, file):
         try:
             bn = read_bn_json(load_json(file))
         except JSONDecodeError:
@@ -120,10 +121,12 @@ class Director:
         return list(self.DCoreBlueprints.keys())
 
     def load_sim_model(self, file):
+        # todo
         try:
             mbp = read_mbp_json(load_json(file))
         except JSONDecodeError:
-            mbp = read_mbp_script(load_txt(file))
+            raise TypeError('Unknown format')
+            #mbp = read_mbp_script(load_txt(file))
         self._add_mbp(mbp)
 
     def new_sim_model(self, mbp_name, model_type):
@@ -137,7 +140,7 @@ class Director:
         self._add_mbp(mbp)
         return mbp
 
-    def save_mbp(self, mbp_name, file):
+    def save_sim_model(self, mbp_name, file):
         # todo
         try:
             mbp = self.get_sim_model(mbp_name)
@@ -148,13 +151,16 @@ class Director:
     def list_sim_models(self):
         return list(self.MCoreBlueprints.keys())
 
+    def new_model_layout(self, name):
+        layout = new_lyo(name)
+        self._add_lyo(layout)
+        return layout
+
     def save_layout(self, lyo_name, file):
         # todo
-        try:
-            lyo = self.get_lyo(lyo_name)
-            save_layout(lyo, file)
-        except KeyError:
-            self.Log.info('Layout {} saved'.format(lyo))
+        lyo = self.get_model_layout(lyo_name)
+        save_lyo(lyo, file)
+        self.Log.info('Layout {} saved'.format(lyo))
 
     def list_lyo(self):
         return list(self.ModelLayouts.keys())
@@ -177,45 +183,37 @@ class Director:
 
     def generate_mc(self, name, sim_model, **kwargs):
         mbp = self.get_sim_model(sim_model)
-        if 'bn' in kwargs:
-            bn = kwargs['bn']
-            if isinstance(bn, str):
-                kwargs['bn'] = self.get_bayes_net(bn)
-
         kwargs['da'] = self
         return mbp.generate(name, **kwargs)
 
+    def _generate_lyo(self, name, layout, bn, all_obs=True, exo=None):
+        lyo = self.get_model_layout(layout)
+        if isinstance(bn, str):
+            bn = self.get_bayes_net(bn)
+        sm = dag.as_simulation_core(bn, lyo.get_parameter_hierarchy(self))
+        pc = sm.generate(name, exo=exo)
+        return lyo.generate(name, self, pc, all_obs=all_obs)
+
     def generate_model(self, name, sim_model, bn):
+        if isinstance(bn, str):
+            bn = self.get_bayes_net(bn)
+
         if sim_model in self.ModelLayouts:
-            # todo
-            pass
+            return self._generate_lyo(name, sim_model, bn=bn)
         else:
             return self.generate_mc(name, sim_model, bn=bn)
+
+    def get_y0s(self, layout):
+        lyo = self.get_model_layout(layout)
+        return lyo.get_y0s()
 
     def copy_model(self, mod_src, **kwargs):
         # todo
         pass
 
-    def generate(self, model, cond=None, fixed=None, odt=0.5):
-        if fixed is None:
-            fixed = list()
-
-        try:
-            lyo = self.ModelLayouts[model]
-            return lyo.generate(self.generate_model, odt, fixed=fixed, cond=cond)
-        except KeyError:
-            # todo logging
-            pass
-
-    def simulate(self, model, to, y0=None, fr=0, dt=1, fixed=None, cond=None):
-        if model in self.ModelLayouts:
-            m, y0 = self.generate(model, odt=dt/2, cond=cond, fixed=fixed)
-        elif model in self.MCoreBlueprints and y0:
-            m = self.generate_model(model)
-        else:
-            self.Log.warning('No matched model')
-            return
-
+    def simulate(self, model, bn, fr, to, y0, dt=1):
+        # todo
+        m = self.generate_model(model, model, bn=bn)
         out = simulate(m, y0=y0, fr=fr, to=to, dt=dt)
         return m, out
 

@@ -40,6 +40,9 @@ class BlueprintABM(AbsBlueprintMCore):
         b = behaviours if behaviours else b
         self.Obs_s_t_b = s, t, b
 
+    def get_parameter_hierarchy(self, **kwargs):
+        pass
+
     def generate(self, name, **kwargs):
         pc, dc = kwargs['pc'], kwargs['dc'],
         meta = MetaABM(self.TargetedPCore, self.TargetedDCore, self.Name)

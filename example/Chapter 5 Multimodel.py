@@ -1,4 +1,3 @@
-import epidag as dag
 import complexism as cx
 from complexism.misc import start_counting, stop_counting, get_results
 import complexism.equationbased as ebm
@@ -6,111 +5,35 @@ import complexism.agentbased.statespace as ss
 
 __author__ = 'TimeWz667'
 
-psc = '''
-PCore MultiSIR {
-    beta = 1.5
-    betaF = 1.0/300
-    gamma = 0.2
-    Infect ~ exp(beta)
-    InfectF ~ exp(betaF)
-    Recov ~ exp(0.5)
-}
-'''
 
-bn = dag.bn_from_script(psc)
+ctrl = cx.Director()
+ctrl.load_bayes_net('scripts/pDzAB.txt')
+ctrl.load_state_space_model('scripts/DzAB.txt')
+print(ctrl.list_bayes_nets())
 
-hie = {
-    'city': ['abm', 'ebm'],
-    'abm': ['agent'],
-    'agent': ['Infect', 'InfectF', 'Recov'],
-    'ebm': []
-}
-
-sm = dag.as_simulation_core(bn, hie=hie)
-
-model_name = 'MultiSIR'
-
-pc = sm.generate(model_name)
-
-model = cx.MultiModel(model_name, pc)
-
-# EBM
-ebm_name = 'SIR_E'
+bp = ctrl.new_sim_model('DzAB', 'StSpABM')
+bp.set_agent('DzAB')
+bp.set_observations(states=['ab', 'AB'])
 
 
-def SIR_ODE(y, t, p, x):
-    s = y[0]
-    i = y[1]
-    n = sum(y)
-    inf_d = s * p['beta'] * i / n
-    inf_f = s * p['betaF'] * x['fI'] / x['fN'] if x['fN'] else 0
-    inf = inf_d + inf_f
-    rec = i * p['gamma']
-    return [-inf, inf - rec, rec]
+y0 = ss.StSpY0()
+y0.define(100, st='ab')
 
+lyo = ctrl.new_model_layout('MultiDzAB')
+lyo.add_entry('M', 'DzAB', y0, fr=1, to=3)
 
-def fore_imp(m, tab, ti):
-    tab['fI'] = m.Equations.X['fI']
-    tab['fN'] = m.Equations.X['fN']
+for m, _, _ in lyo.models():
+    print(m)
 
+print(lyo.get_parameter_hierarchy(ctrl))
 
-p_ebm = pc.breed(ebm_name, 'ebm')
-m_ebm = ebm.generate_ode_model(ebm_name, SIR_ODE, pc, ['S', 'I', 'R'], {'fI': 1, 'fN': 300}, dt=0.2)
-ebm.set_observations(m_ebm, stocks=['S', 'I', 'R'], stock_functions=[fore_imp])
+model = ctrl.generate_model('3DzAB', 'MultiDzAB', bn='pDzAB')
+y0s = ctrl.get_y0s('MultiDzAB')
 
-# ABM
-abm_name = 'SIR_A'
-
-dsc = '''
-CTMC SIR {
-    Sus
-    Inf
-    Rec
-
-    Sus -- Infect -> Inf
-    Sus -- InfectF -> Inf
-    Inf -- Recov -> Rec
-}
-'''
-
-
-def num(m, tab, ti):
-    n = len(m)
-    tab['N'] = n if n else 0
-
-
-dbp = cx.read_dbp_script(dsc)
-p_abm = pc.breed(abm_name, 'abm')
-
-mbp = ss.BlueprintStSpABM(abm_name)
-mbp.set_agent(prefix='Ag', group='agent', dynamics='SIR')
-mbp.add_behaviour('FOI', 'FDShockFast', s_src='Inf', t_tar='Infect', dt=0.5)
-mbp.set_observations(states=['Sus', 'Inf', 'Rec'],
-                     transitions=['Infect', 'InfectF'],
-                     behaviours=['FOI'], functions=[num])
-
-m_abm = mbp.generate(abm_name, pc=p_abm, dc=dbp)
-
-model.append(m_ebm)
-model.add_observing_model(ebm_name)
-model.append(m_abm)
-model.add_observing_model(abm_name)
-
-model.link('{}@Inf'.format(abm_name), '{}@fI'.format(ebm_name), ['Infect', 'InfectF', 'Recov'])
-model.link('{}@N'.format(abm_name), '{}@fN'.format(ebm_name))
-model.link('{}@I'.format(ebm_name), '{}@InfectF'.format(abm_name))
-
-y0 = {
-    abm_name: [
-        {'n': 300, 'attributes': {'st': 'Sus'}}
-    ],
-    ebm_name: {'S': 290, 'I': 10, 'R': 0}
-}
-
-m_abm.add_observing_behaviour('I-InfectF')
+print(y0s)
 
 start_counting('MM')
-output = cx.simulate(model, y0, 0, 10, 1)
+output = cx.simulate(model, y0s, 0, 10, 1)
 stop_counting()
 print(output)
 print()

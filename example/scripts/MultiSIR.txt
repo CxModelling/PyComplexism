@@ -1,0 +1,9 @@
+CTMC SIR {
+    Sus
+    Inf
+    Rec
+
+    Sus -- Infect -> Inf
+    Sus -- InfectF -> Inf
+    Inf -- Recov -> Rec
+}
