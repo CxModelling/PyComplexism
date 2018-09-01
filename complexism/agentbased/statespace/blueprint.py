@@ -56,7 +56,7 @@ class BlueprintStSpABM(AbsBlueprintMCore):
         if dc:
             if isinstance(dc, str):
                 dc = da.get_state_space_model(dc)
-            else:
+            elif not isinstance(dc, cx.AbsBlueprint):
                 raise KeyError('Unknown state space model')
         elif da:
             dc = da.get_state_space_model(self.Population['Agent']['Dynamics'])
