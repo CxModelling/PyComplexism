@@ -17,24 +17,47 @@ State-Space model
 - [ ] Deep copy
 
 
+Generic EBM model
+
+- [x] Basic methods
+- [ ] Blueprint
+- [ ] Jsonify
+- [ ] Deep copy
+- [ ] DSL
 
 
+ODE EBM model
+
+- [x] Basic methods
+- [ ] Blueprint
+- [ ] Jsonify
+- [ ] Deep copy
+- [ ] DSL
 
 
-| Functions    | OOP | FOP | MC  | MVC |
-| ------------ | --- | --- | --- | --- |
-| **PCore**    | --- | --- | --- | --- |
-| read         | --- | --- | --- | --- |
-| load         | --- | --- | --- | --- |
-| save         | --- | --- | --- | --- |
-| sample       | --- | --- | --- | --- |
-| **DCore**    | --- | --- | --- | --- |
-| read         | --- | --- | --- | --- |
-| load         | --- | --- | --- | --- |
-| save         | --- | --- | --- | --- |
-| sample       | --- | --- | --- | --- |
+StSp EBM model
+
+- [ ] Basic methods
+- [ ] Blueprint
+- [ ] Jsonify
+- [ ] Deep copy
+- [ ] DSL
 
 
+Generic ABM model
+
+- [x] Basic methods
+- [x] Blueprint
+- [ ] Jsonify
+- [ ] Deep copy
+- [ ] DSL
 
 
+StSp ABM model
+
+- [x] Basic methods
+- [x] Blueprint
+- [ ] Jsonify
+- [ ] Deep copy
+- [ ] DSL
 
