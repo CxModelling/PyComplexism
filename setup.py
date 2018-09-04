@@ -3,8 +3,9 @@ from setuptools import setup, find_packages
 
 setup(name='PyComplexism',
       version='3.2.4',
-      packages= find_packages(),
-      #['complexism',
+      packages=find_packages(),
+
+      # ['complexism',
       #          'complexism.misc',
       #          'complexism.element',
       #          'complexism.dcore',
