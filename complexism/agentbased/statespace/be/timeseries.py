@@ -4,7 +4,7 @@ from ..modifier import GloRateModifier
 from .behaviour import ActiveModBehaviour
 
 __author__ = 'TimeWz667'
-__all__ = ['TimeVarying']
+__all__ = ['TimeVarying', 'TimeVaryingInterp']
 
 
 class TimeVarying(ActiveModBehaviour):
