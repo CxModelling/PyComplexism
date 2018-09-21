@@ -8,7 +8,7 @@ import complexism.multimodel as mm
 
 class ValuePassing(mm.ActiveActor):
     def __init__(self, name):
-        mm.ActiveActor.__init__(self, name, ScheduleTicker(name, ts=[3, 6]))
+        mm.ActiveActor.__init__(self, name, ScheduleTicker(ts=[3, 6]))
 
     def compose_event(self, ti):
         return Event('pass down value', self.Clock.Next)
@@ -55,9 +55,10 @@ sub_model = cx.StSpAgentBasedModel('ABM', pc, pop)
 
 
 # Step 4 add behaviours to the model
-ss.FDShock.decorate('FOI', sub_model, s_src='Inf', t_tar='Infect')
-ss.ExternalShock.decorate('d_rec', sub_model, t_tar='Recov')
-ss.Reincarnation.decorate('Life', sub_model, s_death='Dead', s_birth='Sus')
+ss.install_behaviour(sub_model, 'FOI', 'FDShock', s_src='Inf', t_tar='Infect')
+ss.install_behaviour(sub_model, 'd_rec', 'ExternalShock', t_tar='Recov')
+ss.install_behaviour(sub_model, 'Life', 'Reincarnation', s_death='Dead', s_birth='Sus')
+
 
 # Step 5 decide outputs
 for tr in ['Infect', 'Recov', 'Die']:
@@ -69,16 +70,16 @@ for st in ['Sus', 'Inf', 'Rec', 'Alive', 'Dead']:
 sub_model.add_observing_behaviour('FOI')
 
 model = cx.MultiModel('SIR', pars=pc)
-model.append_atom(ValuePassing('VP'))
+model.append_actor(ValuePassing('VP'))
 model.append_child(sub_model)
 
 
 # Step 6 simulate
 y0s = cx.BranchY0()
 
-y0 = cx.LeafY0()
-y0.define({'n': 90, 'attributes': {'st': 'Sus'}})
-y0.define({'n': 10, 'attributes': {'st': 'Inf'}})
+y0 = ss.StSpY0()
+y0.define(st='Sus', n=90)
+y0.define(st='Inf', n=10)
 y0s.append_child('ABM', y0)
 
 

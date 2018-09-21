@@ -3,16 +3,16 @@ from epidag.factory import get_workshop
 import epidag.factory.arguments as vld
 
 __author__ = 'TimeWz667'
-__all__ = ['Clock', 'AbsTicker', 'StepTicker', 'ScheduleTicker', 'AppointmentTicker']
+__all__ = ['AbsTicker', 'StepTicker', 'ScheduleTicker', 'AppointmentTicker']
 
 
 class AbsTicker(metaclass=ABCMeta):
-    def __init__(self, name, t=0):
-        self.Name = name
+    def __init__(self, t=0):
         self.Last = t
+        self.json = None
 
-    def initialise(self, ti):
-        self.Last = ti
+    def initialise(self, t):
+        self.Last = t
 
     @property
     @abstractmethod
@@ -35,16 +35,15 @@ class AbsTicker(metaclass=ABCMeta):
     def to_json(self):
         args = self.args()
         args['t'] = self.Last
-        return {'Name': self.Name, 'Type': self.Type, 'Args': args}
+        return {'Type': self.Type, 'Args': args}
 
     def __repr__(self):
         return str(self.to_json())
 
 
 class StepTicker(AbsTicker):
-    def __init__(self, name, dt, t=0):
-        AbsTicker.__init__(self, name)
-        self.initialise(t)
+    def __init__(self, dt):
+        AbsTicker.__init__(self)
         self.Dt = dt
 
     def args(self):
@@ -59,14 +58,9 @@ class StepTicker(AbsTicker):
         return self.Last + self.Dt
 
 
-def Clock(dt):
-    return StepTicker('', dt)
-
-
 class ScheduleTicker(AbsTicker):
-    def __init__(self, name, ts, t=0):
-        AbsTicker.__init__(self, name)
-        self.initialise(t)
+    def __init__(self, ts):
+        AbsTicker.__init__(self)
         self.TS = ts
 
     def args(self):
@@ -85,10 +79,12 @@ class ScheduleTicker(AbsTicker):
 
 
 class AppointmentTicker(AbsTicker):
-    def __init__(self, name, queue=None, t=0):
-        AbsTicker.__init__(self, name)
-        self.initialise(t)
-        self.Queue = set(queue) if queue else set()
+    def __init__(self, queue=None):
+        AbsTicker.__init__(self)
+        self.Queue = list(queue) if queue else list()
+
+    def initialise(self, t):
+        AbsTicker.initialise(self, t)
         self.Queue = [q for q in self.Queue if q >= t]
         self.Queue.sort()
 
@@ -120,3 +116,27 @@ TickerLibrary = get_workshop('Ticker')
 TickerLibrary.register('Step', StepTicker, [vld.Prob('dt')])
 TickerLibrary.register('Schedule', ScheduleTicker, [vld.List('ts')])
 TickerLibrary.register('Appointment', AppointmentTicker, [vld.List('queue')])
+
+
+if __name__ == '__main__':
+    clock = TickerLibrary.parse('Step(0.5)')
+    clock.initialise(0)
+    ti = clock.Next
+    print(ti)
+    while ti < 3:
+        clock.update(ti)
+        ti = clock.Next
+        print(ti)
+
+    print()
+    clock = TickerLibrary.create('Schedule', ts=[0.5, 1.9])
+    clock.initialise(0)
+    ti = clock.Next
+    print(ti)
+    while ti < 3:
+        clock.update(ti)
+        ti = clock.Next
+        print(ti)
+    clock.update(3)
+
+    print(clock.to_json())

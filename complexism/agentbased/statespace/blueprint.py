@@ -129,7 +129,7 @@ class BlueprintStSpABM(AbsBlueprintMCore):
         ws = get_workshop('Networks')
         ws.renew_resources(resources)
         for net in self.Population['Networks']:
-            net = ws.create(net)
+            net = ws.create_from_json(net)
             model.add_network(net)
         ws.clear_resources()
 
@@ -137,7 +137,7 @@ class BlueprintStSpABM(AbsBlueprintMCore):
         ws = get_workshop('StSpABM_BE')
         ws.renew_resources(resources)
         for be in self.Behaviours:
-            be = ws.create(be)
+            be = ws.create_from_json(be)
             model.add_behaviour(be)
         ws.clear_resources()
 

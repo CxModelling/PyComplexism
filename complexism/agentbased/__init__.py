@@ -3,5 +3,5 @@ from .be import *
 from .pop import *
 from .abm import *
 from .abmsingle import *
-from .statespace import StSpAgent, StSpAgentBasedModel, StSpBeLibrary, BlueprintStSpABM
+from .statespace import StSpAgent, StSpAgentBasedModel, BlueprintStSpABM
 from .summary import *

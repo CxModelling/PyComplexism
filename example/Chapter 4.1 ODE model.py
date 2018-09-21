@@ -24,11 +24,9 @@ bp.set_observations()
 if __name__ == '__main__':
     model = ctrl.generate_model('M1', 'EBM SIR', bn='pSIR')
 
-    y0 = {
-        'S': 999,
-        'I': 1,
-        'R': 0
-    }
+    y0 = cx.ODEY0()
+    y0.define(st='S', n=999)
+    y0.define(st='I', n=1)
 
     cx.simulate(model, y0, 0, 10, .1, log=True)
     model.shock(10, 'del', y='S', n=100)

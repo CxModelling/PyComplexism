@@ -1,21 +1,21 @@
 from abc import ABCMeta, abstractmethod
 import numpy.random as rd
-from complexism.element import Event, Clock
+from complexism.element import Event, StepTicker
 from ..modifier import GloRateModifier, LocRateModifier, BuffModifier, NerfModifier
 from .behaviour import PassiveModBehaviour, ActiveModBehaviour
 from .trigger import StateTrigger
 __author__ = 'TimeWz667'
 __all__ = ['ExternalShock',
            'FDShock', 'FDShockFast', 'DDShock', 'DDShockFast',
-           'WeightSumShock', 'WeightAvgShock',
+           'WeightedSumShock', 'WeightedAvgShock',
            'NetShock', 'NetWeightShock',
            'SwitchOn', 'SwitchOff']
 
 
 class ExternalShock(PassiveModBehaviour):
-    def __init__(self, name, t_tar):
-        mod = GloRateModifier(name, t_tar)
-        PassiveModBehaviour.__init__(self, name, mod)
+    def __init__(self, t_tar):
+        mod = GloRateModifier(t_tar)
+        PassiveModBehaviour.__init__(self, mod)
         self.T_tar = t_tar
         self.Value = 1
 
@@ -42,17 +42,12 @@ class ExternalShock(PassiveModBehaviour):
         for ag in model.agents:
             ag.modify(self.Name, ti)
 
-    @staticmethod
-    def decorate(name, model, **kwargs):
-        t_tar = model.DCore.Transitions[kwargs['t_tar']]
-        model.add_behaviour(ExternalShock(name, t_tar))
-
 
 class GlobalShock(PassiveModBehaviour, metaclass=ABCMeta):
-    def __init__(self, name, s_src, t_tar):
+    def __init__(self, s_src, t_tar):
         tri = StateTrigger(s_src)
-        mod = GloRateModifier(name, t_tar)
-        PassiveModBehaviour.__init__(self, name, mod, tri)
+        mod = GloRateModifier(t_tar)
+        PassiveModBehaviour.__init__(self, mod, tri)
         self.S_src = s_src
         self.T_tar = t_tar
         self.Value = 0
@@ -99,9 +94,9 @@ class GlobalShock(PassiveModBehaviour, metaclass=ABCMeta):
 
 
 class GlobalShockFast(ActiveModBehaviour):
-    def __init__(self, name, s_src, t_tar, dt):
-        mod = GloRateModifier(name, t_tar)
-        ActiveModBehaviour.__init__(self, name, Clock(dt=dt), mod)
+    def __init__(self,  s_src, t_tar, dt):
+        mod = GloRateModifier( t_tar)
+        ActiveModBehaviour.__init__(self, StepTicker(dt=dt), mod)
         self.S_src = s_src
         self.T_tar = t_tar
         self.Value = 0
@@ -150,12 +145,6 @@ class FDShock(GlobalShock):
     def _difference(self, model, ag):
         return 1 / len(model)
 
-    @staticmethod
-    def decorate(name, model, **kwargs):
-        s_src = model.DCore.States[kwargs['s_src']]
-        t_tar = model.DCore.Transitions[kwargs['t_tar']]
-        model.add_behaviour(FDShock(name, s_src, t_tar))
-
     def __repr__(self):
         opt = self.Name, self.S_src.Name, self.T_tar.Name, self.Value
         return 'FDShock({}, {} on {}, by={})'.format(*opt)
@@ -164,16 +153,6 @@ class FDShock(GlobalShock):
 class FDShockFast(GlobalShockFast):
     def _evaluate(self, model):
         return model.Population.count(st=self.S_src) / len(model)
-
-    @staticmethod
-    def decorate(name, model, **kwargs):
-        s_src = model.DCore.States[kwargs['s_src']]
-        t_tar = model.DCore.Transitions[kwargs['t_tar']]
-        dt = kwargs['dt'] if 'dt' in kwargs else 1
-        model.add_behaviour(FDShockFast(name, s_src, t_tar, dt))
-
-    def clone(self, *args, **kwargs):
-        pass
 
     def __repr__(self):
         opt = self.Name, self.S_src.Name, self.T_tar.Name, self.Value
@@ -187,12 +166,6 @@ class DDShock(GlobalShock):
     def _difference(self, model, ag):
         return 1
 
-    @staticmethod
-    def decorate(name, model, **kwargs):
-        s_src = model.DCore.States[kwargs['s_src']]
-        t_tar = model.DCore.Transitions[kwargs['t_tar']]
-        model.add_behaviour(DDShock(name, s_src, t_tar))
-
     def __repr__(self):
         opt = self.Name, self.S_src.Name, self.T_tar.Name, self.Value
         return 'DDShock({}, {} on {}, by={})'.format(*opt)
@@ -202,24 +175,14 @@ class DDShockFast(GlobalShockFast):
     def _evaluate(self, model):
         return model.Population.count(st=self.S_src)
 
-    @staticmethod
-    def decorate(name, model, **kwargs):
-        s_src = model.DCore.States[kwargs['s_src']]
-        t_tar = model.DCore.Transitions[kwargs['t_tar']]
-        dt = kwargs['dt'] if 'dt' in kwargs else 1
-        model.add_behaviour(DDShockFast(name, s_src, t_tar, dt))
-
-    def clone(self, *args, **kwargs):
-        pass
-
     def __repr__(self):
         opt = self.Name, self.S_src.Name, self.T_tar.Name, self.Value
         return 'DDShockFast({}, {} on {}, by={})'.format(*opt)
 
 
-class WeightSumShock(GlobalShockFast):
-    def __init__(self, name, s_src, t_tar, weight, dt):
-        GlobalShockFast.__init__(self, name, s_src, t_tar, dt)
+class WeightedSumShock(GlobalShockFast):
+    def __init__(self, s_src, t_tar, weight, dt):
+        GlobalShockFast.__init__(self, s_src, t_tar, dt)
         self.Weight = weight
 
     def _evaluate(self, model):
@@ -227,15 +190,6 @@ class WeightSumShock(GlobalShockFast):
         for k, v in self.Weight.items():
             val = model.Population.count(st=self.S_src) * v
         return val
-
-    @staticmethod
-    def decorate(name, model, **kwargs):
-        s_src = model.DCore.States[kwargs['s_src']]
-        t_tar = model.DCore.Transitions[kwargs['t_tar']]
-        dt = kwargs['dt'] if 'dt' in kwargs else 1
-        wt = kwargs['weight']
-        wt = {model.DCore.States[k]: v for k, v in wt.items()}
-        model.add_behaviour(WeightSumShock(name, s_src, t_tar, wt, dt))
 
     def fill(self, obs, model, ti):
         obs[self.Name] = self.Value
@@ -245,17 +199,14 @@ class WeightSumShock(GlobalShockFast):
         for ag in ags_new.values():
             self.register(ag, ti)
 
-    def clone(self, *args, **kwargs):
-        pass
-
     def __repr__(self):
         opt = self.Name, self.S_src.Name, self.T_tar.Name, self.Value
-        return 'WeightSumShock({}, {} on {}, by={})'.format(*opt)
+        return 'WeightedSumShock({}, {} on {}, by={})'.format(*opt)
 
 
-class WeightAvgShock(GlobalShockFast):
-    def __init__(self, name, s_src, t_tar, weight, dt):
-        GlobalShockFast.__init__(self, name, s_src, t_tar, dt)
+class WeightedAvgShock(GlobalShockFast):
+    def __init__(self, s_src, t_tar, weight, dt):
+        GlobalShockFast.__init__(self, s_src, t_tar, dt)
         self.Weight = weight
 
     def _evaluate(self, model):
@@ -263,15 +214,6 @@ class WeightAvgShock(GlobalShockFast):
         for k, v in self.Weight.items():
             val = model.Population.count(st=self.S_src) * v
         return val/len(model)
-
-    @staticmethod
-    def decorate(name, model, **kwargs):
-        s_src = model.DCore.States[kwargs['s_src']]
-        t_tar = model.DCore.Transitions[kwargs['t_tar']]
-        dt = kwargs['dt'] if 'dt' in kwargs else 1
-        wt = kwargs['weight']
-        wt = {model.DCore.States[k]: v for k, v in wt.items()}
-        model.add_behaviour(WeightAvgShock(name, s_src, t_tar, wt, dt))
 
     def fill(self, obs, model, ti):
         obs[self.Name] = self.Value
@@ -290,10 +232,10 @@ class WeightAvgShock(GlobalShockFast):
 
 
 class NetShock(PassiveModBehaviour, metaclass=ABCMeta):
-    def __init__(self, name, s_src, t_tar, net):
+    def __init__(self, s_src, t_tar, net):
         tri = StateTrigger(s_src)
-        mod = LocRateModifier(name, t_tar)
-        PassiveModBehaviour.__init__(self, name, mod, tri)
+        mod = LocRateModifier(t_tar)
+        PassiveModBehaviour.__init__(self, mod, tri)
         self.S_src = s_src
         self.T_tar = t_tar
         self.Net = net
@@ -301,7 +243,7 @@ class NetShock(PassiveModBehaviour, metaclass=ABCMeta):
     def initialise(self, ti, model):
         for ag in model.agents:
             val = model.Population.count_neighbours(ag, st=self.S_src, net=self.Net)
-            ag.shock(ti, None, self.Name, val)
+            ag.shock(ti, None, self.Name, value=val)
 
     def reset(self, ti, model):
         pass
@@ -331,27 +273,21 @@ class NetShock(PassiveModBehaviour, metaclass=ABCMeta):
 
     def __shock(self, ag, model, ti):
         val = model.Population.count_neighbours(ag, st=self.S_src, net=self.Net)
-        ag.shock(ti, None, self.Name, val)
+        ag.shock(ti, None, self.Name, value=val)
         for nei in model.Population.neighbours(ag, net=self.Net):
             val = model.Population.count_neighbours(nei, st=self.S_src, net=self.Net)
-            nei.shock(ti, None, self.Name, val)
+            nei.shock(ti, None, self.Name, value=val)
 
     def __repr__(self):
         opt = self.Name, self.S_src.Name, self.T_tar.Name, self.Net
         return 'NetShock({}, {} on {} of {})'.format(*opt)
 
-    @staticmethod
-    def decorate(name, model, **kwargs):
-        s_src = model.DCore.States[kwargs['s_src']]
-        t_tar = model.DCore.Transitions[kwargs['t_tar']]
-        model.add_behaviour(NetShock(name, s_src, t_tar, kwargs['net']))
-
 
 class NetWeightShock(PassiveModBehaviour, metaclass=ABCMeta):
-    def __init__(self, name, s_src, t_tar, net, weight):
+    def __init__(self, s_src, t_tar, net, weight):
         tri = StateTrigger(s_src)
-        mod = LocRateModifier(name, t_tar)
-        PassiveModBehaviour.__init__(self, name, mod, tri)
+        mod = LocRateModifier(t_tar)
+        PassiveModBehaviour.__init__(self, mod, tri)
         self.S_src = s_src
         self.T_tar = t_tar
         self.Net = net
@@ -393,29 +329,21 @@ class NetWeightShock(PassiveModBehaviour, metaclass=ABCMeta):
 
     def __shock(self, ag, model, ti):
         val = self.__foi(ag, model)
-        ag.shock(ti, self.Name, self.Name, val)
+        ag.shock(ti, self.Name, self.Name, value=val)
         for nei in model.Population.neighbours(ag, net=self.Net):
             val = self.__foi(nei, model)
-            nei.shock(ti, self.Name, self.Name, val)
+            nei.shock(ti, self.Name, self.Name, value=val)
 
     def __repr__(self):
         opt = self.Name, self.S_src.Name, self.T_tar.Name, self.Net
         return 'NetWeightShock({}, {} on {} of {})'.format(*opt)
 
-    @staticmethod
-    def decorate(name, model, **kwargs):
-        s_src = model.DCore.States[kwargs['s_src']]
-        t_tar = model.DCore.Transitions[kwargs['t_tar']]
-        wt = kwargs['weight']
-        wt = {model.DCore.States[k]: v for k, v in wt.items()}
-        model.add_behaviour(NetWeightShock(name, s_src, t_tar, kwargs['net'], wt))
-
 
 class SwitchOn(PassiveModBehaviour, metaclass=ABCMeta):
-    def __init__(self, name, s_src, t_tar, prob):
+    def __init__(self, s_src, t_tar, prob):
         tri = StateTrigger(s_src)
-        mod = BuffModifier(name, t_tar)
-        PassiveModBehaviour.__init__(self, name, mod, tri)
+        mod = BuffModifier(t_tar)
+        PassiveModBehaviour.__init__(self, mod, tri)
         self.S_src = s_src
         self.T_tar = t_tar
         self.Prob = prob
@@ -436,12 +364,6 @@ class SwitchOn(PassiveModBehaviour, metaclass=ABCMeta):
     def impulse_exit(self, model, ag, ti, args=None):
         ag.shock(ti, self.Name, self.Name, False)
 
-    @staticmethod
-    def decorate(name, model, **kwargs):
-        s_src = model.DCore.States[kwargs['s_src']]
-        t_tar = model.DCore.Transitions[kwargs['t_tar']]
-        model.add_behaviour(SwitchOn(name, s_src, t_tar, kwargs['prob']))
-
     def match(self, be_src, ags_src, ags_new, ti):
         for ag_new, ag_src in zip(ags_new.values(), ags_src.values()):
             self.register(ag_new, ti)
@@ -457,17 +379,17 @@ class SwitchOn(PassiveModBehaviour, metaclass=ABCMeta):
         self.Decision += 1
 
         if rd.random() < self.Prob:
-            ag.shock(ti, self.Name, self.Name, True)
+            ag.shock(ti, self.Name, self.Name, value=True)
             self.Buff += 1
         else:
-            ag.shock(ti, self.Name, self.Name, False)
+            ag.shock(ti, self.Name, self.Name, value=False)
 
 
 class SwitchOff(PassiveModBehaviour, metaclass=ABCMeta):
-    def __init__(self, name, s_src, t_tar, prob):
+    def __init__(self, s_src, t_tar, prob):
         tri = StateTrigger(s_src)
-        mod = NerfModifier(name, t_tar)
-        PassiveModBehaviour.__init__(self, name, mod, tri)
+        mod = NerfModifier(t_tar)
+        PassiveModBehaviour.__init__(self, mod, tri)
         self.S_src = s_src
         self.T_tar = t_tar
         self.Prob = prob
@@ -488,12 +410,6 @@ class SwitchOff(PassiveModBehaviour, metaclass=ABCMeta):
     def impulse_exit(self, model, ag, ti, args=None):
         ag.shock(ti, self.Name, self.Name, False)
 
-    @staticmethod
-    def decorate(name, model, **kwargs):
-        s_src = model.DCore.States[kwargs['s_src']]
-        t_tar = model.DCore.Transitions[kwargs['t_tar']]
-        model.add_behaviour(SwitchOff(name, s_src, t_tar, kwargs['prob']))
-
     def match(self, be_src, ags_src, ags_new, ti):
         for ag_new, ag_src in zip(ags_new.values(), ags_src.values()):
             self.register(ag_new, ti)
@@ -508,7 +424,7 @@ class SwitchOff(PassiveModBehaviour, metaclass=ABCMeta):
     def __shock(self, ag, ti):
         self.Decision += 1
         if rd.random() < self.Prob:
-            ag.shock(ti, self.Name, self.Name, True)
+            ag.shock(ti, self.Name, self.Name, value=True)
             self.Nerf += 1
         else:
-            ag.shock(ti, self.Name, self.Name, False)
+            ag.shock(ti, self.Name, self.Name, value=False)

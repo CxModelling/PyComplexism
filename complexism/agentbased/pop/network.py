@@ -5,11 +5,14 @@ import epidag.factory.arguments as vld
 from abc import ABCMeta, abstractmethod
 
 __author__ = 'TimeWizard'
+__all__ = ['INetwork', 'NetworkLibrary', 'NetworkSet',
+           'NetworkGNP', 'NetworkBA', 'NetworkProb']
 
 
 class INetwork(metaclass=ABCMeta):
-    def __init__(self, name):
-        self.Name = name
+    def __init__(self):
+        self.Name = 'Network'
+        self.json = None
 
     @abstractmethod
     def initialise(self):
@@ -39,19 +42,14 @@ class INetwork(metaclass=ABCMeta):
     def match(self, net_src, ags_new):
         pass
 
-    @staticmethod
-    @abstractmethod
-    def from_json(js):
-        pass
-
     @abstractmethod
     def to_json(self):
-        pass
+        return self.json
 
 
 class Network(INetwork, metaclass=ABCMeta):
-    def __init__(self, name):
-        INetwork.__init__(self, name)
+    def __init__(self):
+        INetwork.__init__(self)
         self.Graph = nx.Graph()
 
     def __getitem__(self, ag):
@@ -61,7 +59,7 @@ class Network(INetwork, metaclass=ABCMeta):
             return list()
 
     def initialise(self):
-        self.Graph = nx.Graph()
+        pass
 
     def add_agent(self, ag):
         self.Graph.add_node(ag)
@@ -81,8 +79,8 @@ class Network(INetwork, metaclass=ABCMeta):
 
 
 class NetworkGNP(Network):
-    def __init__(self, name, p):
-        Network.__init__(self, name)
+    def __init__(self, p):
+        Network.__init__(self)
         self.P = p
 
     def add_agent(self, ag):
@@ -96,7 +94,7 @@ class NetworkGNP(Network):
         new.add_nodes_from(self.Graph.node)
         g = nx.gnp_random_graph(len(self.Graph), self.P, directed=False)
 
-        idmap = {i: ag for i, ag in enumerate(new.node.keys())}
+        idmap = {i: ag for i, ag in enumerate(new.nodes.data().keys())}
         for u, v in g.edges():
             new.add_edge(idmap[u], idmap[v])
         self.Graph = new
@@ -106,17 +104,13 @@ class NetworkGNP(Network):
 
     __str__ = __repr__
 
-    @staticmethod
-    def from_json(js):
-        return NetworkGNP(js['Name'], js['p'])
-
     def to_json(self):
         return {'Name': self.Name, 'Type': 'GNP', 'p': self.P}
 
 
 class NetworkProb(INetwork):
-    def __init__(self, name, p):
-        INetwork.__init__(self, name)
+    def __init__(self, p):
+        INetwork.__init__(self)
         self.Outside = list()
         self.Inside = list()
         self.P = p
@@ -137,8 +131,10 @@ class NetworkProb(INetwork):
         return 0
 
     def degree(self, ag):
-        # todo
-        return 0
+        if ag in self.Outside:
+            return 0
+        else:
+            return len(self.Inside) - 1
 
     def initialise(self):
         self.Outside = list()
@@ -163,30 +159,23 @@ class NetworkProb(INetwork):
 
     __str__ = __repr__
 
-    @staticmethod
-    def from_json(js):
-        return NetworkProb(js['Name'], js['p'])
-
     def to_json(self):
         return {'Name': self.Name, 'Type': 'Prob', 'p': self.P}
 
 
 class NetworkBA(Network):
-    def __init__(self, name, m):
-        Network.__init__(self, name)
+    def __init__(self, m):
+        Network.__init__(self)
         self.M = m
         self.__repeat = list()
 
     def add_agent(self, ag):
         """
         Add an agent into this network; adopted from barabasi_albert_graph in Networkx package
-
-        Args:
-            ag (Agent): an agent
-
-        Returns:
-
+        :param ag: an agent in the model
+        :type ag: Agent
         """
+
         self.Graph.add_node(ag)
         num = len(self.Graph)
         if num < self.M:
@@ -229,10 +218,6 @@ class NetworkBA(Network):
 
     __str__ = __repr__
 
-    @staticmethod
-    def from_json(js):
-        return NetworkBA(js['Name'], js['m'])
-
     def to_json(self):
         return {'Name': self.Name, 'Type': 'BA', 'm': self.M}
 
@@ -242,6 +227,8 @@ class NetworkSet:
         self.Nets = dict()
 
     def __setitem__(self, key, value):
+        if not isinstance(value, INetwork):
+            raise AttributeError('Network object should inherit from INetwork')
         self.Nets[key] = value
 
     def __getitem__(self, item):
@@ -253,9 +240,18 @@ class NetworkSet:
     def list(self):
         return list(self.Nets.keys())
 
-    def append(self, net):
-        if isinstance(net, Network):
-            self.Nets[net.Name] = net
+    def append(self, net_name, net):
+        if not isinstance(net, INetwork):
+            raise AttributeError('Network object should inherit from INetwork')
+        self.Nets[net_name] = net
+
+    def append_from_json(self, net_name, js):
+        net = NetworkLibrary.create_from_json(js)
+        self.append(net_name, net)
+
+    def append_from_def(self, net_name, df, loc=None):
+        net = NetworkLibrary.parse(df, loc=loc)
+        self.append(net_name, net)
 
     def reform(self, net=None):
         if net:
@@ -278,7 +274,6 @@ class NetworkSet:
     def neighbours_of(self, ag, net=None):
         if net:
             try:
-                n = self.Nets[net]
                 return list(self.Nets[net][ag])
             except KeyError:
                 return list()
@@ -316,15 +311,15 @@ class NetworkSet:
 
 
 NetworkLibrary = get_workshop('Networks')
-NetworkLibrary.register('BA', NetworkBA, [vld.PositiveInteger('m')])
-NetworkLibrary.register('GNP', NetworkGNP, [vld.Prob('p')])
-NetworkLibrary.register('Category', NetworkProb, [vld.Prob('p')])
+NetworkLibrary.register('BA', NetworkBA, [vld.PositiveInteger('m')], ['name'])
+NetworkLibrary.register('GNP', NetworkGNP, [vld.Prob('p')], ['name'])
+NetworkLibrary.register('Category', NetworkProb, [vld.Prob('p')], ['name'])
 
 
 if __name__ == '__main__':
-    ns1 = NetworkBA('ns1', m=2)
-    ns2 = NetworkGNP('ns2', p=0.3)
-    ns3 = NetworkProb('ns3', p=0.2)
+    ns1 = NetworkBA(m=2)
+    ns2 = NetworkGNP(p=0.3)
+    ns3 = NetworkProb(p=0.2)
 
     for nod in range(20):
         ns1.add_agent('Ag{}'.format(nod))
@@ -334,8 +329,8 @@ if __name__ == '__main__':
     # ns1.reform()
     ag1 = ns1['Ag1']
     nsc = NetworkSet()
-    nsc['N1'] = NetworkBA('ns1', m=2)
-    nsc['N2'] = NetworkGNP('ns2', p=0.3)
+    nsc['N1'] = NetworkBA(m=2)
+    nsc['N2'] = NetworkGNP(p=0.3)
 
     for nod in range(100):
         nsc.add_agent('Ag{}'.format(nod))

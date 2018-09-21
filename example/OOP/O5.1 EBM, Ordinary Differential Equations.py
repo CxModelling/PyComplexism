@@ -41,11 +41,10 @@ for st in ['S', 'I', 'R']:
 
 
 # Step 5 simulate
-y0 = {
-    'S': 950,
-    'I': 50,
-    'R': 0
-}
+y0 = ebm.ODEY0()
+y0.define(st='S', n=950)
+y0.define(st='I', n=50)
+y0.define(st='R', n=0)
 
 output = cx.simulate(model, y0, 0, 10, 0.5, log=True)
 

@@ -98,37 +98,41 @@ class ObsStSpABM(ObsABM):
 
 
 class StSpY0(LeafY0):
-    def __init__(self, src=None):
-        LeafY0.__init__(self, src)
+    def __init__(self):
+        LeafY0.__init__(self)
 
     def match_model(self, model):
         pass
 
-    def define(self, n, **kwargs):
-        if isinstance(n, dict):
-            if 'attributes' not in n:
-                raise KeyError('State not defined')
-            elif 'st' not in n['attributes']:
-                raise KeyError('State not defined')
-            else:
-                LeafY0.define(self, n)
-            return
+    def define(self, **kwargs):
+        n = kwargs['n'] if 'n' in kwargs else 1
+        del kwargs['n']
 
-        n = int(n)
-        if n > 0:
-            if 'attributes' in kwargs:
-                atr = kwargs['attributes']
+        if 'attributes' in kwargs:
+            attributes = kwargs['attributes']
+            del kwargs['attributes']
+
+            if 'st' in attributes:
+                pass
             elif 'st' in kwargs:
-                atr = kwargs
+                attributes['st'] = kwargs['st']
+                del kwargs['st']
             else:
                 raise KeyError('State not defined')
-            self.Entries.append({'n': n, 'attributes': atr})
+        elif 'st' in kwargs:
+            attributes = {'st': kwargs['st']}
+            del kwargs['st']
+        else:
+            raise KeyError('State not defined')
+        attributes.update(kwargs)
+
+        LeafY0.define(self, n=n, attributes=attributes)
 
     @staticmethod
     def from_source(src):
         y0 = StSpY0()
-        for ent in src.Entries:
-            y0.define(ent)
+        for ent in src:
+            y0.define(**ent)
         return y0
 
 

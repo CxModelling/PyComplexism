@@ -5,9 +5,9 @@ __all__ = ['StateTrack']
 
 
 class StateTrack(PassiveBehaviour):
-    def __init__(self, name, s_src):
+    def __init__(self, s_src):
         tri = StateTrigger(s_src)
-        PassiveBehaviour.__init__(self, name, tri)
+        PassiveBehaviour.__init__(self, tri)
         self.S_src = s_src
         self.Value = 0
 
@@ -47,16 +47,11 @@ class StateTrack(PassiveBehaviour):
     def register(self, ag, ti):
         pass
 
-    @staticmethod
-    def decorate(name, model, **kwargs):
-        s_src = model.DCore.States[kwargs['s_src']]
-        model.add_behavior(StateTrack(name, s_src))
-
 
 class StateRatioTrack(PassiveBehaviour):
-    def __init__(self, name, s_num, s_den):
+    def __init__(self, s_num, s_den):
         tri = DoubleStateTrigger(s_num, s_den)
-        PassiveBehaviour.__init__(self, name, tri)
+        PassiveBehaviour.__init__(self, tri)
         self.S_num = s_num
         self.S_den = s_den
         self.ValueNum = 0
@@ -109,9 +104,3 @@ class StateRatioTrack(PassiveBehaviour):
 
     def register(self, ag, ti):
         pass
-
-    @staticmethod
-    def decorate(name, model, **kwargs):
-        s_num = model.DCore.States[kwargs['s_num']]
-        s_den = model.DCore.States[kwargs['s_den']]
-        model.add_behavior(StateRatioTrack(name, s_num, s_den))

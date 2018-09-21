@@ -6,7 +6,7 @@ from complexism.element import Event, StepTicker
 
 
 __author__ = 'TimeWz667'
-__all__ = ['AbsEquations', 'ObsEBM', 'GenericEquationBasedModel']
+__all__ = ['AbsEquations', 'ObsEBM', 'GenericEquationBasedModel', 'EBMY0']
 
 
 class AbsEquations(ModelAtom, metaclass=ABCMeta):
@@ -14,7 +14,7 @@ class AbsEquations(ModelAtom, metaclass=ABCMeta):
         ModelAtom.__init__(self, name, pars)
         if x:
             self.Attributes.update(x)
-        self.Clock = StepTicker(name, dt=dt)
+        self.Clock = StepTicker(dt=dt)
 
     def find_next(self):
         return Event('update', self.Clock.Next)
@@ -135,7 +135,7 @@ class GenericEquationBasedModel(LeafModel):
     def clone(self, **kwargs):
         core = self.Equations.clone(**kwargs)
         pc = kwargs['env'] if 'env' in kwargs else self.Environment
-        co = GenericEquationBasedModel(self.Name, eqs=core, env=pc)
+        co = GenericEquationBasedModel(self.Name, eqs=core, pars=pc)
         co.TimeEnd = self.TimeEnd
         co.Observer.TimeSeries = deepcopy(self.Observer.TimeSeries)
         co.Observer.Last = dict(self.Observer.Last.items())

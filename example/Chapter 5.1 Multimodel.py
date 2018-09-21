@@ -15,7 +15,7 @@ bp.set_observations(states=['ab', 'AB'])
 
 
 y0 = bp.get_y0_proto()
-y0.define(100, st='ab')
+y0.define(n=100, st='ab')
 
 lyo = ctrl.new_model_layout('MultiDzAB')
 lyo.add_entry('M', 'DzAB', y0, fr=1, to=3)

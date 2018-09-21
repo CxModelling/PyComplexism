@@ -8,8 +8,8 @@ __all__ = ['AbsBehaviour', 'PassiveBehaviour', 'ActiveBehaviour']
 
 
 class AbsBehaviour(ModelAtom, metaclass=ABCMeta):
-    def __init__(self, name, trigger=Trigger.NullTrigger):
-        ModelAtom.__init__(self, name)
+    def __init__(self, trigger=Trigger.NullTrigger):
+        ModelAtom.__init__(self, type(self))
         self.Trigger = trigger
 
     @abstractmethod
@@ -46,19 +46,14 @@ class AbsBehaviour(ModelAtom, metaclass=ABCMeta):
     def fill(self, obs: dict, model, ti):
         pass
 
-    @staticmethod
-    @abstractmethod
-    def decorate(name, model, **kwargs):
-        pass
-
     @abstractmethod
     def match(self, be_src, ags_src, ags_new, ti):
         pass
 
 
 class ActiveBehaviour(AbsBehaviour, metaclass=ABCMeta):
-    def __init__(self, name, clock: AbsTicker, trigger=Trigger.NullTrigger):
-        AbsBehaviour.__init__(self, name, trigger)
+    def __init__(self, clock: AbsTicker, trigger=Trigger.NullTrigger):
+        AbsBehaviour.__init__(self, trigger)
         self.Clock = clock
 
     def find_next(self):
@@ -107,8 +102,8 @@ class ActiveBehaviour(AbsBehaviour, metaclass=ABCMeta):
 
 
 class PassiveBehaviour(AbsBehaviour, metaclass=ABCMeta):
-    def __init__(self, name, trigger=Trigger.NullTrigger):
-        AbsBehaviour.__init__(self, name, trigger)
+    def __init__(self, trigger=Trigger.NullTrigger):
+        AbsBehaviour.__init__(self, trigger)
 
     @property
     def Next(self):

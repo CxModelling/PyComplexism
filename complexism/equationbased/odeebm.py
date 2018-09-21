@@ -137,10 +137,8 @@ class OrdinaryDifferentialEquations(AbsEquations):
 
 
 class ODEY0(EBMY0):
-    def __init__(self, src=None):
-        if src and 'Entries' not in src:
-            src = {'Entries': [{'st': k, 'n': v} for k, v in src.items()]}
-        EBMY0.__init__(self, src)
+    def __init__(self):
+        EBMY0.__init__(self)
 
     def get_dict_form(self):
         return {ent['st']: ent['n'] for ent in self.Entries}
@@ -152,15 +150,8 @@ class ODEY0(EBMY0):
             if yn not in ys:
                 self.Entries.append({'st': yn, 'n': 0})
 
-    def define(self, st, **kwargs):
-        if isinstance(st, dict):
-            self.Entries.append(st)
-        elif 'n' in kwargs:
-            self.Entries.append({
-                'st': st, 'n': kwargs['n']
-            })
-        else:
-            raise TypeError('Unknown entry format')
+    def define(self, st, n=1, **kwargs):
+        EBMY0.define(self, st=st, n=n, **kwargs)
 
     @staticmethod
     def from_source(src):
@@ -170,7 +161,7 @@ class ODEY0(EBMY0):
 
     @staticmethod
     def from_json(js):
-        return ODEY0(js)
+        return EBMY0.from_json(js)
 
 
 class OrdinaryDifferentialEquationModel(GenericEquationBasedModel):

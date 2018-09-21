@@ -49,34 +49,35 @@ class StSpAgent(GenericAgent):
         ad = list(set(new_trs) - set(self.Transitions.keys()))
         self.Transitions = {k: v for k, v in self.Transitions.items() if k in new_trs}
         for tr in ad:
-            tte = tr.rand(self.Parameters) # verify
+            tte = tr.rand(self.Parameters)  # verify
             for mo in self.Modifiers.on(tr):
                 tte = mo.modify(tte)
             self.Transitions[tr] = tte + ti
         self.drop_next()
 
-    def add_modifier(self, mod):
+    def append_modifier(self, name, mod):
         """
         Append a modifier
-        :param mod:
+        :param name: name of the modifier
+        :param mod: a modifier
         :type mod: Modifier
         """
-        self.Modifiers[mod.Name] = mod
+        self.Modifiers[name] = mod
 
-    def shock(self, ti, source, target, value):
+    def shock(self, ti, model, action, **values):
         """
         Make an impulse on a modifier
         :param ti: time
         :type ti: float
-        :param source: source of impulse, None for state space model
-        :type source: str
-        :param target: target modifier
-        :type target: str
-        :param value: value of impulse
+        :param model: source of impulse, None for state space model
+        :type model: str
+        :param action: target modifier
+        :type action: str
+        :param values: value of impulse
         """
-        mod = self.Modifiers[target]
-        if mod.update(value):
-            self.modify(target, ti)
+        mod = self.Modifiers[action]
+        if mod.update(**values):
+            self.modify(action, ti)
 
     def get_mod_value(self, m):
         return self.Modifiers[m].Value
@@ -126,9 +127,9 @@ class StSpAgent(GenericAgent):
         js['Modifiers'] = self.Modifiers.to_json()
         return js
 
-    def to_snapshot(self):
-        js = GenericAgent.to_json(self)
-        js['State'] = self.State.Name
+    def to_snapshot(self, pars=False):
+        js = GenericAgent.to_snapshot(self, pars)
+        js['Attributes']['State'] = self.State.Name
         return js
 
     def to_data(self):

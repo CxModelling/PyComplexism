@@ -72,7 +72,7 @@ mbp_i.set_observations(states=['Alive', 'PreCare', 'InCare', 'PostCare'],
 pc = sm.generate('Taipei')
 
 model_ser = mbp_ser.generate('SER', pc=pc.breed('SER', 'SER'))
-model_i = mbp_i.generate('I', pc=pc.breed('I', 'I'), dc=dbp_i)
+model_i = mbp_i.generate('I', pc=pc.breed('I', 'I'), ss=dbp_i)
 
 
 class UpdateSource(cx.ImpulseResponse):
@@ -132,13 +132,12 @@ model_i.add_listener(cx.StartsWithChecker('update'), ii)
 
 scale = 300
 # Step 5 simulate
-y0e = {
-    'Sus': 29*scale,
-    'LatFast': 0,
-    'LatSlow': 10*scale,
-    'Inf_psu': scale,
-    'Rec': 10*scale
-}
+y0e = cx.ODEY0()
+y0e.define(st='Sus', n=29*scale)
+y0e.define(st='LatFast', n=0)
+y0e.define(st='LatSlow', n=10*scale)
+y0e.define(st='Inf_psu', n=scale)
+y0e.define(st='Rec', n=10*scale)
 
 
 y0a = [
@@ -152,9 +151,12 @@ model.append_child(model_i)
 model.add_observing_model('I')
 model.add_observing_model('SER')
 
+y0 = cx.BranchY0()
+y0.append_child('SER', y0e)
+y0.append_child('I', y0a)
 
 cx.start_counting('TB')
-output = cx.simulate(model, {'SER': y0e, 'I': y0a}, 0, 10, 0.5, log=False)
+output = cx.simulate(model, y0, 0, 10, 0.5, log=False)
 cx.stop_counting()
 print(cx.get_counting_results('TB'))
 

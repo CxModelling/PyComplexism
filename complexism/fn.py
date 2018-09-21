@@ -23,7 +23,7 @@ def read_bn_script(script):
     :param script: script of pc
     :return: a blueprint of parameter core
     """
-    return dag.bn_from_script(script)
+    return dag.bayes_net_from_script(script)
 
 
 def read_bn_json(js):
@@ -32,7 +32,7 @@ def read_bn_json(js):
     :param js: json object
     :return: a blueprint of parameter core
     """
-    return dag.bn_from_json(js)
+    return dag.bayes_net_from_json(js)
 
 
 def save_bn(bn, path):

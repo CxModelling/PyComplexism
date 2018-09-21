@@ -1,6 +1,6 @@
 import numpy as np
 import numpy.random as rd
-from complexism.element import Clock, Event
+from complexism.element import StepTicker, Event
 from complexism.agentbased import ActiveBehaviour, PassiveBehaviour
 from .trigger import AttributeEnterTrigger
 
@@ -9,8 +9,8 @@ __all__ = ['Reincarnation', 'Cohort', 'LifeRate', 'LifeS', 'AgentImport']
 
 
 class Reincarnation(PassiveBehaviour):
-    def __init__(self, name, a_death, a_birth):
-        PassiveBehaviour.__init__(self, name, AttributeEnterTrigger(a_death))
+    def __init__(self, a_death, a_birth):
+        PassiveBehaviour.__init__(self, AttributeEnterTrigger(a_death))
         self.Atr_death = a_death
         self.Atr_birth = a_birth
         self.BirthN = 0
@@ -32,10 +32,6 @@ class Reincarnation(PassiveBehaviour):
     def fill(self, obs, model, ti):
         obs[self.Name] = self.BirthN
 
-    @staticmethod
-    def decorate(name, model, **kwargs):
-        model.add_behaviour(Reincarnation(name, **kwargs))
-
     def match(self, be_src, ags_src, ags_new, ti):
         self.BirthN = be_src.BirthN
 
@@ -45,8 +41,8 @@ class Reincarnation(PassiveBehaviour):
 
 
 class Cohort(PassiveBehaviour):
-    def __init__(self, name, a_death):
-        PassiveBehaviour.__init__(self, name, AttributeEnterTrigger(a_death))
+    def __init__(self, a_death):
+        PassiveBehaviour.__init__(self, AttributeEnterTrigger(a_death))
         self.Atr_death = a_death
         self.DeathN = 0
 
@@ -66,10 +62,6 @@ class Cohort(PassiveBehaviour):
     def fill(self, obs, model, ti):
         obs[self.Name] = self.DeathN
 
-    @staticmethod
-    def decorate(name, model, **kwargs):
-        model.Behaviours[name] = Cohort(name, **kwargs)
-
     def match(self, be_src, ags_src, ags_new, ti):
         self.DeathN = be_src.DeathN
 
@@ -79,8 +71,8 @@ class Cohort(PassiveBehaviour):
 
 
 class LifeRate(ActiveBehaviour):
-    def __init__(self, name, a_birth, a_death, rate, dt=1):
-        ActiveBehaviour.__init__(self, name, Clock(dt), AttributeEnterTrigger(a_death))
+    def __init__(self, a_birth, a_death, rate, dt=1):
+        ActiveBehaviour.__init__(self, StepTicker(dt=dt), AttributeEnterTrigger(a_death))
         self.Atr_death = a_death
         self.Atr_birth = a_birth
         self.BirthRate = rate
@@ -110,23 +102,16 @@ class LifeRate(ActiveBehaviour):
     def fill(self, obs, model, ti):
         obs[self.Name] = self.BirthN
 
-    @staticmethod
-    def decorate(name, model, *args, **kwargs):
-        model.add_behaviour(LifeRate(name, **kwargs))
-
     def __repr__(self):
         return 'BDbyRate({}, BirthRate={})'.format(self.Name, self.BirthRate)
 
     def match(self, be_src, ags_src, ags_new, ti):
         self.BirthN = be_src.BirthN
 
-    def clone(self, *args, **kwargs):
-        pass
-
 
 class LifeS(ActiveBehaviour):
-    def __init__(self, name, a_birth, a_death, cap, rate, dt=1):
-        ActiveBehaviour.__init__(self, name, Clock(dt), AttributeEnterTrigger(a_death))
+    def __init__(self, a_birth, a_death, cap, rate, dt=1):
+        ActiveBehaviour.__init__(self, StepTicker(dt), AttributeEnterTrigger(a_death))
         self.Atr_death = a_death
         self.Atr_birth = a_birth
         self.Cap = cap
@@ -159,10 +144,6 @@ class LifeS(ActiveBehaviour):
 
     def fill(self, obs, model, ti):
         obs[self.Name] = self.BirthN
-
-    @staticmethod
-    def decorate(name, model, *args, **kwargs):
-        model.add_behaviour(LifeS(name, **kwargs))
 
     def __repr__(self):
         return 'S-shape({}, K={}, R={})'.format(self.Name, self.Cap, self.Rate)
@@ -197,10 +178,6 @@ class AgentImport(PassiveBehaviour):
         if value > 0:
             model.birth(n=value, ti=ti, **self.Atr_birth)
             self.BirthN += value
-
-    @staticmethod
-    def decorate(name, model, **kwargs):
-        model.add_behaviour(AgentImport(name, **kwargs))
 
     def match(self, be_src, ags_src, ags_new, ti):
         self.BirthN = be_src.BirthN

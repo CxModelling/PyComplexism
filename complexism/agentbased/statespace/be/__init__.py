@@ -12,62 +12,68 @@ __all__ = ['PassiveModBehaviour', 'ActiveModBehaviour',
            'TransitionTrigger', 'StateTrigger', 'StateEnterTrigger', 'StateExitTrigger',
            'ExternalShock',
            'FDShock', 'FDShockFast', 'DDShock', 'DDShockFast',
-           'WeightSumShock', 'WeightAvgShock', 'NetShock', 'NetWeightShock',
+           'WeightedSumShock', 'WeightedAvgShock', 'NetShock', 'NetWeightShock',
            'SwitchOn', 'SwitchOff',
            'Reincarnation', 'Cohort', 'LifeRate', 'LifeS', 'AgentImport',
            'StateTrack',
-           'StSpBeLibrary']
-
+           'register_behaviour']
 
 StSpBeLibrary = get_workshop('StSpABM_BE')
 
-StSpBeLibrary.register('Cohort', Cohort, [vld.Options('s_death', 'states')])
-StSpBeLibrary.register('Reincarnation', Reincarnation,
-                       [vld.Options('s_death', 'states'), vld.Options('s_birth', 'states')])
-StSpBeLibrary.register('LifeRate', LifeRate,
-                       [vld.Options('s_death', 'states'), vld.Options('s_birth', 'states'),
-                        vld.PositiveFloat('rate'), vld.PositiveFloat('dt', opt=True, default=0.5)])
-StSpBeLibrary.register('LifeS', LifeS,
-                       [vld.Options('s_death', 'states'), vld.Options('s_birth', 'states'),
-                        vld.PositiveFloat('rate'), vld.PositiveFloat('cap'),
-                        vld.PositiveFloat('dt', opt=True, default=0.5)])
 
-StSpBeLibrary.register('StateTrack', StateTrack,
-                       [vld.Options('s_src', 'states')])
+def register_behaviour(tp, obj, args):
+    StSpBeLibrary.register(tp, obj, args, meta=['Name'])
 
-StSpBeLibrary.register('ExternalShock', ExternalShock,
-                       [vld.Options('t_tar', 'transitions')])
 
-StSpBeLibrary.register('FDShock', FDShock,
-                       [vld.Options('t_tar', 'transitions'), vld.Options('s_src', 'states')])
-StSpBeLibrary.register('FDShockFast', FDShockFast,
-                       [vld.Options('t_tar', 'transitions'), vld.Options('s_src', 'states'),
-                           vld.PositiveFloat('dt', opt=True, default=0.5)])
-StSpBeLibrary.register('DDShock', DDShock,
-                       [vld.Options('t_tar', 'transitions'), vld.Options('s_src', 'states')])
-StSpBeLibrary.register('DDShockFast', DDShockFast,
-                       [vld.Options('t_tar', 'transitions'), vld.Options('s_src', 'states'),
-                        vld.PositiveFloat('dt', opt=True, default=0.5)])
-StSpBeLibrary.register('SwitchOff', SwitchOff,
-                       [vld.Options('t_tar', 'transitions'),
-                        vld.Options('s_src', 'states'),
-                        vld.Prob('prob')])
-StSpBeLibrary.register('SwitchOn', SwitchOn,
-                       [vld.Options('t_tar', 'transitions'),
-                        vld.Options('s_src', 'states'),
-                        vld.Prob('prob')])
-StSpBeLibrary.register('WeightSumShock', WeightSumShock,
-                       [vld.Options('t_tar', 'transitions'), vld.Options('s_src', 'states'),
-                        vld.ProbTab('weight'), vld.PositiveFloat('dt', opt=True, default=0.5)])
-StSpBeLibrary.register('WeightAvgShock', WeightAvgShock,
-                       [vld.Options('t_tar', 'transitions'), vld.Options('s_src', 'states'),
-                        vld.ProbTab('weight'), vld.PositiveFloat('dt', opt=True, default=0.5)])
-StSpBeLibrary.register('NetShock', NetShock,
-                       [vld.Options('t_tar', 'transitions'), vld.Options('s_src', 'states'),
-                        vld.Options('net', 'networks')])
-StSpBeLibrary.register('NetWeightShock', NetWeightShock,
-                       [vld.Options('t_tar', 'transitions'), vld.Options('s_src', 'states'),
-                        vld.Options('net', 'networks'), vld.ProbTab('weight')])
+register_behaviour('Cohort', Cohort, [vld.Options('s_death', 'states')])
+
+StSpBeLibrary.register('Cohort', Cohort, [vld.Options('s_death', 'states')], meta=['Name'])
+register_behaviour('Reincarnation', Reincarnation,
+                   [vld.Options('s_death', 'states'), vld.Options('s_birth', 'states')])
+register_behaviour('LifeRate', LifeRate,
+                   [vld.Options('s_death', 'states'), vld.Options('s_birth', 'states'),
+                    vld.PositiveFloat('rate'), vld.PositiveFloat('dt', opt=True, default=0.5)])
+register_behaviour('LifeS', LifeS,
+                   [vld.Options('s_death', 'states'), vld.Options('s_birth', 'states'),
+                    vld.PositiveFloat('rate'), vld.PositiveFloat('cap'),
+                    vld.PositiveFloat('dt', opt=True, default=0.5)])
+
+register_behaviour('StateTrack', StateTrack,
+                   [vld.Options('s_src', 'states')])
+
+register_behaviour('ExternalShock', ExternalShock,
+                   [vld.Options('t_tar', 'transitions')])
+
+register_behaviour('FDShock', FDShock,
+                   [vld.Options('t_tar', 'transitions'), vld.Options('s_src', 'states')])
+register_behaviour('FDShockFast', FDShockFast,
+                   [vld.Options('t_tar', 'transitions'), vld.Options('s_src', 'states'),
+                    vld.PositiveFloat('dt', opt=True, default=0.5)])
+register_behaviour('DDShock', DDShock,
+                   [vld.Options('t_tar', 'transitions'), vld.Options('s_src', 'states')])
+register_behaviour('DDShockFast', DDShockFast,
+                   [vld.Options('t_tar', 'transitions'), vld.Options('s_src', 'states'),
+                    vld.PositiveFloat('dt', opt=True, default=0.5)])
+register_behaviour('SwitchOff', SwitchOff,
+                   [vld.Options('t_tar', 'transitions'),
+                    vld.Options('s_src', 'states'),
+                    vld.Prob('prob')])
+register_behaviour('SwitchOn', SwitchOn,
+                   [vld.Options('t_tar', 'transitions'),
+                    vld.Options('s_src', 'states'),
+                    vld.Prob('prob')])
+register_behaviour('WeightedSumShock', WeightedSumShock,
+                   [vld.Options('t_tar', 'transitions'), vld.Options('s_src', 'states'),
+                    vld.ProbTab('weight'), vld.PositiveFloat('dt', opt=True, default=0.5)])
+register_behaviour('WeightedAvgShock', WeightedAvgShock,
+                   [vld.Options('t_tar', 'transitions'), vld.Options('s_src', 'states'),
+                    vld.ProbTab('weight'), vld.PositiveFloat('dt', opt=True, default=0.5)])
+register_behaviour('NetShock', NetShock,
+                   [vld.Options('t_tar', 'transitions'), vld.Options('s_src', 'states'),
+                    vld.Options('net', 'networks')])
+register_behaviour('NetWeightShock', NetWeightShock,
+                   [vld.Options('t_tar', 'transitions'), vld.Options('s_src', 'states'),
+                    vld.Options('net', 'networks'), vld.ProbTab('weight')])
 
 # StSpBeLibrary.register('ForeignShock', ForeignShock,
 #                       [vld.Options('t_tar', 'transitions'),
@@ -80,5 +86,4 @@ StSpBeLibrary.register('NetWeightShock', NetWeightShock,
 #                         vld.NotNull('mod_par_src', opt=True),
 #                         vld.PositiveFloat('default', default=1, opt=True)])
 
-StSpBeLibrary.register('AgentImport', AgentImport,
-                       [vld.Options('s_birth', 'states')])
+register_behaviour('AgentImport', AgentImport, [vld.Options('s_birth', 'states')])

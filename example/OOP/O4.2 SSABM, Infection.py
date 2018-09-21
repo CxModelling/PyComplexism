@@ -28,7 +28,8 @@ model = cx.StSpAgentBasedModel(model_name, pc, pop)
 
 
 # Step 4 add behaviours to the model
-ss.FDShock.decorate('FOI', model, s_src='Inf', t_tar='Infect')
+ss.install_behaviour(model, 'FOI', 'FDShock', s_src='Inf', t_tar='Infect')
+
 # ss.FDShockFast.decorate('FOI', model=model, s_src='Inf', t_tar='Infect', dt=0.1)
 # pc.impulse({'beta': pc['beta']/300})
 # ss.DDShock.decorate('FOI', model=model, s_src='Inf', t_tar='Infect')

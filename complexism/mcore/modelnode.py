@@ -1,11 +1,9 @@
 from abc import ABCMeta, abstractmethod
 from complexism.element import Event, get_scheduler
-from complexism.mcore import Observer, DefaultObserver, ModelSelector, EventListenerSet, AbsY0, LeafY0, BranchY0
+from complexism.mcore import Observer, DefaultObserver, ModelSelector, EventListenerSet, LeafY0, BranchY0
 from complexism.misc.counter import count
 
 __author__ = 'TimeWz667'
-
-
 __all__ = ['ModelAtom', 'LeafModel', 'BranchModel']
 
 
@@ -122,13 +120,31 @@ class ModelAtom(metaclass=ABCMeta):
         return self.Name < other.Name
 
     def to_json(self):
+        """
+        Transform to a data which can be a blueprint for constructing the same object.
+
+        :return: json formatted dict
+        :rtype: dict, All keys should be str, and all values should be output as json file.
+        """
         js = dict()
         js['Name'] = self.Name
         js['Attributes'] = dict(self.Attributes)
         return js
 
-    def to_snapshot(self):
-        return self.to_json()
+    def to_snapshot(self, pars=False):
+        """
+        Transform to a data which can be a blueprint for constructing the same object with the same status.
+        :param pars: include parameters or not
+        :type pars: bool
+        :return: json formatted dict
+        :rtype: dict, All keys should be str, and all values should be output as json file.
+        """
+        js = dict()
+        js['Name'] = self.Name
+        js['Attributes'] = dict(self.Attributes)
+        if pars:
+            js['Parameters'] = dict(self.Parameters)
+        return js
 
     def __repr__(self):
         s = 'ID: {}'.format(self.Name)
@@ -145,9 +161,14 @@ class ModelAtom(metaclass=ABCMeta):
         return dat
 
     def clone(self, **kwargs):
-        pc = kwargs if 'pc' in kwargs else self.Parameters
-        clo = self.__class__.__init__(self, self.Name, pc)
-        clo.Attributes.update(self.Attributes)
+        snp = self.to_snapshot(pars=False)
+        pc = kwargs['pars'] if 'pars' in kwargs else self.Parameters
+        snp['Parameters'] = pc
+        return self.__class__.restore_from_snapshot(snp)
+
+    @staticmethod
+    def restore_from_snapshot(snp):
+        raise AttributeError('undefined cloning method')
 
 
 class AbsModel(metaclass=ABCMeta):
@@ -198,10 +219,14 @@ class AbsModel(metaclass=ABCMeta):
 
     def check_y0(self, y0):
         if not isinstance(y0, self.ClassY0):
-            if isinstance(y0, dict):
+            if issubclass(type(y0), LeafY0):
+                y0 = self.ClassY0.from_prototype(y0)
+            elif isinstance(y0, dict):
                 y0 = self.ClassY0.from_json(y0)
-            else:
+            elif isinstance(y0, list):
                 y0 = self.ClassY0.from_source(y0)
+            else:
+                raise TypeError('Unknown y0 type')
         y0.match_model_info(self)
         return y0
 
@@ -348,6 +373,15 @@ class BranchModel(AbsModel, metaclass=ABCMeta):
         self.Scheduler.reschedule_all()
 
     def check_y0(self, y0s):
+        if not isinstance(y0s, self.ClassY0):
+            if issubclass(type(y0s), BranchY0):
+                y0s = self.ClassY0.from_prototype(y0s)
+            elif isinstance(y0s, dict):
+                y0s = self.ClassY0.from_json(y0s)
+            else:
+                raise TypeError('Unknown y0 type')
+        y0s.match_model_info(self)
+
         for k, m in self.all_models().items():
             y0s.ChildrenY0[k] = m.check_y0(y0s[k])
         return y0s

@@ -36,10 +36,10 @@ model = cx.MultiModel(model_name, pc)
 y0s = cx.BranchY0()
 for i in range(1, 3):
     name = 'A{}'.format(i)
-    m_abm = mbp.generate(name, pc=pc.breed(name, 'abm'), dc=director.get_state_space_model('DzAB'))
+    m_abm = mbp.generate(name, pc=pc.breed(name, 'abm'), ss=director.get_state_space_model('DzAB'))
     model.append_child(m_abm, True)
     y0 = cx.LeafY0()
-    y0.define({'n': 300, 'attributes': {'st': 'ab'}})
+    y0.define(n=300, attributes={'st': 'ab'})
     y0s.append_child(name, y0)
 
 

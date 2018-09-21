@@ -80,7 +80,7 @@ y0_sr.define('Sus', n=900)
 lyo.add_entry('E', 'SR', y0_sr)
 
 y0_i = mbp_i.get_y0_proto()
-y0_i.define({'n': 100, 'attributes': {'st': 'Inf'}})
+y0_i.define(st='Inf', n=100)
 lyo.add_entry('A', 'I', y0_i)
 
 lyo.add_interaction('E',

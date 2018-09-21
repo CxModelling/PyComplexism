@@ -21,14 +21,14 @@ dbp = cx.read_dbp_script(cx.load_txt('../scripts/SIR_BN.txt'))
 # Step 2 define at least one type of agent
 eve = ss.StSpBreeder('Ag', 'agent', pc, dbp)
 pop = cx.Population(eve)
-pop.add_network(cx.NetworkGNP('net', p=0.1))
 
 # Step 3 generate a model
 model = cx.StSpAgentBasedModel(model_name, pc, pop)
 
 
 pc.impulse({'beta': pc['beta']*10/300})
-ss.NetShock.decorate('FOI', model=model, s_src='Inf', t_tar='Infect', net='net')
+ss.install_network(model, 'net', 'GNP', p=0.1)
+ss.install_behaviour(model, 'FOI', 'NetShock', s_src='Inf', t_tar='Infect', net='net')
 
 
 # Step 5 decide outputs

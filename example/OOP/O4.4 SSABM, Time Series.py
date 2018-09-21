@@ -15,7 +15,7 @@ pc = sm.generate(model_name)
 
 
 # Step 1- set dynamic cores as agents need
-dbp = cx.read_dbp_script(cx.load_txt('../scripts/DzABA.txt'))
+dbp = cx.read_dbp_script(cx.load_txt('../scripts/DzAB.txt'))
 
 
 # Step 2 define at least one type of agent
@@ -28,22 +28,22 @@ model = cx.StSpAgentBasedModel(model_name, pc, pop)
 
 
 # Step 4 add behaviours to the model
-ss.LifeS.decorate('cycle', model, s_birth='Young', s_death='Dead', rate=0.5, cap=150)
+ss.install_behaviour(model, 'cycle', 'LifeS', s_birth='ab', s_death='AB', rate=0.5, cap=150, dt=1)
 
 
 # Step 5 decide outputs
 # for tr in ['ToM', 'ToO', 'Die']:
 #     model.add_observing_transition(tr)
 
-for st in ['Young', 'Middle', 'Old', 'Alive', 'Dead']:
+for st in ['A', 'B']:
     model.add_observing_state(st)
 
 
 # Step 6 simulate
 y0 = [
-    {'n': 34, 'attributes': {'st': 'Young'}},
-    {'n': 33, 'attributes': {'st': 'Middle'}},
-    {'n': 33, 'attributes': {'st': 'Old'}}
+    {'n': 34, 'attributes': {'st': 'ab'}},
+    {'n': 33, 'attributes': {'st': 'aB'}},
+    {'n': 33, 'attributes': {'st': 'Ab'}}
 ]
 
 

@@ -11,7 +11,7 @@ __all__ = ['prepare_pc', 'generate_plain_model',
 
 
 def form_resources(model):
-    pc, dc = model.Environment, model.DCore
+    pc, dc = model.Parameters, model.DCore
     resources = {
         'states': dc.States,
         'transitions': dc.Transitions,
@@ -57,11 +57,10 @@ def install_network(model, net_name, net_type, resources=None, **kwargs):
     js = {'Name': net_name, 'Type': net_type, 'Args': dict(kwargs)}
     ws = get_workshop('Networks')
     ws.renew_resources(res)
-    if ws.validate(js):
-        net = ws.create(js)
-        model.add_network(net)
-    else:
-        raise ValueError
+
+    net = ws.create(js)
+    model.add_network(net)
+
     ws.clear_resources()
 
 
@@ -70,11 +69,10 @@ def install_behaviour(model, be_name, be_type, resources=None, **kwargs):
     js = {'Name': be_name, 'Type': be_type, 'Args': dict(kwargs)}
     ws = get_workshop('StSpABM_BE')
     ws.renew_resources(res)
-    if ws.validate(js):
-        be = ws.create(js)
-        model.Behaviours[be.Name] = be
-    else:
-        raise ValueError
+
+    be = ws.create_from_json(js)
+    model.Behaviours[be.Name] = be
+
     ws.clear_resources()
 
 

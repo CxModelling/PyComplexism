@@ -19,7 +19,7 @@ class TwoDRandomWalker(cx.GenericAgent):
         cx.GenericAgent.__init__(self, name)
 
     def find_next(self):
-        return Event(todo=(choice([-1, 0, 1]), choice([-1, 0, 1])),
+        return Event(td=(choice([-1, 0, 1]), choice([-1, 0, 1])),
                      ti=self['t'] + self['dt'])
 
     def initialise(self, time=0, **kwargs):

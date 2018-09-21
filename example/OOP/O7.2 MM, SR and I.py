@@ -18,7 +18,7 @@ PCore SIR {
 }
 '''
 
-bn = dag.bn_from_script(psc)
+bn = dag.bayes_net_from_script(psc)
 
 hie = {
     'city': ['ebm', 'abm'],
@@ -128,11 +128,11 @@ model.append_child(model_sr)
 y0s = cx.BranchY0()
 
 y0 = cx.LeafY0()
-y0.define({'n': 50, 'attributes': {'st': 'Inf'}})
+y0.define(st='Inf', n=50)
 y0s.append_child('I', y0)
 
 y0 = cx.ODEY0()
-y0.define('Sus', n=950)
+y0.define(st='Sus', n=950)
 y0s.append_child('SR', y0)
 
 

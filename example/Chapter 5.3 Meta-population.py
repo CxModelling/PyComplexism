@@ -31,12 +31,12 @@ mbp_v.set_observations(states=['S_V', 'I_V'], behaviours=['V2V'])
 lyo = ctrl.new_model_layout('VectorBorne')
 
 y0_h = mbp_h.get_y0_proto()
-y0_h.define({'n': 500, 'attributes': {'st': 'S_H'}})
+y0_h.define(st='S_H', n=500)
 lyo.add_entry('H', 'Human', y0_h)
 
 y0_v = mbp_h.get_y0_proto()
-y0_v.define(150, st='S_V')
-y0_v.define(50, st='I_V')
+y0_v.define(st='S_V', n=150)
+y0_v.define(st='I_V', n=50)
 
 lyo.add_entry('V', 'Vector', y0_v)
 

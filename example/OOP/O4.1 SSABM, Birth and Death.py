@@ -32,7 +32,8 @@ model = cx.StSpAgentBasedModel(model_name, pc, pop)
 # ss.Cohort.decorate('cycle', model, s_birth='Young', s_death='Dead')
 # ss.Reincarnation.decorate('cycle', model, s_birth='Young', s_death='Dead')
 # ss.LifeRate.decorate('cycle', model, s_birth='Young', s_death='Dead', rate=0.2)
-ss.LifeS.decorate('cycle', model, s_birth='Young', s_death='Dead', rate=0.5, cap=150)
+ss.install_behaviour(model, 'cycle', 'LifeS',
+                     s_birth='Young', s_death='Dead', rate=0.5, cap=150, dt=0.5)
 
 
 # Step 5 decide outputs

@@ -178,6 +178,7 @@ def install_behaviour(abm, be_name, be_type, log=None, **kwargs):
     ws.renew_resources(form_resources(abm))
     if ws.validate(js, logger=log):
         be = ws.create(js, logger=log)
+        be.Name = be_name
         abm.add_behaviour(be)
     ws.clear_resources()
 
