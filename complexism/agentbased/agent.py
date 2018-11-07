@@ -12,7 +12,8 @@ class GenericAgent(ModelAtom, metaclass=ABCMeta):
 
     def __repr__(self):
         s = 'ID: {}, '.format(self.Name)
-        s += ', '.join(['{}: {}'.format(k, v) for k, v in self.Attributes.items()])
+        if self.Attributes:
+            s += ', '.join(['{}: {}'.format(k, v) for k, v in self.Attributes.items()])
         return s
 
     @abstractmethod

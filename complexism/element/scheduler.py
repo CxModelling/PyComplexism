@@ -421,7 +421,7 @@ class PriorityQueueScheduler(AbsScheduler):
         for atom in atoms:
             event = atom.Next
             tte = event.Time
-            entry = [tte, atom, event]
+            entry = (tte, atom, event)
             heapq.heappush(self.Queue, entry)
 
             if tte < self.OwnTime:

@@ -13,7 +13,7 @@ PCore ABC{
 }
 """
 
-bn = dag.bn_from_script(script)
+bn = dag.bayes_net_from_script(script)
 print('Blueprint of the parameter core')
 print(bn)
 

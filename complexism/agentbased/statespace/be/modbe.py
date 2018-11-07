@@ -95,7 +95,7 @@ class GlobalShock(PassiveModBehaviour, metaclass=ABCMeta):
 
 class GlobalShockFast(ActiveModBehaviour):
     def __init__(self,  s_src, t_tar, dt):
-        mod = GloRateModifier( t_tar)
+        mod = GloRateModifier(t_tar)
         ActiveModBehaviour.__init__(self, StepTicker(dt=dt), mod)
         self.S_src = s_src
         self.T_tar = t_tar

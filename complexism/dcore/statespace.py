@@ -31,10 +31,10 @@ class Transition:
         return self.Dist.sample(attr)
 
     def __repr__(self):
-        return 'Tr(Name: {}, To: {}, By: {})'.format(self.Name, self.State, str(self.Dist))
+        return 'Tr(Name: {}, To: {}, By: {})'.format(self.Name, self.State, self.Dist.Field)
 
     def __str__(self):
-        return 'Tr(Name: {}, To: {}, By: {})'.format(self.Name, self.State, str(self.Dist))
+        return 'Tr(Name: {}, To: {}, By: {})'.format(self.Name, self.State, self.Dist.Field)
 
 
 class State(Stock):

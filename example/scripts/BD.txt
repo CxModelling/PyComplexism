@@ -1,0 +1,6 @@
+CTMC BD {
+    Alive
+    Dead
+
+    Alive -- Die -> Dead
+}

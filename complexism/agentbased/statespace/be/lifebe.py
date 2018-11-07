@@ -124,7 +124,6 @@ class LifeS(ActiveBehaviour):
         self.Cap = cap
         self.Rate = rate
         self.Dt = dt
-        self.BirthN = 0
 
     def compose_event(self, ti):
         return Event(self.Name, ti)
@@ -157,6 +156,35 @@ class LifeS(ActiveBehaviour):
 
     def match(self, be_src, ags_src, ags_new, ti):
         self.BirthN = be_src.BirthN
+
+
+class LeeCarterModel(ActiveBehaviour):
+    def __init__(self, s_death, s_birth, lc_m, lc_f):
+        ActiveBehaviour.__init__(self, StepTicker(lc_m.Times), StateEnterTrigger(s_death))
+        self.S_death = s_death.Name
+        self.S_birth = s_birth
+        self.LeeCarterM = lc_m
+        self.LeeCarterF = lc_f
+        self.BirthN = 0
+
+    def compose_event(self, ti):
+        pass
+
+    def do_action(self, model, td, ti):
+        pass
+
+    def register(self, ag, ti):
+        pass
+
+    def match(self, be_src, ags_src, ags_new, ti):
+        pass
+
+    def fill(self, obs, model, ti):
+        obs['AvgAge'] = 0
+        obs['SexRatio'] = 0
+        obs['AvgAgeF'] = 0
+        obs['AvgAgeM'] = 0
+        obs['']
 
 
 class AgentImport(PassiveBehaviour):

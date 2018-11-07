@@ -27,13 +27,13 @@ class StSpBreeder(GenericBreeder):
         return StSpAgent(name, kwargs['st'], pars=pars)
 
     def count(self, ags, **kwargs):
-        try:
-            st = kwargs['st']
-        except KeyError:
+        if not kwargs:
             return len(ags)
 
-        try:
+        if 'st' in kwargs:
+            st = kwargs['st']
+            del kwargs['st']
             st = self.DCore[st] if isinstance(st, str) else st
-            return sum(st in ag for ag in ags)
-        except KeyError:
-            return 0
+            ags = (ag for ag in ags if st in ag)
+
+        return sum(1 for ag in ags if ag.is_compatible(**kwargs))
