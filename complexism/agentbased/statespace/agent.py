@@ -97,7 +97,7 @@ class StSpAgent(GenericAgent):
         mod = self.Modifiers[m]
         if mod.Target in self.Transitions:
             tr = mod.Target
-            tte = tr.rand(self.Parameters, **self.Attributes)
+            tte = tr.rand(self.Parameters)
             for mo in self.Modifiers.on(tr):
                 tte = mo.modify(tte)
             self.Transitions[tr] = tte + ti
@@ -107,7 +107,7 @@ class StSpAgent(GenericAgent):
         return st in self
 
     def __contains__(self, st):
-        return st in self.State
+        return st in self.State or st in self.Attributes
 
     def clone(self, dc_new=None):
         if dc_new:

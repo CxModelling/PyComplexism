@@ -1,11 +1,13 @@
 import numpy as np
 import numpy.random as rd
-from complexism.element import StepTicker, Event
+from complexism.element import StepTicker, ScheduleTicker, Event
 from complexism.agentbased import ActiveBehaviour, PassiveBehaviour
 from .trigger import StateEnterTrigger
+from ..modifier import LocRateModifier
+from .behaviour import ActiveModBehaviour
 
 __author__ = 'TimeWz667'
-__all__ = ['Reincarnation', 'Cohort', 'LifeRate', 'LifeS', 'AgentImport']
+__all__ = ['Reincarnation', 'Cohort', 'LifeRate', 'LifeS', 'AgentImport', 'BirthAgeingDeathLeeCarter']
 
 
 class Reincarnation(PassiveBehaviour):
@@ -158,33 +160,102 @@ class LifeS(ActiveBehaviour):
         self.BirthN = be_src.BirthN
 
 
-class LeeCarterModel(ActiveBehaviour):
-    def __init__(self, s_death, s_birth, lc_m, lc_f):
-        ActiveBehaviour.__init__(self, StepTicker(lc_m.Times), StateEnterTrigger(s_death))
+class BirthAgeingDeathLeeCarter(ActiveModBehaviour):
+    def __init__(self, s_death, t_die, s_birth, dlc):
+        mod = LocRateModifier(t_die)
+        years = range(dlc.YearStart, dlc.YearEnd + 1)
+        ActiveModBehaviour.__init__(self, ScheduleTicker(years), mod, StateEnterTrigger(s_death))
         self.S_death = s_death.Name
         self.S_birth = s_birth
-        self.LeeCarterM = lc_m
-        self.LeeCarterF = lc_f
-        self.BirthN = 0
+        self.T_die = t_die
+        self.LeeCarter = dlc
+        self.DeathRates = self.LeeCarter.get_death_rate(self.LeeCarter.YearStart)
+        self.BirPrF = self.LeeCarter.get_prob_female_at_birth(self.LeeCarter.YearStart)
+        self.SexAgeSam = self.LeeCarter.get_population_sampler(self.LeeCarter.YearStart)
+
+    def initialise(self, ti, model):
+        ti = max(ti, self.LeeCarter.YearStart)
+        self.__update_data(ti)
+        ActiveModBehaviour.initialise(self, ti, model)
+        self.__shock(model, ti)
+
+    def reset(self, ti, model):
+        self.Clock.initialise(ti)
+        self.__update_data(ti)
+        ActiveModBehaviour.reset(self, ti, model)
+        self.__shock(model, ti)
 
     def compose_event(self, ti):
-        pass
+        return Event('Ageing', float(ti))
 
     def do_action(self, model, td, ti):
-        pass
+        if td == 'Ageing':
+            self.__update_data(ti)
+            self.__shock(model, ti)
+
+            # Ageing
+            to_delete = list()
+            for ag in model.agents:
+                ag['Age'] += 1
+                if ag['Age'] >= 100:
+                    to_delete.append(ag)
+
+            for ag in to_delete:
+                model.kill(ag.Name, ti)
+                model.Observer.record(ag, 'Die', ti)
+
+            # Birth
+            n = len(model)
+            br = self.LeeCarter.get_birth_rate(ti)
+            if n <= 0:
+                return
+            prob = 1 - np.exp(-br['Female'])
+            ags = model.birth(n=rd.binomial(n, prob), ti=ti, st=self.S_birth)
+            for ag in ags:
+                ag['Sex'] = 'Female'
+                ag['Age'] = 0
+
+            if n <= 0:
+                return
+            prob = 1 - np.exp(-br['Male'])
+            ags = model.birth(n=rd.binomial(n, prob), ti=ti, st=self.S_birth)
+            for ag in ags:
+                ag['Sex'] = 'Male'
+                ag['Age'] = 0
+            model.disclose('Ageing', self.Name)
+            model.disclose('Birth', self.Name)
 
     def register(self, ag, ti):
-        pass
+        ActiveModBehaviour.register(self, ag, ti)
+        if 'Sex' not in ag.Attributes:
+            ag['Sex'], ag['Age'] = self.SexAgeSam()
+
+    def impulse_change(self, model, ag, ti, args_pre=None, args_post=None):
+        model.kill(ag.Name, ti)
 
     def match(self, be_src, ags_src, ags_new, ti):
         pass
 
     def fill(self, obs, model, ti):
-        obs['AvgAge'] = 0
-        obs['SexRatio'] = 0
-        obs['AvgAgeF'] = 0
-        obs['AvgAgeM'] = 0
-        obs['']
+        try:
+            obs['SexRatio'] = model.Population.count(Sex='Male') / model.Population.count(Sex='Female')
+        except ZeroDivisionError:
+            obs['SexRatio'] = float('inf')
+
+        ages = [ag['Age'] for ag in model.agents]
+
+        obs['AvgAge'] = np.mean(ages)
+
+    def __update_data(self, ti):
+        self.DeathRates = self.LeeCarter.get_death_rate(ti)
+        self.BirPrF = self.LeeCarter.get_prob_female_at_birth(ti)
+        self.SexAgeSam = self.LeeCarter.get_population_sampler(ti)
+
+    def __shock(self, model, ti):
+        for ag in model.agents:
+            dr = self.DeathRates[ag['Sex']][ag['Age']]
+            ag.shock(ti, None, self.Name, value=dr)
+        model.disclose('Update death rates', self.Name)
 
 
 class AgentImport(PassiveBehaviour):

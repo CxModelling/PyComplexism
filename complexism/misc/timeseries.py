@@ -330,6 +330,10 @@ class DemographyLeeCarter:
                 'Male': self.Birth['Male'](year) * n_f / n_all
             }
 
+    def get_prob_female_at_birth(self, year):
+        brs = self.get_birth_rate(year)
+        return brs['Female'] / (brs['Female'] + brs['Male'])
+
     def get_population(self, year):
         """
         Find the population size given a single year

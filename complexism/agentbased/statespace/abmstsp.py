@@ -94,7 +94,7 @@ class ObsStSpABM(ObsABM):
                 self.LazySnapshot[k] = ('Fn', fn)
 
     def record(self, ag, evt, ti):
-        self.Records.append(Record(ag.Name, evt.Todo, ti))
+        self.Records.append(Record(ag, evt, ti))
 
 
 class StSpY0(LeafY0):

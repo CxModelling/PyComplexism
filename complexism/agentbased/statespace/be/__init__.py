@@ -15,6 +15,7 @@ __all__ = ['PassiveModBehaviour', 'ActiveModBehaviour',
            'WeightedSumShock', 'WeightedAvgShock', 'NetShock', 'NetWeightShock',
            'SwitchOn', 'SwitchOff',
            'Reincarnation', 'Cohort', 'LifeRate', 'LifeS', 'AgentImport',
+           'BirthAgeingDeathLeeCarter',
            'StateTrack',
            'register_behaviour']
 
@@ -75,15 +76,11 @@ register_behaviour('NetWeightShock', NetWeightShock,
                    [vld.Options('t_tar', 'transitions'), vld.Options('s_src', 'states'),
                     vld.Options('net', 'networks'), vld.ProbTab('weight')])
 
-# StSpBeLibrary.register('ForeignShock', ForeignShock,
-#                       [vld.Options('t_tar', 'transitions'),
-#                        vld.String('mod_src', opt=True),
-#                        vld.String('par_src', opt=True),
-#                        vld.PositiveFloat('default', default=1, opt=True)])
-
-# StSpBeLibrary.register('ForeignSumShock', ForeignSumShock,
-#                        [vld.Options('t_tar', 'transitions'),
-#                         vld.NotNull('mod_par_src', opt=True),
-#                         vld.PositiveFloat('default', default=1, opt=True)])
-
 register_behaviour('AgentImport', AgentImport, [vld.Options('s_birth', 'states')])
+
+register_behaviour('BirthAgeingDeathLeeCarter', BirthAgeingDeathLeeCarter,
+                   [vld.Options('s_death', 'states'),
+                    vld.Options('t_die', 'transitions'),
+                    vld.Options('s_birth', 'states'),
+                    vld.NotNull('dlc')
+                   ])

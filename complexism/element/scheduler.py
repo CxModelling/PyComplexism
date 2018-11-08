@@ -436,7 +436,7 @@ class PriorityQueueScheduler(AbsScheduler):
             self.clean_queue()
 
     def clean_queue(self):
-        self.Queue = [[t, a, e] for t, a, e in self.Queue if not e.is_cancelled()]
+        self.Queue = [(t, a, e) for t, a, e in self.Queue if not e.is_cancelled()]
         heapq.heapify(self.Queue)
 
     def find_upcoming_atoms(self):

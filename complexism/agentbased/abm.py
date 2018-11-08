@@ -41,7 +41,7 @@ class ObsABM(Observer):
             func(model, tab, ti)
 
     def record(self, ag, evt, ti):
-        self.Records.append(Record(ag.Name, evt.Todo, ti))
+        self.Records.append(Record(ag, evt, ti))
 
 
 class GenericAgentBasedModel(LeafModel, metaclass=ABCMeta):
@@ -173,7 +173,7 @@ class GenericAgentBasedModel(LeafModel, metaclass=ABCMeta):
                 ag = self.Population[nod]
                 ag.approve_event(evt)
                 pre = self.check_pre_change(ag)
-                self.Observer.record(ag, evt, time)
+                self.Observer.record(ag.Name, evt.Todo, time)
                 ag.execute_event()
                 ag.drop_next()
                 post = self.check_post_change(ag)
