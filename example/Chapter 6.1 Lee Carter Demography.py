@@ -1,6 +1,7 @@
 import pandas as pd
 import complexism as cx
 
+__author__ = 'TimeWz667'
 
 mat_a = pd.read_csv('../data/LCA/lcA.Age.csv')
 mat_t = pd.read_csv('../data/LCA/LCA.Time.csv')
