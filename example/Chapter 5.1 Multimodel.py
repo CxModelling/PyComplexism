@@ -17,8 +17,9 @@ bp.set_observations(states=['ab', 'AB'])
 y0 = bp.get_y0_proto()
 y0.define(n=100, st='ab')
 
-lyo = ctrl.new_model_layout('MultiDzAB')
+lyo = ctrl.new_sim_model('MultiDzAB', 'MultiModel')
 lyo.add_entry('M', 'DzAB', y0, fr=1, to=3)
+lyo.add_summary('.DzAB', 'AB', 'all_AB')
 
 for m, _, _ in lyo.models():
     print(m)
@@ -26,7 +27,7 @@ for m, _, _ in lyo.models():
 print(lyo.get_parameter_hierarchy(ctrl))
 
 model = ctrl.generate_model('M1', 'MultiDzAB', bn='pDzAB')
-y0s = ctrl.get_y0s('MultiDzAB')
+y0s = lyo.get_y0s()
 
 print(y0s)
 

@@ -7,7 +7,7 @@ class AbsModelBlueprint(metaclass=ABCMeta):
     def __init__(self, name):
         self.Class = name
         self.Arguments = dict()
-        self.__pc = None
+        self.__bn = None
 
     def set_arguments(self, key, value):
         if key in self.Arguments:
@@ -16,13 +16,13 @@ class AbsModelBlueprint(metaclass=ABCMeta):
     def get_arguments(self, key):
         return self.Arguments[key]
 
-    def link_to_pc(self, pc):
+    def link_to_bn(self, bn):
         """
-        Link the model to a specific parameter model
-        :param pc: pc
-        :type pc: str
+        Link the model to a specific bayesian network parameter model
+        :param bn: new of a Bayesian network
+        :type bn: str
         """
-        self.__pc = pc
+        self.__bn = bn
 
     @abstractmethod
     def get_parameter_hierarchy(self, **kwargs):
@@ -33,8 +33,12 @@ class AbsModelBlueprint(metaclass=ABCMeta):
         pass
 
     @property
-    def requires_pc(self):
-        return bool(self.__pc)
+    def requires_bn(self):
+        return bool(self.__bn)
+
+    @property
+    def target_bn(self):
+        return self.__bn
 
     @abstractmethod
     def generate(self, name, **kwargs):

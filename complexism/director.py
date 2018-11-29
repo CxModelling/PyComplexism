@@ -10,9 +10,8 @@ __all__ = ['Director']
 class Director:
     def __init__(self):
         self.BayesianNetworks = dict()
-        self.DCoreBlueprints = dict()
-        self.MCoreBlueprints = dict()
-        self.ModelLayouts = dict()
+        self.StSpBlueprints = dict()
+        self.SimModelBlueprints = dict()
         self.Log = logging.getLogger(__name__)
 
     def _add_bn(self, bn):
@@ -23,25 +22,18 @@ class Director:
             self.Log.info('Bayesian Network {} added'.format(bn.Name))
 
     def _add_dbp(self, dbp):
-        if dbp in self.DCoreBlueprints:
+        if dbp in self.StSpBlueprints:
             self.Log.warning('State-Space Model {} have already existed'.format(dbp.Name))
         else:
-            self.DCoreBlueprints[dbp.Name] = dbp
+            self.StSpBlueprints[dbp.Name] = dbp
             self.Log.info('State-Space Model {} added'.format(dbp.Name))
 
     def _add_mbp(self, mbp):
-        if mbp in self.MCoreBlueprints:
+        if mbp in self.SimModelBlueprints:
             self.Log.warning('Simulation Model {} have already existed'.format(mbp.Class))
         else:
-            self.MCoreBlueprints[mbp.Class] = mbp
+            self.SimModelBlueprints[mbp.Class] = mbp
             self.Log.info('Simulation Model {} added'.format(mbp.Class))
-
-    def _add_lyo(self, lyo):
-        if lyo in self.ModelLayouts:
-            self.Log.warning('Model Layout {} have already existed'.format(lyo.Class))
-        else:
-            self.ModelLayouts[lyo.Class] = lyo
-            self.Log.info('Model Layout {} added'.format(lyo.Class))
 
     def get_bayes_net(self, bn_name):
         try:
@@ -49,23 +41,17 @@ class Director:
         except KeyError:
             self.Log.warning('Unknown BayesNet')
 
-    def get_state_space_model(self, dbp_name):
+    def get_state_space_model(self, ss_name):
         try:
-            return self.DCoreBlueprints[dbp_name]
+            return self.StSpBlueprints[ss_name]
         except KeyError:
             self.Log.warning('Unknown State-Space Model')
 
-    def get_sim_model(self, mbp_name):
+    def get_sim_model(self, sm_name):
         try:
-            return self.MCoreBlueprints[mbp_name]
+            return self.SimModelBlueprints[sm_name]
         except KeyError:
             self.Log.warning('Unknown Simulation Model')
-
-    def get_model_layout(self, lyo_name):
-        try:
-            return self.ModelLayouts[lyo_name]
-        except KeyError:
-            self.Log.warning('Unknown Model Layout')
 
     def has_bayes_net(self, bn_name):
         """
@@ -83,7 +69,7 @@ class Director:
         :return: has or not
         :rtype: bool
         """
-        return ss_name in self.DCoreBlueprints
+        return ss_name in self.StSpBlueprints
 
     def has_sim_model(self, sm_name):
         """
@@ -92,16 +78,7 @@ class Director:
         :return: has or not
         :rtype: bool
         """
-        return sm_name in self.MCoreBlueprints
-
-    def has_model_layout(self, lyo_name):
-        """
-        Check if the director has the model layout
-        :param lyo_name: name of the model layout
-        :return: has or not
-        :rtype: bool
-        """
-        return lyo_name in self.ModelLayouts
+        return sm_name in self.SimModelBlueprints
 
     def read_bayes_net(self, script):
         """
@@ -164,7 +141,7 @@ class Director:
             self.Log.warning('Unknown State-Space Model')
 
     def list_state_spaces(self):
-        return list(self.DCoreBlueprints.keys())
+        return list(self.StSpBlueprints.keys())
 
     def load_sim_model(self, file):
         # todo
@@ -186,10 +163,10 @@ class Director:
         self._add_mbp(mbp)
         return mbp
 
-    def save_sim_model(self, mbp_name, file):
+    def save_sim_model(self, sm_name, file):
         # todo
         try:
-            mbp = self.get_sim_model(mbp_name)
+            mbp = self.get_sim_model(sm_name)
             save_mbp(mbp, file)
         except KeyError:
             self.Log.warning('Model Blueprint {} not found'.format(mbp_name))
@@ -200,74 +177,42 @@ class Director:
         :return: the names of all the simulation models
         :rtype: list
         """
-        return list(self.MCoreBlueprints.keys())
-
-    def new_model_layout(self, name):
-        """
-        Create a new model layout
-        :param name: name of the layout
-        :return: a blueprint of the new model layout
-        """
-        layout = new_lyo(name)
-        self._add_lyo(layout)
-        return layout
-
-    def save_layout(self, lyo_name, file):
-        # todo
-        lyo = self.get_model_layout(lyo_name)
-        save_lyo(lyo, file)
-        self.Log.info('Layout {} saved'.format(lyo))
-
-    def list_lyo(self):
-        return list(self.ModelLayouts.keys())
+        return list(self.SimModelBlueprints.keys())
 
     def save(self, file):
         js = dict()
         js['PCores'] = {k: v.to_json() for k, v in self.BayesianNetworks.items()}
-        js['DCores'] = {k: v.to_json() for k, v in self.DCoreBlueprints.items()}
-        js['MCores'] = {k: v.to_json() for k, v in self.MCoreBlueprints.items()}
-        js['Layouts'] = {k: v.to_json() for k, v in self.ModelLayouts.items()}
+        js['DCores'] = {k: v.to_json() for k, v in self.StSpBlueprints.items()}
+        js['MCores'] = {k: v.to_json() for k, v in self.SimModelBlueprints.items()}
         save_json(js, file)
 
     def load(self, file):
         # todo
         js = load_json(file)
         self.BayesianNetworks.update({k: read_bn_json(v) for k, v in js['PCores'].items()})
-        self.DCoreBlueprints.update({k: read_dbp_json(v) for k, v in js['DCores'].items()})
-        # self.MCoreBlueprints.update({k: load_mc(v) for k, v in js['MCores'].items()})
+        self.StSpBlueprints.update({k: read_dbp_json(v) for k, v in js['DCores'].items()})
+        self.SimModelBlueprints.update({k: read_mbp_json(v) for k, v in js['MCores'].items()})
         # self.ModelLayouts.update({k: load_layout(v) for k, v in js['Layouts'].items()})
 
-    def generate_mc(self, name, sim_model, **kwargs):
+    def generate_model(self, name, sim_model, **kwargs):
         mbp = self.get_sim_model(sim_model)
-        kwargs['da'] = self
-        kwargs['class'] = sim_model
-        return mbp.generate(name, **kwargs)
-
-    def generate_lyo(self, name, layout, all_obs=True, **kwargs):
-        lyo = self.get_model_layout(layout)
-        if 'pc' not in kwargs and 'bn' in kwargs:
+        if 'bn' in kwargs:
             bn = kwargs['bn']
             del kwargs['bn']
-            sm = dag.as_simulation_core(bn, lyo.get_parameter_hierarchy(self))
+            if isinstance(bn, str):
+                bn = self.get_bayes_net(bn)
+            sm = dag.as_simulation_core(bn, mbp.get_parameter_hierarchy(da=self))
             pc = sm.generate(name, **kwargs)
-        else:
+        elif 'pc' in kwargs:
             pc = kwargs['pc']
-            del kwargs['pc']
-
-        kwargs['class'] = layout
-        return lyo.generate(name, self, pc, all_obs=all_obs, **kwargs)
-
-    def generate_model(self, name, sim_model, bn, **kwargs):
-        if isinstance(bn, str):
-            bn = self.get_bayes_net(bn)
-
-        if sim_model in self.ModelLayouts:
-            return self.generate_lyo(name, sim_model, bn=bn, **kwargs)
         else:
-            return self.generate_mc(name, sim_model, bn=bn, **kwargs)
+            self.Log.error('Undefined parameter information')
+            return
 
-    def get_y0s(self, layout):
-        lyo = self.get_model_layout(layout)
+        return mbp.generate(name, da=self, pc=pc)
+
+    def get_y0_proto(self, sim_model):
+        lyo = self.get_sim_model(sim_model)
         return lyo.get_y0s()
 
     def copy_model(self, mod_src, **kwargs):

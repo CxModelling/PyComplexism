@@ -7,10 +7,7 @@ __all__ = ['ModelSelector']
 
 
 Pats = {
-    'PC': (r'PC\s*=\s*(\w+)', lambda x, v: x.Meta.PC == v),
-    'DC': (r'DC\s*=\s*(\w+)', lambda x, v: x.Meta.DC == v),
-    'MC': (r'MC\s*=\s*(\w+)', lambda x, v: x.Meta.Prototype == v),
-    'Proto': (r'\.(\w+)', lambda x, v: x.Meta.Prototype == v),
+    'Proto': (r'\.(\w+)', lambda x, v: x.Class == v),
     'Prefix': (r'#(\w+)', lambda x, v: x.Name.find(v) == 0)
 }
 
@@ -118,7 +115,7 @@ class ModelSelector:
 
 
 if __name__ == '__main__':
-    ss1, sp1 = ModelSelector.parse_selector('PC  =A , #B, .C')
+    ss1, sp1 = ModelSelector.parse_selector('#B, .C')
 
     print(sp1)
     for s in ss1:

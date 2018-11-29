@@ -1,7 +1,7 @@
 from complexism.mcore import ImpulseChecker, ImpulseResponse, get_impulse_response, get_impulse_checker
 
 __author__ = 'TimeWz667'
-__all__ = ['SingleEntry', 'MultipleEntry', 'InteractionEntry']
+__all__ = ['SingleEntry', 'MultipleEntry', 'InteractionEntry', 'SummaryEntry']
 
 
 class SingleEntry:
@@ -133,6 +133,9 @@ class SummaryEntry:
 
     def __repr__(self):
         return 'Task({}@{}->{})'.format(self.Selector, self.Key, self.NewName)
+
+    def clone(self):
+        return SummaryEntry(self.Selector, self.Key, self.NewName)
 
     def to_json(self):
         return {

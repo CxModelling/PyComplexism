@@ -45,8 +45,8 @@ class ObsMultiModel(Observer):
         for be in self.ObservingActors:
             model.Actors[be].fill(tab, model, ti)
 
-        for sel in self.ObservingSelectors:
-            tab[sel.NewName] = model.select_all(sel.Selector).sum(sel.Key)
+        for sel in self.ObservingSelectors.values():
+            tab[sel.NewName] = model.select_all(sel.Selector).sum(sel.Key, ti)
 
 
 class MultiModel(BranchModel):
@@ -83,8 +83,8 @@ class MultiModel(BranchModel):
         else:
             raise KeyError('Actor {} does not exist'.format(act))
 
-    def add_observing_selector(self, sel, par):
-        pass
+    def add_observing_selector(self, sel):
+        self.Observer.add_observing_selector(sel)
 
     @count()
     def do_request(self, req):

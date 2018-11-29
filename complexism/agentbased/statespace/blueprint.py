@@ -75,7 +75,6 @@ class BlueprintStSpABM(AbsModelBlueprint):
         # Prepare PC, DC
 
         da = kwargs['da'] if 'da' in kwargs else None
-
         pc = kwargs['pc'] if 'pc' in kwargs else None
         bn = kwargs['bn'] if 'bn' in kwargs else None
 
@@ -83,7 +82,7 @@ class BlueprintStSpABM(AbsModelBlueprint):
             if isinstance(pc, str):
                 bn, pc = pc, None
         elif not bn:
-            raise KeyError('Missing parameter-related information')
+            raise KeyError('Missed parameter-related information')
 
         if pc is None:
             if isinstance(bn, str):
@@ -102,7 +101,7 @@ class BlueprintStSpABM(AbsModelBlueprint):
             except KeyError as e:
                 raise e
         elif not isinstance(ss, cx.AbsBlueprint):
-            raise TypeError('da(Direct) required for identifying state-space')
+            raise TypeError('da(Director) required for identifying state-space')
 
         if pc is None:
             hie = self.get_parameter_hierarchy(dc=ss)

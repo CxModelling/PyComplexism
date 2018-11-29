@@ -12,7 +12,7 @@ __all__ = [
     'read_bn_script', 'read_bn_json', 'save_bn',
     'new_dbp', 'read_dbp_json', 'read_dbp_script', 'save_dbp',
     'new_mbp', # 'read_mbp_json', 'save_mbp',
-    'new_lyo', 'read_lyo_json', 'save_lyo',
+    # 'new_lyo', 'read_lyo_json', 'save_lyo',
     'simulate', 'update'
 ]
 
@@ -60,6 +60,8 @@ def new_mbp(name, model_type='StSpABM'):
         return ebm.BlueprintODEEBM(name)
     elif model_type == 'StSpODE':
         pass
+    elif model_type == 'MultiModel':
+        return mm.ModelLayout(name)
     else:
         pass
 
@@ -76,6 +78,8 @@ def read_mbp_json(js):
         return ebm.BlueprintODEEBM.from_json(js)
     elif js['Type'] == 'SSODE':
         pass
+    elif js['Type'] == 'MultiModel':
+        return mm.ModelLayout.from_json(js)
     else:
         pass
 
@@ -89,31 +93,31 @@ def save_mbp(mbp, path):
     save_json(mbp.to_json(), path)
 
 
-def read_lyo_json(js):
-    """
-    Load model layout from json format
-    :param js: json
-    :return: model layout
-    """
-    return mm.ModelLayout.from_json(js)
-
-
-def new_lyo(name):
-    """
-    Generate a new blueprint of layout
-    :param name: name of blueprint
-    :return: blueprint of layout
-    """
-    return mm.ModelLayout(name)
-
-
-def save_lyo(layout, path):
-    """
-    Output model layout to file system
-    :param layout: model layout
-    :param path: file path
-    """
-    save_json(layout.to_json(), path)
+# def read_lyo_json(js):
+#     """
+#     Load model layout from json format
+#     :param js: json
+#     :return: model layout
+#     """
+#     return mm.ModelLayout.from_json(js)
+#
+#
+# def new_lyo(name):
+#     """
+#     Generate a new blueprint of layout
+#     :param name: name of blueprint
+#     :return: blueprint of layout
+#     """
+#     return mm.ModelLayout(name)
+#
+#
+# def save_lyo(layout, path):
+#     """
+#     Output model layout to file system
+#     :param layout: model layout
+#     :param path: file path
+#     """
+#     save_json(layout.to_json(), path)
 
 
 def simulate(model, y0, fr, to, dt=1, seed=None, mid=False, log=True):

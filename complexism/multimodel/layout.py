@@ -1,3 +1,4 @@
+import epidag as dag
 from complexism.mcore import BranchY0, AbsModelBlueprint
 from complexism.multimodel.mm import MultiModel
 from complexism.multimodel.entries import *
@@ -7,12 +8,14 @@ __author__ = 'TimeWz667'
 
 class ModelLayout(AbsModelBlueprint):
     def __init__(self, name):
-        self.Name = name
+        AbsModelBlueprint.__init__(self, name)
         self.Entries = list()
         self.Interactions = list()
         self.Actors = list()
         self.ObsActors = []
         self.ObsModels = []
+        self.Summaries = dict()
+        self.ObsAllModels = False
 
     def add_entry(self, name, proto, y0=None, **kwargs):
         index = None
@@ -31,6 +34,12 @@ class ModelLayout(AbsModelBlueprint):
             self.Entries.append(MultipleEntry(name, proto, y0, index))
         else:
             self.Entries.append(SingleEntry(name, proto, y0))
+
+    def add_entry_js(self, js):
+        if 'Index' in js:
+            self.Entries.append(MultipleEntry.from_json(js))
+        else:
+            self.Entries.append(SingleEntry.from_json(js))
 
     def add_interaction(self, selector, checker, response):
         self.Interactions.append(InteractionEntry(selector, checker, response))
@@ -51,6 +60,15 @@ class ModelLayout(AbsModelBlueprint):
             else:
                 self.ObsActors = list(actors)
 
+        if not models and not actors:
+            self.ObsAllModels = True
+
+    def add_summary(self, selector, key, new_name=None):
+        if not new_name:
+            new_name = '{}_{}'.format(selector, key)
+        if new_name not in self.Summaries:
+            self.Summaries[new_name] = SummaryEntry(selector, key, new_name)
+
     def models(self):
         for v in self.Entries:
             for m in v.gen():
@@ -67,31 +85,53 @@ class ModelLayout(AbsModelBlueprint):
         for ent in self.Entries:
             if ent not in hie:
                 pro = ent.Prototype
-                if da.has_sim_model(pro):
-                    m = da.get_sim_model(pro)
-                else:
-                    m = da.get_model_layout(pro)
-
+                m = da.get_sim_model(pro)
                 hie.update(m.get_parameter_hierarchy(da))
                 chd.append(pro)
 
-        hie[self.Name] = chd
+        hie[self.Class] = chd
         return hie
 
-    def generate(self, name, da, pc, all_obs=False, **kwargs):
+    def generate(self, name, **kwargs):
+        da = kwargs['da'] if 'da' in kwargs else None
+        pc = kwargs['pc'] if 'pc' in kwargs else None
+        bn = kwargs['bn'] if 'bn' in kwargs else None
+        mcs = kwargs['mcs'] if 'mcs' in kwargs else None
+
+        if not pc and not bn:
+            bn = self.target_bn
+            if not bn:
+                # todo empty parameter model
+                raise KeyError('Undefined parameter model')
+
+        if da:
+            pass
+        elif 'mcs' in kwargs:
+            pass
+        else:
+            raise KeyError('da(Director) or a dict of model blueprint needed')
+
+        if pc is None:
+            hie = self.get_parameter_hierarchy(da=da)
+            sm = dag.as_simulation_core(bn, hie=hie)
+            pc = sm.generate(name, exo=kwargs['exo'] if 'exo' in kwargs else None)
+
         models = MultiModel(name, pars=pc)
+        models.Class = self.Class
 
         for mod in self.models():
             name, proto, _ = mod
             sub_pc = pc.breed(name, proto)
-            if da.has_sim_model(proto):
-                m = da.generate_mc(name, proto, pc=sub_pc, da=da)
-            elif da.has_model_layout(proto):
-                m = da.generate_lyo(name, proto, pc=sub_pc)
+            if mcs:
+                m = mcs[proto].generate(name, pc=sub_pc)
+            elif da.has_sim_model(proto):
+                m = da.generate_model(name, proto, pc=sub_pc, da=da)
             else:
-                raise KeyError("Not matched model or model layout")
+                raise KeyError("Unknown simulation model")
 
-            models.append_child(m, all_obs or proto in self.ObsModels)
+            models.append_child(m, self.ObsAllModels)
+            if name in self.ObsModels or proto in self.ObsModels:
+                models.add_observing_model(m)
 
         for interaction in self.Interactions:
             for m in models.select_all(interaction.Selector).values():
@@ -99,9 +139,14 @@ class ModelLayout(AbsModelBlueprint):
 
         for act in self.ObsActors:
             models.add_observing_actor(act)
-        if 'class' in kwargs:
-            models.Class = kwargs['class']
+
+        for _, sel in self.Summaries.items():
+            models.add_observing_selector(sel.clone())
+
         return models
+
+    def get_y0_proto(self):
+        return BranchY0()
 
     def get_y0s(self):
         y0s = BranchY0()
@@ -112,14 +157,14 @@ class ModelLayout(AbsModelBlueprint):
 
     def to_json(self):
         js = dict()
-        js['Name'] = self.Name
+        js['Class'] = self.Class
         js['Entries'] = [ent.to_json() for ent in self.Entries]
         js['Interactions'] = [inter.to_json() for inter in self.Interactions]
         return js
 
     @staticmethod
     def from_json(js):
-        lyo = ModelLayout(js['Name'])
+        lyo = ModelLayout(js['Class'])
         for ent in js['Entries']:
             if 'Index' in ent:
                 lyo.add_entry(ent['Name'], ent['Prototype'], ent['Y0'], **ent['Index'])
@@ -129,6 +174,9 @@ class ModelLayout(AbsModelBlueprint):
         for inter in js['Interactions']:
             lyo.add_interaction_js(inter)
         return lyo
+
+    def clone_model(self, mod_src, **kwargs):
+        pass
 
 
 if __name__ == '__main__':
