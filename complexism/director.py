@@ -31,17 +31,17 @@ class Director:
 
     def _add_mbp(self, mbp):
         if mbp in self.MCoreBlueprints:
-            self.Log.warning('Simulation Model {} have already existed'.format(mbp.Name))
+            self.Log.warning('Simulation Model {} have already existed'.format(mbp.Class))
         else:
-            self.MCoreBlueprints[mbp.Name] = mbp
-            self.Log.info('Simulation Model {} added'.format(mbp.Name))
+            self.MCoreBlueprints[mbp.Class] = mbp
+            self.Log.info('Simulation Model {} added'.format(mbp.Class))
 
     def _add_lyo(self, lyo):
         if lyo in self.ModelLayouts:
-            self.Log.warning('Model Layout {} have already existed'.format(lyo.Name))
+            self.Log.warning('Model Layout {} have already existed'.format(lyo.Class))
         else:
-            self.ModelLayouts[lyo.Name] = lyo
-            self.Log.info('Model Layout {} added'.format(lyo.Name))
+            self.ModelLayouts[lyo.Class] = lyo
+            self.Log.info('Model Layout {} added'.format(lyo.Class))
 
     def get_bayes_net(self, bn_name):
         try:
@@ -67,11 +67,57 @@ class Director:
         except KeyError:
             self.Log.warning('Unknown Model Layout')
 
+    def has_bayes_net(self, bn_name):
+        """
+        Check if the director has the Bayesian Network
+        :param bn_name: name of the Bayesian Network
+        :return: has or not
+        :rtype: bool
+        """
+        return bn_name in self.BayesianNetworks
+
+    def has_state_space_model(self, ss_name):
+        """
+        Check if the director has the state space model
+        :param ss_name: name of the state space model
+        :return: has or not
+        :rtype: bool
+        """
+        return ss_name in self.DCoreBlueprints
+
+    def has_sim_model(self, sm_name):
+        """
+        Check if the director has the simulation model
+        :param sm_name: name of the simulation model
+        :return: has or not
+        :rtype: bool
+        """
+        return sm_name in self.MCoreBlueprints
+
+    def has_model_layout(self, lyo_name):
+        """
+        Check if the director has the model layout
+        :param lyo_name: name of the model layout
+        :return: has or not
+        :rtype: bool
+        """
+        return lyo_name in self.ModelLayouts
+
     def read_bayes_net(self, script):
+        """
+        Read a script of a Bayesian Network
+        :param script: script of a Bayesian Network
+        :type script: string
+        """
         bn = read_bn_script(script)
         self._add_bn(bn)
 
     def load_bayes_net(self, file):
+        """
+        Load a js of a Bayesian Network
+        :param file: json of a Bayesian Network
+        :type file: dict or string
+        """
         try:
             bn = read_bn_json(load_json(file))
         except JSONDecodeError:
@@ -149,9 +195,19 @@ class Director:
             self.Log.warning('Model Blueprint {} not found'.format(mbp_name))
 
     def list_sim_models(self):
+        """
+        List the names of all the simulation models
+        :return: the names of all the simulation models
+        :rtype: list
+        """
         return list(self.MCoreBlueprints.keys())
 
     def new_model_layout(self, name):
+        """
+        Create a new model layout
+        :param name: name of the layout
+        :return: a blueprint of the new model layout
+        """
         layout = new_lyo(name)
         self._add_lyo(layout)
         return layout
@@ -184,29 +240,40 @@ class Director:
     def generate_mc(self, name, sim_model, **kwargs):
         mbp = self.get_sim_model(sim_model)
         kwargs['da'] = self
+        kwargs['class'] = sim_model
         return mbp.generate(name, **kwargs)
 
-    def _generate_lyo(self, name, layout, bn, all_obs=True, exo=None):
+    def generate_lyo(self, name, layout, all_obs=True, **kwargs):
         lyo = self.get_model_layout(layout)
-        if isinstance(bn, str):
-            bn = self.get_bayes_net(bn)
-        sm = dag.as_simulation_core(bn, lyo.get_parameter_hierarchy(self))
-        pc = sm.generate(name, exo=exo)
-        return lyo.generate(name, self, pc, all_obs=all_obs)
+        if 'pc' not in kwargs and 'bn' in kwargs:
+            bn = kwargs['bn']
+            del kwargs['bn']
+            sm = dag.as_simulation_core(bn, lyo.get_parameter_hierarchy(self))
+            pc = sm.generate(name, **kwargs)
+        else:
+            pc = kwargs['pc']
+            del kwargs['pc']
 
-    def generate_model(self, name, sim_model, bn):
+        kwargs['class'] = layout
+        return lyo.generate(name, self, pc, all_obs=all_obs, **kwargs)
+
+    def generate_model(self, name, sim_model, bn, **kwargs):
         if isinstance(bn, str):
             bn = self.get_bayes_net(bn)
 
         if sim_model in self.ModelLayouts:
-            return self._generate_lyo(name, sim_model, bn=bn)
+            return self.generate_lyo(name, sim_model, bn=bn, **kwargs)
         else:
-            return self.generate_mc(name, sim_model, bn=bn)
+            return self.generate_mc(name, sim_model, bn=bn, **kwargs)
 
     def get_y0s(self, layout):
         lyo = self.get_model_layout(layout)
         return lyo.get_y0s()
 
     def copy_model(self, mod_src, **kwargs):
+        cls_src = mod_src.Class
+        if not cls_src or not (self.has_sim_model(cls_src) or self.has_model_layout(cls_src)):
+            self.Log.warning("The prototype of the model cannot be identified")
+            return None
         # todo
-        pass
+

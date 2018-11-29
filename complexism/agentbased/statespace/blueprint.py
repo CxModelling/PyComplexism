@@ -1,7 +1,7 @@
 import epidag as dag
 from epidag.factory import get_workshop
 import complexism as cx
-from complexism.mcore import AbsBlueprintMCore
+from complexism.mcore import AbsModelBlueprint
 from .abmstsp import StSpAgentBasedModel, StSpY0
 from .breeder import StSpBreeder
 
@@ -9,9 +9,9 @@ __author__ = 'TimeWz667'
 __all__ = ['BlueprintStSpABM']
 
 
-class BlueprintStSpABM(AbsBlueprintMCore):
+class BlueprintStSpABM(AbsModelBlueprint):
     def __init__(self, name):
-        AbsBlueprintMCore.__init__(self, name)
+        AbsModelBlueprint.__init__(self, name)
         self.Population = {'Agent': {}, 'Networks': []}
         self.Behaviours = list()
         self.ObsBehaviours = list()
@@ -64,7 +64,7 @@ class BlueprintStSpABM(AbsBlueprintMCore):
         ag_gp = self.Population['Agent']['Group']
         trs = dc.RequiredSamplers
         return {
-            self.Name: [ag_gp],
+            self.Class: [ag_gp],
             ag_gp: trs
         }
 
@@ -116,6 +116,7 @@ class BlueprintStSpABM(AbsBlueprintMCore):
         eve = StSpBreeder(ag['Prefix'], ag['Group'], pc, ss)
         pop = cx.Population(eve)
         model = StSpAgentBasedModel(name, pc, pop)
+        model.Class = self.Class
 
         # Set resources
         resources = {
@@ -160,7 +161,7 @@ class BlueprintStSpABM(AbsBlueprintMCore):
         # todo
         pass
 
-    def clone(self, mod_src, **kwargs):
+    def clone_model(self, mod_src, **kwargs):
         # todo
         pass
 

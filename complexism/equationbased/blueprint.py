@@ -1,6 +1,6 @@
 from inspect import signature
 import epidag as dag
-from complexism.mcore import AbsBlueprintMCore
+from complexism.mcore import AbsModelBlueprint
 from .ebm import GenericEquationBasedModel, EBMY0
 from .odeebm import OrdinaryDifferentialEquationModel, OrdinaryDifferentialEquations, ODEY0
 
@@ -9,9 +9,9 @@ __author__ = 'TimeWz667'
 __all__ = ['BlueprintODEEBM']
 
 
-class BlueprintODEEBM(AbsBlueprintMCore):
+class BlueprintODEEBM(AbsModelBlueprint):
     def __init__(self, name):
-        AbsBlueprintMCore.__init__(self, name)
+        AbsModelBlueprint.__init__(self, name)
         self.Arguments['dt'] = 0.1
         self.Arguments['odt'] = 1
         self.ODE = None
@@ -53,7 +53,7 @@ class BlueprintODEEBM(AbsBlueprintMCore):
         })
 
     def get_parameter_hierarchy(self, da=None):
-        return {self.Name: []}
+        return {self.Class: []}
 
     def get_y0_proto(self):
         return ODEY0()
@@ -79,7 +79,7 @@ class BlueprintODEEBM(AbsBlueprintMCore):
 
         dt, odt = self.Arguments['dt'], self.Arguments['odt']
         model = OrdinaryDifferentialEquationModel(name, self.ODE, dt, odt, ys=self.Ys, xs=self.Xs, pars=pc)
-
+        model.Class = self.Class
         # Assign observations
         for st in self.ObsYs:
             model.add_observing_stock(st)
@@ -92,7 +92,7 @@ class BlueprintODEEBM(AbsBlueprintMCore):
     def to_json(self):
         pass
 
-    def clone(self, mod_src, **kwargs):
+    def clone_model(self, mod_src, **kwargs):
         pass
 
     @staticmethod
@@ -100,9 +100,9 @@ class BlueprintODEEBM(AbsBlueprintMCore):
         pass
 
 
-class BlueprintEBM(AbsBlueprintMCore):
+class BlueprintEBM(AbsModelBlueprint):
     def __init__(self, name):
-        AbsBlueprintMCore.__init__(self, name)
+        AbsModelBlueprint.__init__(self, name)
         self.YNames = None
         self.InternalVariables = None
         self.Equations = None
@@ -179,7 +179,7 @@ class BlueprintEBM(AbsBlueprintMCore):
         pass
 
     def get_parameter_hierarchy(self, da=None):
-        return {self.Name: []}
+        return {self.Class: []}
 
     def get_y0_proto(self):
         return EBMY0()
@@ -188,6 +188,6 @@ class BlueprintEBM(AbsBlueprintMCore):
         # todo
         pass
 
-    def clone(self, mod_src, **kwargs):
+    def clone_model(self, mod_src, **kwargs):
         # todo
         pass

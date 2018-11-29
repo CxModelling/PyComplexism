@@ -1,4 +1,3 @@
-import re
 from complexism.mcore import ImpulseChecker, ImpulseResponse, get_impulse_response, get_impulse_checker
 
 __author__ = 'TimeWz667'
@@ -124,3 +123,25 @@ class InteractionEntry:
     @staticmethod
     def from_json(js):
         return InteractionEntry(js['Selector'], js['Checker'], js['Response'])
+
+
+class SummaryEntry:
+    def __init__(self, sel, key, name=None):
+        self.Selector = sel
+        self.Key = key
+        self.NewName = name if name else '{}@{}'.format(sel, key)
+
+    def __repr__(self):
+        return 'Task({}@{}->{})'.format(self.Selector, self.Key, self.NewName)
+
+    def to_json(self):
+        return {
+            'Selector': self.Selector,
+            'Key': self.Key,
+            'NewName': self.NewName
+        }
+
+    @staticmethod
+    def from_json(js):
+        ent = js['Selector'], js['Key'], js['NewName']
+        return SummaryEntry(*ent)

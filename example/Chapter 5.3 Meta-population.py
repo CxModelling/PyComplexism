@@ -65,3 +65,6 @@ print(cx.get_counting_results('MM'))
 output[['H:S_H', 'H:I_H', 'H:R_H', 'V:S_V', 'V:I_V', 'H:Bite']].plot()
 # output.plot()
 plt.show()
+
+
+model

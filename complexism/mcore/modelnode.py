@@ -1,5 +1,5 @@
 from abc import ABCMeta, abstractmethod
-from complexism.element import Event, get_scheduler
+from complexism.element import Event, get_scheduler, DefaultScheduler
 from complexism.mcore import Observer, DefaultObserver, ModelSelector, EventListenerSet, LeafY0, BranchY0
 from complexism.misc.counter import count
 
@@ -10,6 +10,7 @@ __all__ = ['ModelAtom', 'LeafModel', 'BranchModel']
 class ModelAtom(metaclass=ABCMeta):
     def __init__(self, name, pars=None):
         self.Name = name
+        self.Class = None
         self.Parameters = pars
         self.Attributes = dict()
         self.__next = Event.NullEvent
@@ -172,11 +173,11 @@ class ModelAtom(metaclass=ABCMeta):
 
 
 class AbsModel(metaclass=ABCMeta):
-    def __init__(self, name, pars=None, obs: Observer=None, y0_class=None):
+    def __init__(self, name, pars=None, obs: Observer=None, y0_class=None, scheduler=DefaultScheduler):
         self.Name = name
         self.Observer = obs if obs else DefaultObserver()
         self.ClassY0 = y0_class
-        self.Scheduler = get_scheduler(self.Name)
+        self.Scheduler = get_scheduler(self.Name, tp=scheduler)
         self.Validator = None
         self.Listeners = EventListenerSet()
         self.Parameters = pars

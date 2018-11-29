@@ -1,5 +1,5 @@
-from complexism.agentbased import AgentBasedModel, MetaABM
-from complexism.mcore import AbsBlueprintMCore
+from complexism.agentbased import AgentBasedModel
+from complexism.mcore import AbsModelBlueprint
 from copy import deepcopy
 from epidag.factory import get_workshop
 import logging
@@ -12,9 +12,9 @@ __all__ = ['BlueprintABM', 'install_behaviour', 'install_network', 'install_trai
 logger = logging.getLogger('__name__')
 
 
-class BlueprintABM(AbsBlueprintMCore):
+class BlueprintABM(AbsModelBlueprint):
     def __init__(self, name, tar_pc, tar_dc):
-        AbsBlueprintMCore.__init__(self, name, {'ag_prefix': 'Ag'}, pc=tar_pc, dc=tar_dc)
+        AbsModelBlueprint.__init__(self, name, {'ag_prefix': 'Ag'}, pc=tar_pc, dc=tar_dc)
         self.Networks = list()
         self.Behaviours = list()
         self.Traits = list()
@@ -88,9 +88,10 @@ class BlueprintABM(AbsBlueprintMCore):
         if bes:
             for be in bes:
                 mod.add_obs_behaviour(be)
+
         return mod
 
-    def clone(self, mod_src, **kwargs):
+    def clone_model(self, mod_src, **kwargs):
         # copy model structure
         pc_new = kwargs['pc'] if 'pc' in kwargs else mod_src.PCore
         dc_new = kwargs['dc'] if 'dc' in kwargs else mod_src.DCore

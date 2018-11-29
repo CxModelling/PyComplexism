@@ -1,24 +1,20 @@
-from complexism.mcore import BranchY0
+from complexism.mcore import BranchY0, AbsModelBlueprint
 from complexism.multimodel.mm import MultiModel
 from complexism.multimodel.entries import *
 
 __author__ = 'TimeWz667'
 
 
-class ModelLayout:
+class ModelLayout(AbsModelBlueprint):
     def __init__(self, name):
         self.Name = name
         self.Entries = list()
         self.Interactions = list()
         self.Actors = list()
-        self.Children = dict()
-        self.ObsChildren = []
         self.ObsActors = []
+        self.ObsModels = []
 
-    def append_child(self, chd):
-        self.Children[chd.Name] = chd
-
-    def add_entry(self, name, proto, y0, **kwargs):
+    def add_entry(self, name, proto, y0=None, **kwargs):
         index = None
         if 'index' in kwargs:
             index = kwargs['index']
@@ -42,18 +38,18 @@ class ModelLayout:
     def add_interaction_js(self, js):
         self.Interactions.append((InteractionEntry.from_json(js)))
 
-    def set_observations(self, children=None, actors=None):
-        if children:
-            if isinstance(children, str):
-                self.ObsChildren.append(children)
+    def set_observations(self, models=None, actors=None):
+        if models:
+            if isinstance(models, str):
+                self.ObsModels.append(models)
             else:
-                self.ObsChildren = list(children)
+                self.ObsModels = list(models)
 
         if actors:
-            if isinstance(children, str):
-                self.ObsActors.append(children)
+            if isinstance(actors, str):
+                self.ObsActors.append(actors)
             else:
-                self.ObsActors = list(children)
+                self.ObsActors = list(actors)
 
     def models(self):
         for v in self.Entries:
@@ -71,25 +67,31 @@ class ModelLayout:
         for ent in self.Entries:
             if ent not in hie:
                 pro = ent.Prototype
-                hie.update(da.get_sim_model(pro).get_parameter_hierarchy(da))
-                chd.append(pro)
+                if da.has_sim_model(pro):
+                    m = da.get_sim_model(pro)
+                else:
+                    m = da.get_model_layout(pro)
 
-        for sub in self.Children:
-            if sub.Name not in hie:
-                hie[sub.Name] = sub.get_parameter_hierarchy(da)
-                chd.append(sub.Name)
+                hie.update(m.get_parameter_hierarchy(da))
+                chd.append(pro)
 
         hie[self.Name] = chd
         return hie
 
-    def generate(self, name, da, pc, all_obs=False):
+    def generate(self, name, da, pc, all_obs=False, **kwargs):
         models = MultiModel(name, pars=pc)
 
         for mod in self.models():
             name, proto, _ = mod
             sub_pc = pc.breed(name, proto)
-            m = da.generate_mc(name, proto, pc=sub_pc, da=da)
-            models.append_child(m, all_obs or proto in self.ObsChildren)
+            if da.has_sim_model(proto):
+                m = da.generate_mc(name, proto, pc=sub_pc, da=da)
+            elif da.has_model_layout(proto):
+                m = da.generate_lyo(name, proto, pc=sub_pc)
+            else:
+                raise KeyError("Not matched model or model layout")
+
+            models.append_child(m, all_obs or proto in self.ObsModels)
 
         for interaction in self.Interactions:
             for m in models.select_all(interaction.Selector).values():
@@ -97,7 +99,8 @@ class ModelLayout:
 
         for act in self.ObsActors:
             models.add_observing_actor(act)
-
+        if 'class' in kwargs:
+            models.Class = kwargs['class']
         return models
 
     def get_y0s(self):

@@ -1,4 +1,4 @@
-from complexism.mcore import AbsBlueprintMCore
+from complexism.mcore import AbsModelBlueprint
 from inspect import signature
 import epidag as dag
 from copy import deepcopy
@@ -7,9 +7,9 @@ from .odeebm import OrdinaryDifferentialEquationModel
 __author__ = 'TimeWz667'
 
 
-class BlueprintCoreODE(AbsBlueprintMCore):
+class BlueprintCoreODE(AbsModelBlueprint):
     def __init__(self, name, tar_pc, tar_dc):
-        AbsBlueprintMCore.__init__(self, name, {'dt': 1, 'fdt': 0.1}, pc=tar_pc, dc=tar_dc)
+        AbsModelBlueprint.__init__(self, name, {'dt': 1, 'fdt': 0.1}, pc=tar_pc, dc=tar_dc)
         self.Behaviours = list()
         self.Obs_s_t_b = list(), list(), list()
 

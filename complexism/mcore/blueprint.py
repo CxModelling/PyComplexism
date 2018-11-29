@@ -1,12 +1,11 @@
 from abc import ABCMeta, abstractmethod
-from .y0 import LeafY0
 
 __author__ = 'TimeWz667'
 
 
-class AbsBlueprintMCore(metaclass=ABCMeta):
+class AbsModelBlueprint(metaclass=ABCMeta):
     def __init__(self, name):
-        self.Name = name
+        self.Class = name
         self.Arguments = dict()
         self.__pc = None
 
@@ -34,7 +33,7 @@ class AbsBlueprintMCore(metaclass=ABCMeta):
         pass
 
     @property
-    def require_pc(self):
+    def requires_pc(self):
         return bool(self.__pc)
 
     @abstractmethod
@@ -46,7 +45,7 @@ class AbsBlueprintMCore(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def clone(self, mod_src, **kwargs):
+    def clone_model(self, mod_src, **kwargs):
         pass
 
     @staticmethod

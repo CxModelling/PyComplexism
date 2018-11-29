@@ -19,7 +19,6 @@ def SIR_ODE(y, t, p, x):
     life = x['life']
     f = y[0]
     m = y[1]
-    n = sum(y)
 
     brs = life.get_birth_rate(t)
     mrs = life.get_migration_rate(t)

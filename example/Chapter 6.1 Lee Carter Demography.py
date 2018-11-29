@@ -41,7 +41,7 @@ abm.add_behaviour('L', 'BirthAgeingDeathLeeCarter', s_death='Dead', t_die='Die',
 model = ctrl.generate_model('Test', 'BD', bn='pBD')
 
 y0 = [
-    {'n': 500, 'attributes': {'st': 'Alive'}}
+    {'n': 5000, 'attributes': {'st': 'Alive'}}
 ]
 
 
