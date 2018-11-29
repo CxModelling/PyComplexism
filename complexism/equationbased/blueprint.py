@@ -17,7 +17,7 @@ class BlueprintODEEBM(AbsModelBlueprint):
         self.ODE = None
         self.Ys = None
         self.Xs = None
-        self.ObsYs = None
+        self.ObsYs = list()
         self.Measurements = list()
         self.ObsStocks = list()
 
@@ -59,7 +59,7 @@ class BlueprintODEEBM(AbsModelBlueprint):
         return ODEY0()
 
     def generate(self, name, **kwargs):
-        if not all([self.Ys, self.ODE, self.ObsYs]):
+        if not all([self.Ys, self.ODE]):
             raise TypeError('Equation have not been assigned')
 
         # Prepare PC, DC

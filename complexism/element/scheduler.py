@@ -5,8 +5,8 @@ from .event import Event
 __author__ = 'TimeWz667'
 __all__ = ['get_scheduler', 'DefaultScheduler', 'Request', 'Disclosure']
 
-DefaultScheduler = 'PriorityQueue'
-# DefaultScheduler = 'Looping'
+# DefaultScheduler = 'PriorityQueue'
+DefaultScheduler = 'Looping'
 
 
 class Disclosure:

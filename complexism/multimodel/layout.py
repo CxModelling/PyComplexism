@@ -98,7 +98,7 @@ class ModelLayout(AbsModelBlueprint):
         bn = kwargs['bn'] if 'bn' in kwargs else None
         mcs = kwargs['mcs'] if 'mcs' in kwargs else None
 
-        if not pc and not bn:
+        if pc is None and bn is None:
             bn = self.target_bn
             if not bn:
                 # todo empty parameter model

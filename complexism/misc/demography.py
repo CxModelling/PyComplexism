@@ -75,6 +75,11 @@ class DemographySex(AbsDemography):
         self.Migration = {'Female': None, 'Male': None}
         self.Population = {'Female': None, 'Male': None}
 
+        self.CurrentDeath = (0, None)
+        self.CurrentBirth = (0, None)
+        self.CurrentMigration = (0, None)
+        self.CurrentPopulation = (0, None)
+
     def load_death_data(self, df, i_year, i_f, i_m):
         if not self.FullyInputted:
             self.Death['Female'] = dat.TimeSeries(df, i_year, i_f)
@@ -132,10 +137,13 @@ class DemographySex(AbsDemography):
         elif sex == 'Male':
             return self.Death['Male'](year)
         else:
-            return {
-                'Female': self.Death['Female'](year),
-                'Male': self.Death['Male'](year)
-            }
+            if self.CurrentDeath[0] is not year:
+                self.CurrentDeath = (year, {
+                    'Female': self.Death['Female'](year),
+                    'Male': self.Death['Male'](year)
+                })
+
+            return self.CurrentDeath[1]
 
     @check_year
     def get_birth_rate(self, year, sex=None):
@@ -144,10 +152,13 @@ class DemographySex(AbsDemography):
         elif sex == 'Male':
             return self.Birth['Male'](year)
         else:
-            return {
-                'Female': self.Birth['Female'](year),
-                'Male': self.Birth['Male'](year)
-            }
+            if self.CurrentBirth[0] is not year:
+                self.CurrentBirth = (year, {
+                    'Female': self.Birth['Female'](year),
+                    'Male': self.Birth['Male'](year)
+                })
+
+            return self.CurrentBirth[1]
 
     @check_year
     def get_migration_rate(self, year, sex=None):
@@ -156,10 +167,13 @@ class DemographySex(AbsDemography):
         elif sex == 'Male':
             return self.Migration['Male'](year)
         else:
-            return {
-                'Female': self.Migration['Female'](year),
-                'Male': self.Migration['Male'](year)
-            }
+            if self.CurrentMigration[0] is not year:
+                self.CurrentMigration = (year, {
+                    'Female': self.Migration['Female'](year),
+                    'Male': self.Migration['Male'](year)
+                })
+
+            return self.CurrentMigration[1]
 
     @check_year
     def get_population(self, year, sex=None):
@@ -168,10 +182,13 @@ class DemographySex(AbsDemography):
         elif sex == 'Male':
             return self.Population['Male'](year)
         else:
-            return {
-                'Female': self.Population['Female'](year),
-                'Male': self.Population['Male'](year)
-            }
+            if self.CurrentPopulation[0] is not year:
+                self.CurrentPopulation = (year, {
+                    'Female': self.Population['Female'](year),
+                    'Male': self.Population['Male'](year)
+                })
+
+            return self.CurrentPopulation[1]
 
     @check_year
     def get_population_sampler(self, year):

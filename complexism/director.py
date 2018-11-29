@@ -201,7 +201,8 @@ class Director:
             del kwargs['bn']
             if isinstance(bn, str):
                 bn = self.get_bayes_net(bn)
-            sm = dag.as_simulation_core(bn, mbp.get_parameter_hierarchy(da=self))
+            hei = mbp.get_parameter_hierarchy(da=self)
+            sm = dag.as_simulation_core(bn, hei)
             pc = sm.generate(name, **kwargs)
         elif 'pc' in kwargs:
             pc = kwargs['pc']
