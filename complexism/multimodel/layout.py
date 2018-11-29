@@ -148,10 +148,12 @@ class ModelLayout(AbsModelBlueprint):
     def get_y0_proto(self):
         return BranchY0()
 
-    def get_y0s(self):
+    def get_y0s(self, da=None):
         y0s = BranchY0()
         for mod in self.models():
-            name, _, y0 = mod
+            name, proto, y0 = mod
+            if not y0:
+                y0 = da.get_sim_model(proto).get_y0s(da)
             y0s.append_child(name, y0)
         return y0s
 

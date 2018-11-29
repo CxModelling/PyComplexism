@@ -212,8 +212,12 @@ class Director:
         return mbp.generate(name, da=self, pc=pc)
 
     def get_y0_proto(self, sim_model):
-        lyo = self.get_sim_model(sim_model)
-        return lyo.get_y0s()
+        sm = self.get_sim_model(sim_model)
+        return sm.get_y0s()
+
+    def get_y0s(self, sim_model):
+        sm = self.get_sim_model(sim_model)
+        return sm.get_y0s(da=self)
 
     def copy_model(self, mod_src, **kwargs):
         cls_src = mod_src.Class

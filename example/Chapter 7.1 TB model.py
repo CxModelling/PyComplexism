@@ -13,7 +13,7 @@ ds.complete_loading()
 
 
 psc = """
-PCore pSIR {
+PCore pSLIR {
     beta = 0.4
     lambda = 0.2
     gamma = 0.5
@@ -69,7 +69,7 @@ bp.set_observations(states=['Inf', 'Rec', 'Dead'])
 y0 = bp.get_y0_proto()
 y0.define(n=100, st='Inf')
 
-lyo = ctrl.new_model_layout('MIR')
+lyo = ctrl.new_sim_model('MIR', 'MultiModel')
 lyo.add_entry('M', 'IR', y0, fr=1, to=3)
 y0s = lyo.get_y0s()
 
@@ -80,7 +80,7 @@ bp.set_external_variables({'life': ds})
 bp.set_dt(dt=0.1, odt=1)
 bp.set_observations()
 
-lyo = ctrl.new_model_layout('SLIR')
+lyo = ctrl.new_sim_model('SLIR', 'MultiModel')
 
 y0 = bp.get_y0_proto()
 ns = {k: v.sum()/100 for k, v in ds.get_population(1990).items()}
@@ -92,7 +92,7 @@ lyo.add_entry('mir', 'MIR', y0s)
 lyo.add_entry('sl', 'SL', y0)
 
 
-model = ctrl.generate_model('M1', 'SLIR', bn='pSIR')
+model = ctrl.generate_model('M1', 'SLIR', bn='pSLIR')
 
 y0 = lyo.get_y0s()
 

@@ -28,7 +28,7 @@ mbp_v.add_behaviour('StInf', 'StateTrack', s_src='I_V')
 mbp_v.set_observations(states=['S_V', 'I_V'], behaviours=['V2V'])
 
 
-lyo = ctrl.new_model_layout('VectorBorne')
+lyo = ctrl.new_sim_model('VectorBorne', 'MultiModel')
 
 y0_h = mbp_h.get_y0_proto()
 y0_h.define(st='S_H', n=500)
@@ -45,13 +45,14 @@ lyo.add_interaction('H',
                     cx.WhoStartWithChecker('StInf', 'update value'),
                     cx.ABMValueImpulse('Bite', 'v1'))
 
+lyo.set_observations()
 
 print(lyo.get_parameter_hierarchy(ctrl))
+y0s = ctrl.get_y0_proto('VectorBorne')
+y0s.print()
 
 model = ctrl.generate_model('M3', 'VectorBorne', bn='pVectorBorne')
-y0s = ctrl.get_y0s('VectorBorne')
 
-print(y0s)
 
 cx.start_counting('MM')
 output = cx.simulate(model, y0s, 0, 10, .5, log=False)
@@ -65,6 +66,3 @@ print(cx.get_counting_results('MM'))
 output[['H:S_H', 'H:I_H', 'H:R_H', 'V:S_V', 'V:I_V', 'H:Bite']].plot()
 # output.plot()
 plt.show()
-
-
-model

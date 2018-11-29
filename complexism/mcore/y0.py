@@ -41,6 +41,15 @@ class AbsY0(metaclass=ABCMeta):
     def clone(self):
         pass
 
+    def print(self):
+        # todo recode
+        if self.Entries:
+            print(type(self).__name__ + ' Entries: ')
+            for ent in self.Entries:
+                print('\t' + str(ent))
+        else:
+            print(type(self).__name__ + ' Empty Y0')
+
 
 class LeafY0(AbsY0):
     def __init__(self):
@@ -137,3 +146,9 @@ class BranchY0(AbsY0):
     def from_prototype(proto):
         assert issubclass(type(proto), BranchY0)
         return proto
+
+    def print(self):
+        AbsY0.print(self)
+        for k, v in self.ChildrenY0.items():
+            print('|- {} -|'.format(k))
+            v.print()

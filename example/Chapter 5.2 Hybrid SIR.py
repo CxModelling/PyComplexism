@@ -73,10 +73,10 @@ mbp_i.set_observations(states=['Inf', 'Rec'],
                        behaviours=['InfIn', 'StInf'])
 
 
-lyo = ctrl.new_model_layout('HybridSIR')
+lyo = ctrl.new_sim_model('HybridSIR', 'MultiModel')
 
 y0_sr = mbp_sr.get_y0_proto()
-y0_sr.define('Sus', n=900)
+y0_sr.define(st='Sus', n=900)
 lyo.add_entry('E', 'SR', y0_sr)
 
 y0_i = mbp_i.get_y0_proto()
@@ -103,10 +103,12 @@ for m, _, _ in lyo.models():
 
 print(lyo.get_parameter_hierarchy(ctrl))
 
-model = ctrl.generate_model('M2', 'HybridSIR', bn='pCloseSIR')
-y0s = ctrl.get_y0s('HybridSIR')
+lyo.set_observations()
 
-print(y0s)
+model = ctrl.generate_model('M2', 'HybridSIR', bn='pCloseSIR')
+y0s = lyo.get_y0s()
+
+y0s.print()
 
 cx.start_counting('MM')
 output = cx.simulate(model, y0s, 0, 10, .5, log=False)

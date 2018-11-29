@@ -32,6 +32,9 @@ class AbsModelBlueprint(metaclass=ABCMeta):
     def get_y0_proto(self):
         pass
 
+    def get_y0s(self, da=None):
+        return self.get_y0_proto()
+
     @property
     def requires_bn(self):
         return bool(self.__bn)
