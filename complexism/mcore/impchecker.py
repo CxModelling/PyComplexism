@@ -2,7 +2,7 @@ from abc import ABCMeta, abstractmethod
 import re
 
 __all__ = ['ImpulseChecker', 'get_impulse_checker',
-           'StartsWithChecker', 'RegexChecker',
+           'StartsWithChecker', 'RegexChecker', 'StartsWithAndMatchesChecker',
            'InclusionChecker', 'InitialChecker', 'IsChecker', 'WhoStartWithChecker']
 
 
@@ -44,6 +44,37 @@ class StartsWithChecker(ImpulseChecker):
     def from_json(js):
         try:
             return StartsWithChecker(js['Start'])
+        except KeyError:
+            ImpulseChecker.from_json(js)
+
+
+class StartsWithAndMatchesChecker(ImpulseChecker):
+    def __init__(self, s, kvs):
+        self.Start = s
+        self.KeyValues = kvs
+
+    def __call__(self, disclosure):
+        if not disclosure.What.startswith(self.Start):
+            return False
+        try:
+            for k, v in self.KeyValues.items():
+                if disclosure[k] != v:
+                    return False
+
+            return True
+        except KeyError:
+            return False
+
+    def to_json(self):
+        js = ImpulseChecker.to_json(self)
+        js['Start'] = self.Start
+        js['KeyValues'] = self.KeyValues
+        return js
+
+    @staticmethod
+    def from_json(js):
+        try:
+            return StartsWithAndMatchesChecker(js['Start'], js['KeyValues'])
         except KeyError:
             ImpulseChecker.from_json(js)
 
@@ -142,6 +173,7 @@ CheckerLibrary = {
     'InitialChecker': ImpulseChecker,
     'IsChecker': IsChecker,
     'StartsWithChecker': StartsWithChecker,
+    'StartsWithAndMatchesChecker': StartsWithAndMatchesChecker,
     'RegexChecker': RegexChecker,
     'InclusionChecker': InclusionChecker,
     'WhoStartWithChecker': WhoStartWithChecker

@@ -91,7 +91,6 @@ lyo.add_interaction('E',
                     cx.StartsWithChecker('remove agent'),
                     cx.AddOneImpulse('Rec'))
 
-
 lyo.add_interaction('E',
                     cx.StartsWithChecker('add'),
                     cx.MinusNImpulse('Sus', 'n'))

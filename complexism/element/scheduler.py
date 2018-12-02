@@ -11,7 +11,7 @@ DefaultScheduler = 'Looping'
 
 class Disclosure:
     def __init__(self, what, who, where, **kwargs):
-        self.What = what
+        self.What = str(what)
         self.Who = who
         self.Where = [where] if isinstance(where, str) else where
         self.Arguments = dict(kwargs)

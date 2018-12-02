@@ -82,5 +82,9 @@ register_behaviour('BirthAgeingDeathLeeCarter', BirthAgeingDeathLeeCarter,
                    [vld.Options('s_death', 'states'),
                     vld.Options('t_die', 'transitions'),
                     vld.Options('s_birth', 'states'),
-                    vld.NotNull('dlc')
-                   ])
+                    vld.NotNull('dlc')])
+
+register_behaviour('CohortLeeCarter', CohortLeeCarter,
+                   [vld.Options('s_death', 'states'),
+                    vld.Options('t_die', 'transitions'),
+                    vld.NotNull('dlc')])

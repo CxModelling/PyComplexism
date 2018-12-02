@@ -153,13 +153,13 @@ class GenericAgentBasedModel(LeafModel, metaclass=ABCMeta):
 
         return ags
 
-    def kill(self, i, ti):
+    def kill(self, i, ti, actor=None):
         ag = self.Population[i]
         bes = self.check_exit(ag)
         self.Scheduler.remove_atom(ag)
         self.Population.remove_agent(i)
         self.impulse_exit(bes, ag, ti)
-        self.disclose('remove agent', ag.Name)
+        self.disclose('remove agent', who=actor if actor else self.Name, Name=ag.Name, **ag.Attributes)
 
     @count()
     def do_request(self, req: Request):

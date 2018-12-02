@@ -46,7 +46,7 @@ y0.define(st='S', n=950)
 y0.define(st='I', n=50)
 y0.define(st='R', n=0)
 
-output = cx.simulate(model, y0, 0, 10, 0.5, log=True)
+output = cx.simulate(model, y0, 0, 10, 0.5, log=False)
 
 
 # Step 6 inference, draw figures, and manage outputs
@@ -56,7 +56,7 @@ ax = output.plot(ax=axes[0])
 ax.set_xlim([0, 30])
 
 # Internal intervention
-model.shock(time=10, action='impulse', k='dis', v=0.1)
+model.shock(time=10, action='impulse', k='dis', v=10)
 output = cx.update(model, to=20, dt=1)
 ax = output.plot(ax=axes[1])
 ax.set_xlim([0, 30])

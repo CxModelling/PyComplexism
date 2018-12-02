@@ -58,7 +58,7 @@ class AbsDemography(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def get_population_sampler(self, year):
+    def get_population_sampler(self, year, **kwargs):
         pass
 
     def __str__(self):
@@ -191,7 +191,7 @@ class DemographySex(AbsDemography):
             return self.CurrentPopulation[1]
 
     @check_year
-    def get_population_sampler(self, year):
+    def get_population_sampler(self, year, **kwargs):
         """
         Get a sampler for sampling population given a year
         :param year: year of request
@@ -441,28 +441,55 @@ class DemographyLeeCarter(AbsDemography):
         }
 
     @check_year
-    def get_population_sampler(self, year):
+    def get_population_sampler(self, year, sex=None):
         """
         Get a sampler for sampling population given a year
         :param year: year of request
+        :param sex: sex of request none for both
         :return: sampler fn(n=1)
         """
-        tab_f = self.AgeStr['Female'][year]
-        tab_m = self.AgeStr['Male'][year]
+        if sex == 'Female':
+            tab_f = self.AgeStr['Female'][year]
+            tab_f = tab_f / tab_f.sum()
 
-        n_all = tab_f.sum() + tab_m.sum()
-        tab_f = tab_f / n_all
-        tab_m = tab_m / n_all
-        pr = list(tab_f) + list(tab_m)
-        atr = [('Female', a) for a in self.Ages] + [('Male', a) for a in self.Ages]
+            pr = list(tab_f)
+            ages = list(range(len(pr)))
 
-        def fn(n=1):
-            if n is 1:
-                sam = rd.choice(range(len(pr)), 1, p=pr)
-                return atr[sam[0]]
-            else:
-                sam = rd.choice(range(len(pr)), n, p=pr)
-                return [atr[i] for i in sam]
+            def fn(n=1):
+                if n is 1:
+                    return rd.choice(ages, 1, p=pr)[0]
+                else:
+                    return rd.choice(ages, n, p=pr)
+
+        elif sex == 'Male':
+            tab_m = self.AgeStr['Male'][year]
+            tab_m = tab_m / tab_m.sum()
+
+            pr = list(tab_m)
+            ages = list(range(len(pr)))
+
+            def fn(n=1):
+                if n is 1:
+                    return rd.choice(ages, 1, p=pr)[0]
+                else:
+                    return rd.choice(ages, n, p=pr)
+        else:
+            tab_f = self.AgeStr['Female'][year]
+            tab_m = self.AgeStr['Male'][year]
+
+            n_all = tab_f.sum() + tab_m.sum()
+            tab_f = tab_f / n_all
+            tab_m = tab_m / n_all
+            pr = list(tab_f) + list(tab_m)
+            atr = [('Female', a) for a in self.Ages] + [('Male', a) for a in self.Ages]
+
+            def fn(n=1):
+                if n is 1:
+                    sam = rd.choice(range(len(pr)), 1, p=pr)
+                    return atr[sam[0]]
+                else:
+                    sam = rd.choice(range(len(pr)), n, p=pr)
+                    return [atr[i] for i in sam]
 
         return fn
 

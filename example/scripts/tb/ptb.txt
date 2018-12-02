@@ -1,11 +1,11 @@
 PCore pTB {
-    r_tr = 10
+    r_tr = 2
     r_slat = 0.2
 
     r_act = 0.073
-    r_ract = 0.0073
-    r_rel = 0.0073
-    r_death = 0.025
+    r_ract = 0.00073
+    r_rel = 0.00073
+    r_death = 1
 
     r_cure = 0.2
 
@@ -18,6 +18,6 @@ PCore pTB {
     Cure ~ exp(r_cure)
     Recover ~ k(1/24)
 
-    Die_TB ~ exp(0.5)
+    Die_TB ~ exp(0.2)
     Die ~ exp(r_death)
 }

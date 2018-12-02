@@ -7,7 +7,8 @@ from ..modifier import LocRateModifier
 from .behaviour import ActiveModBehaviour
 
 __author__ = 'TimeWz667'
-__all__ = ['Reincarnation', 'Cohort', 'LifeRate', 'LifeS', 'AgentImport', 'BirthAgeingDeathLeeCarter']
+__all__ = ['Reincarnation', 'Cohort', 'LifeRate', 'LifeS', 'AgentImport',
+           'BirthAgeingDeathLeeCarter', 'CohortLeeCarter']
 
 
 class Reincarnation(PassiveBehaviour):
@@ -58,7 +59,7 @@ class Cohort(PassiveBehaviour):
         pass
 
     def impulse_change(self, model, ag, ti, args_pre=None, args_post=None):
-        model.kill(ag.Name, ti)
+        model.kill(ag.Name, ti, self.Name)
         self.DeathN += 1
 
     def fill(self, obs, model, ti):
@@ -141,7 +142,6 @@ class LifeS(ActiveBehaviour):
         if prob > 0:
             n = rd.binomial(n, prob)
 
-            self.BirthN += n
             model.birth(n=n, ti=ti, st=self.S_birth)
 
     def register(self, ag, ti):
@@ -151,13 +151,13 @@ class LifeS(ActiveBehaviour):
         model.kill(ag.Name, ti)
 
     def fill(self, obs, model, ti):
-        obs[self.Name] = self.BirthN
+        obs[self.Name] = self.Rate * (1 - len(model) / self.Cap)
 
     def __repr__(self):
         return 'S-shape({}, K={}, R={})'.format(self.Name, self.Cap, self.Rate)
 
     def match(self, be_src, ags_src, ags_new, ti):
-        self.BirthN = be_src.BirthN
+        pass
 
 
 class BirthAgeingDeathLeeCarter(ActiveModBehaviour):
@@ -191,7 +191,6 @@ class BirthAgeingDeathLeeCarter(ActiveModBehaviour):
     def do_action(self, model, td, ti):
         if td == 'Ageing':
             self.__update_data(ti)
-            self.__shock(model, ti)
 
             # Ageing
             to_delete = list()
@@ -222,6 +221,9 @@ class BirthAgeingDeathLeeCarter(ActiveModBehaviour):
             for ag in ags:
                 ag['Sex'] = 'Male'
                 ag['Age'] = 0
+
+            # Update death rate
+            self.__shock(model, ti)
             model.disclose('Ageing', self.Name)
             model.disclose('Birth', self.Name)
 
@@ -249,6 +251,93 @@ class BirthAgeingDeathLeeCarter(ActiveModBehaviour):
     def __update_data(self, ti):
         self.DeathRates = self.LeeCarter.get_death_rate(ti)
         self.BirPrF = self.LeeCarter.get_prob_female_at_birth(ti)
+        self.SexAgeSam = self.LeeCarter.get_population_sampler(ti)
+
+    def __shock(self, model, ti):
+        for ag in model.agents:
+            dr = self.DeathRates[ag['Sex']][ag['Age']]
+            ag.shock(ti, None, self.Name, value=dr)
+        model.disclose('Update death rates', self.Name)
+
+
+class CohortLeeCarter(ActiveModBehaviour):
+    def __init__(self, s_death, t_die, dlc):
+        mod = LocRateModifier(t_die)
+        years = range(dlc.YearStart, dlc.YearEnd + 1)
+        ActiveModBehaviour.__init__(self, ScheduleTicker(years), mod, StateEnterTrigger(s_death))
+        self.S_death = s_death.Name
+        self.T_die = t_die
+        self.LeeCarter = dlc
+        self.DeathRates = self.LeeCarter.get_death_rate(self.LeeCarter.YearStart)
+        self.SexAgeSam = self.LeeCarter.get_population_sampler(self.LeeCarter.YearStart)
+        self.MaleAgeSam = self.LeeCarter.get_population_sampler(self.LeeCarter.YearStart, sex='Male')
+        self.FemaleAgeSam = self.LeeCarter.get_population_sampler(self.LeeCarter.YearStart, sex='Female')
+
+    def initialise(self, ti, model):
+        ti = max(ti, self.LeeCarter.YearStart)
+        self.__update_data(ti)
+        ActiveModBehaviour.initialise(self, ti, model)
+        self.__shock(model, ti)
+
+    def reset(self, ti, model):
+        self.Clock.initialise(ti)
+        self.__update_data(ti)
+        ActiveModBehaviour.reset(self, ti, model)
+        self.__shock(model, ti)
+
+    def compose_event(self, ti):
+        return Event('Ageing', float(ti))
+
+    def do_action(self, model, td, ti):
+        if td == 'Ageing':
+            self.__update_data(ti)
+
+            # Ageing
+            to_delete = list()
+            for ag in model.agents:
+                ag['Age'] += 1
+                if ag['Age'] >= 100:
+                    to_delete.append(ag)
+
+            for ag in to_delete:
+                model.kill(ag.Name, ti)
+                model.Observer.record(ag, 'Die', ti)
+
+            self.__shock(model, ti)
+
+            model.disclose('Ageing', self.Name)
+
+    def register(self, ag, ti):
+        ActiveModBehaviour.register(self, ag, ti)
+        if 'Sex' not in ag.Attributes:
+            ag['Sex'], ag['Age'] = self.SexAgeSam()
+        elif 'Age' not in ag.Attributes:
+            if ag['Sex'] == 'Female':
+                ag['Age'] = self.FemaleAgeSam()
+            else:
+                ag['Age'] = self.MaleAgeSam()
+
+            dr = self.DeathRates[ag['Sex']][ag['Age']]
+            ag.shock(ti, None, self.Name, value=dr)
+
+    def impulse_change(self, model, ag, ti, args_pre=None, args_post=None):
+        model.kill(ag.Name, ti)
+
+    def match(self, be_src, ags_src, ags_new, ti):
+        pass
+
+    def fill(self, obs, model, ti):
+        try:
+            obs['SexRatio'] = model.Population.count(Sex='Male') / model.Population.count(Sex='Female')
+        except ZeroDivisionError:
+            obs['SexRatio'] = float('inf')
+
+        ages = [ag['Age'] for ag in model.agents]
+
+        obs['AvgAge'] = np.mean(ages)
+
+    def __update_data(self, ti):
+        self.DeathRates = self.LeeCarter.get_death_rate(ti)
         self.SexAgeSam = self.LeeCarter.get_population_sampler(ti)
 
     def __shock(self, model, ti):
