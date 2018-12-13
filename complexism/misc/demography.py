@@ -5,7 +5,7 @@ import pandas as pd
 import epidag.data as dat
 
 __author__ = 'TimeWz667'
-__all__ = ['AbsDemography', 'DemographySex', 'DemographyLeeCarter']
+__all__ = ['AbsDemography', 'DemographyTotal', 'DemographySex', 'DemographyLeeCarter']
 
 
 def check_year(fn):
@@ -63,6 +63,100 @@ class AbsDemography(metaclass=ABCMeta):
 
     def __str__(self):
         return 'Demographic dataset [{}, {}]'.format(self.YearStart, self.YearEnd)
+
+    __repr__ = __str__
+
+
+class DemographyTotal(AbsDemography):
+    def __init__(self):
+        AbsDemography.__init__(self)
+        self.Death = None
+        self.Birth = None
+        self.Migration = None
+        self.Population = None
+
+        self.CurrentDeath = (0, None)
+        self.CurrentBirth = (0, None)
+        self.CurrentMigration = (0, None)
+        self.CurrentPopulation = (0, None)
+
+    def load_death_data(self, df, i_year, i_death):
+        if not self.FullyInputted:
+            self.Death = dat.TimeSeries(df, i_year, i_death)
+
+            self.YearStart = max(self.YearStart, df[i_year].min())
+            self.YearEnd = min(self.YearEnd, df[i_year].max())
+
+    def load_birth_data(self, df, i_year, i_birth):
+        if not self.FullyInputted:
+            self.Birth = dat.TimeSeries(df, i_year, i_birth)
+
+            self.YearStart = max(self.YearStart, df[i_year].min())
+            self.YearEnd = min(self.YearEnd, df[i_year].max())
+
+    def load_migration_data(self, df, i_year, i_mig):
+        if not self.FullyInputted:
+            self.Migration = dat.TimeSeries(df, i_year, i_mig)
+
+            self.YearStart = max(self.YearStart, df[i_year].min())
+            self.YearEnd = min(self.YearEnd, df[i_year].max())
+
+    def load_population_data(self, df, i_year, i_pop):
+        if not self.FullyInputted:
+            self.Population = dat.TimeSeries(df, i_year, i_pop)
+
+            self.YearStart = max(self.YearStart, df[i_year].min())
+            self.YearEnd = min(self.YearEnd, df[i_year].max())
+
+    def complete_loading(self):
+        """
+        Complete the data loading and freeze all the data
+        """
+        try:
+            assert self.Death is not None
+            assert self.Birth is not None
+            assert self.Migration is not None
+            assert self.Population is not None
+        except AssertionError as e:
+            raise e
+        else:
+            self.FullyInputted = True
+
+    @check_year
+    def get_death_rate(self, year):
+        if self.CurrentDeath[0] is not year:
+            self.CurrentDeath = year, self.Death(year)
+        return self.CurrentDeath[1]
+
+    @check_year
+    def get_birth_rate(self, year, sex=None):
+        if self.CurrentBirth[0] is not year:
+            self.CurrentBirth = year, self.Birth(year)
+        return self.CurrentBirth[1]
+
+    @check_year
+    def get_migration_rate(self, year, sex=None):
+        if self.CurrentMigration[0] is not year:
+            self.CurrentMigration = year, self.Migration(year)
+        return self.CurrentMigration[1]
+
+    @check_year
+    def get_population(self, year, sex=None):
+        if self.CurrentPopulation[0] is not year:
+            self.CurrentPopulation = year, self.Population(year)
+        return self.CurrentPopulation[1]
+
+    @check_year
+    def get_population_sampler(self, year, **kwargs):
+        """
+        Get a sampler for sampling population given a year
+        :param year: year of request
+        :return: sampler fn(n=1)
+        """
+        pass
+
+    def __str__(self):
+        return 'Total Demography, [{}, {}], Birth, Death, Migration'.format(self.YearStart, self.YearEnd)
 
     __repr__ = __str__
 

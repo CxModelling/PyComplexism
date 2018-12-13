@@ -78,6 +78,7 @@ class BlueprintODEEBM(AbsModelBlueprint):
             raise KeyError('Parameter core not found')
 
         dt, odt = self.Arguments['dt'], self.Arguments['odt']
+        # pc.freeze()
         model = OrdinaryDifferentialEquationModel(name, self.ODE, dt, odt, ys=self.Ys, xs=self.Xs, pars=pc)
         model.Class = self.Class
         # Assign observations

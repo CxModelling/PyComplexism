@@ -1,0 +1,21 @@
+PCore pTB_fit {
+    r_tr ~ unif(1, 20)
+    r_slat = 0.2
+
+    r_act = 0.073
+    r_ract = 0.00073
+    r_rel = 0.00073
+
+    r_cure = 1/3
+    r_treat = 24
+
+    r_die_tb = 1/3
+
+    partial_immune ~ triangle(0.79, 0.6, 0.89)
+
+    beta0 ~ unif(-3.1, 1.7)
+    betaT ~ unif(0, 0.9)
+    betaM ~ unif(-0.9, 0.9)
+
+    patient_delay ~ unif(0.1, 2)
+}
