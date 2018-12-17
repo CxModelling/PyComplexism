@@ -313,6 +313,24 @@ class AbsScheduler(metaclass=ABCMeta):
         dss = Disclosure(msg, who, self.Location, **kwargs)
         self.append_disclosure(dss)
 
+    def reduce_disclosures(self, model):
+        to_merge = dict()
+
+        for d in self.Disclosures:
+            if d.Who in to_merge:
+                to_merge[d.Who].append(d)
+            else:
+                to_merge[d.Who] = [d]
+
+        to_pop = list()
+        for k, v in to_merge.items():
+            if len(v) <= 1:
+                to_pop += v
+            else:
+                to_pop += model.manage_disclosures(k, v)
+
+        self.Disclosures = to_pop
+
     def pop_disclosures(self):
         ds, self.Disclosures = self.Disclosures, list()
         self.Counter['Disclosure'] + len(ds)

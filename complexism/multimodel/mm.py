@@ -71,6 +71,9 @@ class MultiModel(BranchModel):
         else:
             raise AttributeError('Duplicated atom name')
 
+    def get_atom(self, a):
+        return self.Actors[a]
+
     def add_observing_model(self, m):
         if m in self.Children:
             self.Observer.add_observing_model(m)

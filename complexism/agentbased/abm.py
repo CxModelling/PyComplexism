@@ -79,6 +79,12 @@ class GenericAgentBasedModel(LeafModel, metaclass=ABCMeta):
         self.Behaviours[be.Name] = be
         self.Scheduler.add_atom(be)
 
+    def get_atom(self, a):
+        if a in self.Behaviours:
+            return self.Behaviours[a]
+
+        return self.Population[a]
+
     def preset(self, ti):
         self.disclose('initialise', '*')
         for be in self.Behaviours.values():

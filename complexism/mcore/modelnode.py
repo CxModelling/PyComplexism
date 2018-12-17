@@ -93,6 +93,9 @@ class ModelAtom(metaclass=ABCMeta):
         """
         self.update_time(ti)
 
+    def manage_disclosures(self, dss):
+        return dss
+
     def update_time(self, ti):
         """
         Update to time to
@@ -202,6 +205,10 @@ class AbsModel(metaclass=ABCMeta):
     def get_sampler(self, s):
         return self.Parameters.get_sampler(s)
 
+    @abstractmethod
+    def get_atom(self, a):
+        pass
+
     def initialise(self, ti=None, y0=None):
         if y0:
             y0 = self.check_y0(y0)
@@ -264,6 +271,13 @@ class AbsModel(metaclass=ABCMeta):
 
     def disclose(self, msg, who, **kwargs):
         self.Scheduler.append_disclosure_from_source(msg, who, **kwargs)
+
+    def manage_disclosures(self, atom, dis):
+        try:
+            atom = self.get_atom(atom)
+            return atom.manage_disclosures(dis)
+        except KeyError:
+            return dis
 
     @abstractmethod
     def collect_disclosure(self):
@@ -349,6 +363,7 @@ class LeafModel(AbsModel, metaclass=ABCMeta):
             self.Scheduler.execution_completed()
 
     def collect_disclosure(self):
+        self.Scheduler.reduce_disclosures(self)
         return self.Scheduler.pop_disclosures()
 
     def fetch_disclosures(self, ds_ms, time):
@@ -438,6 +453,7 @@ class BranchModel(AbsModel, metaclass=ABCMeta):
             self.Scheduler.execution_completed()
 
     def collect_disclosure(self):
+        self.Scheduler.reduce_disclosures(self)
         dss = self.Scheduler.pop_disclosures()
         for v in self.all_models().values():
             ds = v.collect_disclosure()

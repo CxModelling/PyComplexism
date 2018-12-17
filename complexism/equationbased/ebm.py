@@ -97,6 +97,9 @@ class GenericEquationBasedModel(LeafModel):
     def add_observing_flow_function(self, func):
         self.Observer.add_observing_flow_function(func)
 
+    def get_atom(self, a):
+        return self.Equations
+
     def read_y0(self, y0, ti):
         self.Equations.set_y(y0.get_dict_form())
         self.Y = self.Equations.get_y_dict()

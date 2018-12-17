@@ -1,5 +1,6 @@
 from ...be.behaviour import PassiveBehaviour
 from .trigger import StateTrigger, DoubleStateTrigger
+from complexism.element.scheduler import Disclosure
 __author__ = 'TimeWz667'
 __all__ = ['StateTrack']
 
@@ -37,6 +38,15 @@ class StateTrack(PassiveBehaviour):
         v0, v1 = self.Value, self.Value + dv
         self.Value = v1
         model.disclose('update value to {}'.format(v1), self.Name, v0=v0, v1=v1)
+
+    def manage_disclosures(self, dss):
+        if len(dss) <= 1:
+            return dss
+
+        d0, d1 = dss[0], dss[-1]
+        v0 = d0['v0']
+        v1 = d1['v1']
+        return [Disclosure('update value to {}'.format(v1), self.Name, d1.Where, v0=v0, v1=v1)]
 
     def match(self, be_src, ags_src, ags_new, ti):
         self.Value = be_src.Value
