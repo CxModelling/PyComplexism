@@ -110,7 +110,7 @@ y0s = lyo.get_y0s()
 y0s.print()
 
 cx.start_counting('MM')
-output = cx.simulate(model, y0s, 0, 10, .5, log=True)
+output = cx.simulate(model, y0s, 0, 10, .5, log=False)
 cx.stop_counting()
 print(output)
 print()

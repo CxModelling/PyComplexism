@@ -1,4 +1,5 @@
 from inspect import signature
+import pickle
 import epidag as dag
 from complexism.mcore import AbsModelBlueprint
 from .ebm import GenericEquationBasedModel, EBMY0
@@ -16,10 +17,10 @@ class BlueprintODEEBM(AbsModelBlueprint):
         self.Arguments['odt'] = 1
         self.ODE = None
         self.Ys = None
+        self.Ps = None
         self.Xs = None
         self.ObsYs = list()
         self.Measurements = list()
-        self.ObsStocks = list()
 
     def set_fn_ode(self, fn, ys):
         for x, y in zip(signature(fn).parameters.keys(), ['y', 't', 'p', 'x']):
@@ -27,6 +28,9 @@ class BlueprintODEEBM(AbsModelBlueprint):
                 raise TypeError('Positional arguments should be y, t, p, and x')
         self.ODE = fn
         self.Ys = list(ys)
+
+    def set_required_parameters(self, ps):
+        self.Ps = list(ps)
 
     def set_external_variables(self, xs):
         self.Xs = dict(xs)
@@ -37,7 +41,7 @@ class BlueprintODEEBM(AbsModelBlueprint):
                 raise TypeError('Positional arguments should be y, t, p, and x')
         self.Measurements.append(fn)
 
-    def set_observations(self, stocks='*'):
+    def set_observations(self, stocks: list = '*') -> object:
         if stocks == '*':
             self.ObsYs = list(self.Ys)
         elif isinstance(stocks, list):
@@ -53,7 +57,10 @@ class BlueprintODEEBM(AbsModelBlueprint):
         })
 
     def get_parameter_hierarchy(self, da=None):
-        return {self.Class: []}
+        if self.Ps:
+            return {self.Class: self.Ps}
+        else:
+            return {self.Class: []}
 
     def get_y0_proto(self):
         return ODEY0()
@@ -78,7 +85,7 @@ class BlueprintODEEBM(AbsModelBlueprint):
             raise KeyError('Parameter core not found')
 
         dt, odt = self.Arguments['dt'], self.Arguments['odt']
-        # pc.freeze()
+
         model = OrdinaryDifferentialEquationModel(name, self.ODE, dt, odt, ys=self.Ys, xs=self.Xs, pars=pc)
         model.Class = self.Class
         # Assign observations
@@ -91,13 +98,39 @@ class BlueprintODEEBM(AbsModelBlueprint):
         return model
 
     def to_json(self):
-        pass
+        xs = dict()
+        for k, v in self.Xs.items():
+            if type(v) in [int, float, str]:
+                xs[k] = v
+            else:
+                xs[k] = pickle.dumps(v)
 
-    def clone_model(self, mod_src, **kwargs):
-        pass
+        return {
+            'Class': self.Class,
+            'Proto': 'ODEEBM',
+            'Arguments': dict(self.Arguments),
+            'ODE': pickle.dumps(self.ODE),
+            'Ys': self.Ys,
+            'Ps': self.Ps,
+            'Xs': xs,
+            'ObsYs': self.ObsYs,
+            'Measurements': [pickle.dumps(m) for m in self.Measurements]
+        }
 
     @staticmethod
     def from_json(js):
+        bp = BlueprintODEEBM(js['Class'])
+        bp.Arguments.update(js['Arguments'])
+        bp.set_fn_ode(pickle.loads(js['ODE']), js['Ys'])
+        bp.set_external_variables(js['Xs'])
+        bp.set_required_parameters(js['Ps'])
+        bp.set_observations([y for y in js['ObsYs']])
+        for m in js['Measurements']:
+            bp.add_observing_function(pickle.loads(m))
+        return bp
+
+    def clone_model(self, mod_src, **kwargs):
+        # todo
         pass
 
 

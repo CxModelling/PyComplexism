@@ -64,10 +64,15 @@ ENV/
 docs/
 .idea/
 
-.log
+*.log
 playground.ipynb
 .pytest_cache/
 try.py
 test/*.log
 example/*.log
 example/**/*.log
+
+Hood *.ipynb
+
+TB_test/
+TB/

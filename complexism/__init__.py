@@ -5,7 +5,8 @@ from complexism.mcore import *
 from complexism.agentbased import *
 from complexism.equationbased import *
 from complexism.multimodel import *
-from complexism.fn import *
-from complexism.director import *
+from .fn import *
+from .director import *
+from .fitter import *
 
 __author__ = 'TimeWz667'
