@@ -41,7 +41,7 @@ class BlueprintODEEBM(AbsModelBlueprint):
                 raise TypeError('Positional arguments should be y, t, p, and x')
         self.Measurements.append(fn)
 
-    def set_observations(self, stocks: list = '*') -> object:
+    def set_observations(self, stocks: list = '*'):
         if stocks == '*':
             self.ObsYs = list(self.Ys)
         elif isinstance(stocks, list):

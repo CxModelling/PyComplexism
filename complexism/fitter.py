@@ -31,7 +31,7 @@ class CxFitter(BayesianModel, metaclass=ABCMeta):
         return self.Ctrl.get_y0s(self.WarmUpModel if self.WarmUpModel else self.SimModel)
 
     @abstractmethod
-    def _check_mid_term(self, y0):
+    def _check_mid_term(self, y0, p):
         return True
 
     @abstractmethod
@@ -68,7 +68,7 @@ class CxFitter(BayesianModel, metaclass=ABCMeta):
 
     def evaluate_likelihood(self, prior):
         y0 = self.warm_up(prior)
-        if not self._check_mid_term(y0):
+        if not self._check_mid_term(y0, prior):
             return -float('inf')
         out = self.simulate(prior, y0)
         return self._calculate_likelihood(prior, out)
@@ -90,8 +90,8 @@ class CxFnFitter(CxFitter):
     def _transport_y0(self, model):
         return self.TransportY0Function(model)
 
-    def _check_mid_term(self, y0):
-        return self.MidTermChecker(y0)
+    def _check_mid_term(self, y0, p):
+        return self.MidTermChecker(y0, p)
 
     def _calculate_likelihood(self, p, out):
         return self.LikelihoodFunction(p, out)
