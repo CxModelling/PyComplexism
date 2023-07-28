@@ -1,0 +1,22 @@
+version:                "3"
+services:
+  cxd:
+      image: timewz667/sims-pars:v2.6.1
+      volumes:
+        - ./notebooks:/home/jovyan/work
+        - ./src/pycx:/home/jovyan/work/pycx
+      ports:
+        - 8383:8888
+      environment:
+        - JUPYTER_TOKEN=hi
+      container_name: cx_test
+
+  cx:
+    image: cx:latest
+    volumes:
+      - ./notebooks:/home/jovyan/work
+    ports:
+      - 8380:8888
+    environment:
+      - JUPYTER_TOKEN=hi
+    container_name: cx_build
