@@ -80,7 +80,7 @@ class AbsDynamicModel(metaclass=ABCMeta):
     def execute(self, st, evt):
         """
         Execute event based on state
-        :param st: stock
+        :param st: stock value
         :type st: Stock
         :param evt: an event to be executes
         :type evt: Event

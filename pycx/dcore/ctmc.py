@@ -2,6 +2,9 @@ import sims_pars as dag
 from pycx.dcore.statespace import State, Transition, AbsStateSpaceModel
 from pycx.dcore.dynamics import AbsBlueprint
 
+__author__ = 'TimeWz667'
+__all__ = ['ModelCTMC', 'BlueprintCTMC']
+
 
 class ModelCTMC(AbsStateSpaceModel):
     def __init__(self, name, sts, trs, tars, js):

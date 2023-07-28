@@ -1,5 +1,5 @@
-import complexism as cx
-import epidag as dag
+import pycx as cx
+import sims_pars as dag
 
 __author__ = 'TimeWz667'
 
@@ -37,17 +37,17 @@ PCore ABC{
 """
 
 # Sample root nodes
-pc = dag.quick_build_parameter_core(psc)
+pc = dag.bayes_net_from_script(psc)
 print('\nUse a parameter model to support samplers')
-print(pc.Actors.keys())
+samplers = {node: pc[node] for node in pc.Leaves}
 # Use pc to generate a dynamic core
-dc = bp.generate_model('Test1', **pc.Actors)
+dc = bp.generate_model('Test1', **samplers)
 print('\nCombining parameter model and dynamic model')
 print(dc)
 
 
 state_a = dc['A']
-print('\nTake a state from the dynamicmodel')
+print('\nTake a state from the dynamic model')
 print(state_a)
 
 print('\nUpcoming transitions')

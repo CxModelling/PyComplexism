@@ -1,18 +1,18 @@
-import complexism as cx
+import pycx as cx
 import complexism.agentbased.statespace as ss
-import epidag as dag
+import sims_pars as dag
 
 __author__ = 'TimeWz667'
 
 
-bn = cx.read_bn_script(cx.load_txt('../scripts/pSIR.txt'))
-
+bn = dag.bayes_net_from_script(cx.load_txt('../scripts/pSIR.txt'))
 sm = dag.as_simulation_core(bn,
-                            hie={'city': ['agent'],
+                            {'city': ['agent'],
                                  'agent': ['Recov', 'Die', 'Infect']})
 
 dbp = cx.read_dbp_script(cx.load_txt('../scripts/SIR_BN.txt'))
-pc = dag.quick_build_parameter_core(cx.load_txt('../scripts/pSIR.txt'))
+pc = dag.bayes_net_from_script(cx.load_txt('../scripts/pSIR.txt'))
+pc = dag.as_simulation_core(pc)
 dc = dbp.generate_model('M1', **pc.get_samplers())
 
 

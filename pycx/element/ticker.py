@@ -1,6 +1,5 @@
 from abc import ABCMeta, abstractmethod
-from sims_pars.factory import get_workshop
-import sims_pars.factory.arguments as vld
+
 
 __author__ = 'TimeWz667'
 __all__ = ['AbsTicker', 'StepTicker', 'ScheduleTicker', 'AppointmentTicker']
@@ -112,14 +111,8 @@ class AppointmentTicker(AbsTicker):
         return float('inf')
 
 
-TickerLibrary = get_workshop('Ticker')
-TickerLibrary.register('Step', StepTicker, [vld.Prob('dt')])
-TickerLibrary.register('Schedule', ScheduleTicker, [vld.List('ts')])
-TickerLibrary.register('Appointment', AppointmentTicker, [vld.List('queue')])
-
-
 if __name__ == '__main__':
-    clock = TickerLibrary.parse('Step(0.5)')
+    clock = StepTicker(0.5)
     clock.initialise(0)
     ti = clock.Next
     print(ti)
@@ -129,7 +122,7 @@ if __name__ == '__main__':
         print(ti)
 
     print()
-    clock = TickerLibrary.create('Schedule', ts=[0.5, 1.9])
+    clock = ScheduleTicker(ts=[0.5, 1.9])
     clock.initialise(0)
     ti = clock.Next
     print(ti)
