@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import epidag as dag
 import complexism as cx
-from complexism.element import ScheduleTicker, Event
+from element import ScheduleTicker, Event
 import complexism.agentbased.statespace as ss
 import complexism.multimodel as mm
 

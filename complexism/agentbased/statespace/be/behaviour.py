@@ -1,6 +1,6 @@
 from abc import ABCMeta
 from ..modifier import AbsModifier
-from complexism.element import AbsTicker
+from element import AbsTicker
 from complexism.agentbased.be import Trigger, ActiveBehaviour, PassiveBehaviour
 
 __author__ = 'TimeWz667'

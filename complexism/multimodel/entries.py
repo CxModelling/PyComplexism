@@ -1,4 +1,4 @@
-from complexism.mcore import ImpulseChecker, ImpulseResponse, get_impulse_response, get_impulse_checker
+from mcore import ImpulseChecker, ImpulseResponse, get_impulse_response, get_impulse_checker
 
 __author__ = 'TimeWz667'
 __all__ = ['SingleEntry', 'MultipleEntry', 'InteractionEntry', 'SummaryEntry']

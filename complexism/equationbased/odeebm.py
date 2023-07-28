@@ -1,6 +1,6 @@
 import numpy as np
 from scipy.integrate import odeint
-from complexism.mcore import Observer
+from mcore import Observer
 from .ebm import AbsEquations, GenericEquationBasedModel, EBMY0
 
 __author__ = 'TimeWz667'

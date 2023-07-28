@@ -1,8 +1,8 @@
 from abc import ABCMeta, abstractmethod
 from collections import namedtuple, OrderedDict
-from complexism.misc.counter import count
-from complexism.mcore import Observer, LeafModel
-from complexism.element import Request
+from src.pycx.misc.counter import count
+from mcore import Observer, LeafModel
+from element import Request
 
 
 __author__ = 'TimeWz667'

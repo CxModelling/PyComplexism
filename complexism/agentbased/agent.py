@@ -1,5 +1,5 @@
-from complexism.misc import NameGenerator
-from complexism.mcore import ModelAtom
+from src.pycx.misc import NameGenerator
+from mcore import ModelAtom
 from abc import ABCMeta, abstractmethod
 
 __author__ = 'TimeWz667'

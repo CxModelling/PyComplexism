@@ -1,4 +1,4 @@
-from complexism.element import Event
+from element import Event
 from complexism.agentbased import GenericAgent
 from .modifier import ModifierSet
 

@@ -1,5 +1,5 @@
 from complexism.agentbased import GenericBreeder
-import complexism.dcore as ss
+import src.pycx.dcore as ss
 from .agent import StSpAgent
 
 __author__ = 'TimeWz667'

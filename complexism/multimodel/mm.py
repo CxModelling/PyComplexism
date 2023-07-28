@@ -1,6 +1,6 @@
 from collections import OrderedDict, namedtuple
-from complexism.misc.counter import count
-from complexism.mcore import BranchModel, Observer, BranchY0
+from src.pycx.misc.counter import count
+from mcore import BranchModel, Observer, BranchY0
 
 
 __author__ = 'TimeWz667'

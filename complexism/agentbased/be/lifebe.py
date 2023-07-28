@@ -1,6 +1,6 @@
 import numpy as np
 import numpy.random as rd
-from complexism.element import StepTicker, Event
+from element import StepTicker, Event
 from complexism.agentbased import ActiveBehaviour, PassiveBehaviour
 from .trigger import AttributeEnterTrigger
 

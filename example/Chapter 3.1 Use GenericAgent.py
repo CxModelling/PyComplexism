@@ -1,5 +1,5 @@
 import complexism as cx
-from complexism.element import Event
+from element import Event
 from random import choice
 
 

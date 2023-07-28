@@ -1,7 +1,7 @@
 from abc import ABCMeta, abstractmethod
 from .trigger import *
-from complexism.mcore import ModelAtom
-from complexism.element import AbsTicker, Event
+from mcore import ModelAtom
+from element import AbsTicker, Event
 
 __author__ = 'TimeWz667'
 __all__ = ['AbsBehaviour', 'PassiveBehaviour', 'ActiveBehaviour']

@@ -1,8 +1,8 @@
 from copy import deepcopy
 from abc import ABCMeta, abstractmethod
-from complexism.misc.counter import count
-from complexism.mcore import Observer, LeafModel, ModelAtom, LeafY0
-from complexism.element import Event, StepTicker
+from src.pycx.misc.counter import count
+from mcore import Observer, LeafModel, ModelAtom, LeafY0
+from element import Event, StepTicker
 
 
 __author__ = 'TimeWz667'

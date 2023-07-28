@@ -1,6 +1,6 @@
 from ...be.behaviour import PassiveBehaviour
 from .trigger import StateTrigger, DoubleStateTrigger
-from complexism.element.scheduler import Disclosure
+from element.scheduler import Disclosure
 __author__ = 'TimeWz667'
 __all__ = ['StateTrack']
 

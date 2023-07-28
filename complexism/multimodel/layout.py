@@ -1,5 +1,5 @@
 import epidag as dag
-from complexism.mcore import BranchY0, AbsModelBlueprint
+from mcore import BranchY0, AbsModelBlueprint
 from complexism.multimodel.mm import MultiModel
 from complexism.multimodel.entries import *
 

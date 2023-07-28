@@ -1,6 +1,6 @@
 import scipy.interpolate as ipl
 from abc import ABCMeta, abstractmethod
-from complexism.element import Event, ScheduleTicker, StepTicker
+from element import Event, ScheduleTicker, StepTicker
 from ..modifier import GloRateModifier
 from .behaviour import ActiveModBehaviour
 

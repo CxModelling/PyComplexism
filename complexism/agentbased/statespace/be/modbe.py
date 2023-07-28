@@ -1,6 +1,6 @@
 from abc import ABCMeta, abstractmethod
 import numpy.random as rd
-from complexism.element import Event, StepTicker
+from element import Event, StepTicker
 from ..modifier import GloRateModifier, LocRateModifier, BuffModifier, NerfModifier
 from .behaviour import PassiveModBehaviour, ActiveModBehaviour
 from .trigger import StateTrigger

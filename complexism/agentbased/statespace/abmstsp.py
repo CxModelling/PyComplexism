@@ -1,7 +1,7 @@
 from collections import namedtuple, Counter
-from complexism.dcore import Transition
+from src.pycx.dcore import Transition
 from complexism.agentbased.abm import GenericAgentBasedModel, ObsABM
-from complexism.mcore.y0 import LeafY0
+from mcore import LeafY0
 
 __author__ = 'TimeWz667'
 __all__ = ['StSpAgentBasedModel', 'StSpY0']

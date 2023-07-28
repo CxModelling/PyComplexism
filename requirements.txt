@@ -1,7 +1,6 @@
-factory
 matplotlib
 networkx
 scipy
 numpy
 pandas
-pcore
+sims_pars == 2.6.0

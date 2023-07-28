@@ -1,5 +1,5 @@
 from complexism.agentbased import AgentBasedModel
-from complexism.mcore import AbsModelBlueprint
+from mcore import AbsModelBlueprint
 from copy import deepcopy
 from epidag.factory import get_workshop
 import logging

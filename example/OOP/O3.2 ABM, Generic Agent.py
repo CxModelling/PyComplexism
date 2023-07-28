@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 from numpy.random import choice
 import complexism as cx
-from complexism.element import Event
+from element import Event
 
 
 __author__ = 'TimeWz667'

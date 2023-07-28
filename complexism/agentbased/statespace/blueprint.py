@@ -1,7 +1,7 @@
 import epidag as dag
 from epidag.factory import get_workshop
 import complexism as cx
-from complexism.mcore import AbsModelBlueprint
+from mcore import AbsModelBlueprint
 from .abmstsp import StSpAgentBasedModel, StSpY0
 from .breeder import StSpBreeder
 

@@ -1,7 +1,7 @@
 from inspect import signature
 import pickle
 import epidag as dag
-from complexism.mcore import AbsModelBlueprint
+from mcore import AbsModelBlueprint
 from .ebm import GenericEquationBasedModel, EBMY0
 from .odeebm import OrdinaryDifferentialEquationModel, OrdinaryDifferentialEquations, ODEY0
 
