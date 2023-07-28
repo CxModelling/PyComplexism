@@ -1,7 +1,7 @@
 from abc import ABCMeta, abstractmethod
-from element import Event, get_scheduler, DefaultScheduler
-from mcore import Observer, DefaultObserver, ModelSelector, EventListenerSet, LeafY0, BranchY0
-from misc.counter import count
+from pycx.element import Event, get_scheduler, DefaultScheduler
+from pycx.mcore import Observer, DefaultObserver, ModelSelector, EventListenerSet, LeafY0, BranchY0
+from pycx.misc.counter import count
 
 __author__ = 'TimeWz667'
 __all__ = ['ModelAtom', 'LeafModel', 'BranchModel']
@@ -67,7 +67,7 @@ class ModelAtom(metaclass=ABCMeta):
         """
         self.__next.cancel()
         try:
-            self.__scheduler.await(self)
+            self.__scheduler.wait(self)
         except AttributeError:
             pass
 

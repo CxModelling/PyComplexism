@@ -1,7 +1,6 @@
-import json
 import sims_pars as dag
-from cx.dcore.statespace import State, Transition, AbsStateSpaceModel
-from .dynamics import AbsBlueprint
+from pycx.dcore.statespace import State, Transition, AbsStateSpaceModel
+from pycx.dcore.dynamics import AbsBlueprint
 
 
 class ModelCTMC(AbsStateSpaceModel):

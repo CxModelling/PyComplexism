@@ -1,7 +1,8 @@
 import sims_pars as dag
 from itertools import product
 from collections import OrderedDict
-from pycx.statespace import State, Transition, AbsStateSpaceModel
+from pycx.dcore.statespace import State, Transition, AbsStateSpaceModel
+
 __author__ = 'TimeWz667'
 
 
@@ -128,7 +129,7 @@ class BlueprintCTBN(AbsBlueprint):
     def __init__(self, name):
         AbsBlueprint.__init__(self, name)
         self.Microstates = OrderedDict()  # Name -> array of states
-        self.States = dict()  # Nick name -> combination of microstates
+        self.States = dict()  # Nickname -> combination of microstates
         self.Transitions = dict()  # Name -> (event, distribution)
         self.Targets = dict()  # StateName -> TransitionNames
 

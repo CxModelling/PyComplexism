@@ -27,7 +27,7 @@ def save_txt(txt, path):
 
 def load_json(path):
     """
-    Load json file given path
+    Load json file given a filepath
     :param path: path of a json file
     :return: json of the json file
     """

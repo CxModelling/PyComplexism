@@ -1,6 +1,6 @@
 import sims_pars as dag
 from pycx.misc import *
-from mcore import Simulator
+from pycx.mcore import Simulator
 import complexism.agentbased.statespace as ssa
 import complexism.equationbased as ebm
 import complexism.multimodel as mm

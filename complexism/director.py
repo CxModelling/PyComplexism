@@ -1,6 +1,6 @@
 from json import JSONDecodeError
 import logging
-import epidag as dag
+import sims_pars as dag
 from fn import *
 
 __author__ = 'TimeWz667'

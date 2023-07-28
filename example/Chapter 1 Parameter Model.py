@@ -1,4 +1,4 @@
-import epidag as dag
+import sims_pars as dag
 
 __author__ = 'TimeWz667'
 

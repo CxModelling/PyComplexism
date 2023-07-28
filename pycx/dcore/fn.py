@@ -1,7 +1,7 @@
 import re
 from misc import save_json
-from .ctbn import BlueprintCTBN
-from .ctmc import BlueprintCTMC
+from pycx.dcore.ctbn import BlueprintCTBN
+from pycx.dcore.ctmc import BlueprintCTMC
 
 
 __author__ = 'TimeWz667'

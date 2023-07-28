@@ -1,4 +1,4 @@
-from element import Event
+from pycx.element import Event
 from pycx.dcore.dynamics import AbsDynamicModel, Stock
 from abc import ABCMeta, abstractmethod
 
@@ -25,7 +25,7 @@ class Transition:
         Randomly sample a time to event
         :param attr: parent nodes
         :type attr: dict
-        :return: time to event
+        :return: time to the event
         :rtype: float
         """
         return self.Dist.sample(attr)
@@ -90,7 +90,6 @@ class State(Stock):
         """
         Check whether the sub is the sub-state or not
         :param sub: state
-        :param sub: State
         :return: true if sub is a part of self
         :rtype: bool
         """
