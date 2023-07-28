@@ -1,6 +1,6 @@
 from ...be.behaviour import PassiveBehaviour
 from .trigger import StateTrigger, DoubleStateTrigger
-from element.scheduler import Disclosure
+from element import Disclosure
 __author__ = 'TimeWz667'
 __all__ = ['StateTrack']
 

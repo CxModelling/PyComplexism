@@ -1,6 +1,6 @@
 from copy import deepcopy
 from abc import ABCMeta, abstractmethod
-from src.pycx.misc.counter import count
+from misc.counter import count
 from mcore import Observer, LeafModel, ModelAtom, LeafY0
 from element import Event, StepTicker
 

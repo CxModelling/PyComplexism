@@ -1,5 +1,5 @@
 import unittest
-from src.pycx.misc.counter import *
+from misc.counter import *
 
 
 class Model:

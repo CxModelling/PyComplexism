@@ -1,7 +1,7 @@
 from abc import ABCMeta, abstractmethod
 from element import Event, get_scheduler, DefaultScheduler
 from mcore import Observer, DefaultObserver, ModelSelector, EventListenerSet, LeafY0, BranchY0
-from src.pycx.misc.counter import count
+from misc.counter import count
 
 __author__ = 'TimeWz667'
 __all__ = ['ModelAtom', 'LeafModel', 'BranchModel']

@@ -1,5 +1,5 @@
 import unittest
-from src.pycx.misc import DemographyLeeCarter
+from misc import DemographyLeeCarter
 import pandas as pd
 
 

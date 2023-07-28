@@ -1,5 +1,5 @@
 from abc import abstractmethod, ABCMeta
-from element import Event
+from pycx.element import Event
 
 
 __author__ = 'TimeWz667'

@@ -1,6 +1,6 @@
 import unittest
-import complexism as cx
-import epidag as dag
+import pycx as cx
+import sims_pars as dag
 
 
 class CTMCTestCase(unittest.TestCase):

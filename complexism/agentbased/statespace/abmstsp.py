@@ -1,5 +1,5 @@
 from collections import namedtuple, Counter
-from src.pycx.dcore import Transition
+from dcore import Transition
 from complexism.agentbased.abm import GenericAgentBasedModel, ObsABM
 from mcore import LeafY0
 

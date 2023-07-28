@@ -1,5 +1,5 @@
 import unittest
-from src.pycx.misc import *
+from misc import *
 import os
 
 

@@ -1,6 +1,6 @@
 import unittest
-from mcore.impchecker import *
-from element.scheduler import Disclosure
+from mcore import *
+from element import Disclosure
 
 
 class CheckerCase(unittest.TestCase):

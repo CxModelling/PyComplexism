@@ -1,5 +1,5 @@
 from collections import OrderedDict, namedtuple
-from src.pycx.misc.counter import count
+from misc.counter import count
 from mcore import BranchModel, Observer, BranchY0
 
 

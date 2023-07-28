@@ -1,5 +1,5 @@
 from mcore import BranchModel, LeafModel
-from mcore.simulator import Simulator
+from mcore import Simulator
 from element import Event
 import numpy.random as rd
 

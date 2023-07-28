@@ -1,5 +1,5 @@
 import re
-from src.pycx.misc import save_json
+from misc import save_json
 from .ctbn import BlueprintCTBN
 from .ctmc import BlueprintCTMC
 

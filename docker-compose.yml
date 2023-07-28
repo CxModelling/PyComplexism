@@ -4,7 +4,7 @@ services:
       image: timewz667/sims-pars:v2.6.1
       volumes:
         - ./notebooks:/home/jovyan/work
-        - ./src/pycx:/home/jovyan/work/pycx
+        - ./pycx:/home/jovyan/work/pycx
       ports:
         - 8383:8888
       environment:

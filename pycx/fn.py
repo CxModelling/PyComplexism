@@ -1,5 +1,5 @@
-import epidag as dag
-from src.pycx.misc import *
+import sims_pars as dag
+from pycx.misc import *
 from mcore import Simulator
 import complexism.agentbased.statespace as ssa
 import complexism.equationbased as ebm
@@ -9,7 +9,7 @@ __author__ = 'TimeWz667'
 __all__ = [
     'load_txt', 'load_json', 'save_json',
     'read_bn_script', 'read_bn_json', 'save_bn',
-    'new_dbp', 'read_dbp_json', 'read_dbp_script', 'save_dbp',
+    # 'new_dbp', 'read_dbp_json', 'read_dbp_script', 'save_dbp',
     'new_mbp', # 'read_mbp_json', 'save_mbp',
     # 'new_lyo', 'read_lyo_json', 'save_lyo',
     'simulate', 'update'
