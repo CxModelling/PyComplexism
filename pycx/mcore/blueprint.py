@@ -1,6 +1,7 @@
 from abc import ABCMeta, abstractmethod
 
 __author__ = 'TimeWz667'
+__all__ = ['AbsModelBlueprint']
 
 
 class AbsModelBlueprint(metaclass=ABCMeta):

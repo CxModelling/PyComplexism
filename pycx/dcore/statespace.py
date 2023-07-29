@@ -88,7 +88,7 @@ class State(Stock):
 
     def isa(self, sub):
         """
-        Check whether the sub is the sub-state or not
+        Check whether the sub is the substate or not
         :param sub: state
         :return: true if sub is a part of self
         :rtype: bool

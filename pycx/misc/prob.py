@@ -2,6 +2,7 @@ from numpy.random import choice
 import numpy as np
 
 __author__ = 'TimeWz667'
+__all__ = ['CategoricalRV']
 
 
 class CategoricalRV:

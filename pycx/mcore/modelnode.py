@@ -98,7 +98,7 @@ class ModelAtom(metaclass=ABCMeta):
 
     def update_time(self, ti):
         """
-        Update to time to
+        Update to a time point
         :param ti: time
         """
         pass

@@ -7,6 +7,7 @@ import epidag.data as dat
 __author__ = 'TimeWz667'
 __all__ = ['DemographyLeeCarter']
 
+
 class LeeCarterProcess:
     def __init__(self, path_lct, path_lcx):
         lct = pd.read_csv(path_lct, index_col=False, parse_dates=False)
